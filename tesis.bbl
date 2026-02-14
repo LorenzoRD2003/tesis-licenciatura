@@ -1,0 +1,35 @@
+\begin{thebibliography}{1}
+
+\bibitem{costello2010pairings}
+C.~Costello, ``Pairings for beginners.'' Available online:
+  \url{https://static1.squarespace.com/static/5fdbb09f31d71c1227082339/t/5ff394720493bd28278889c6/1609798774687/PairingsForBeginners.pdf},
+  2010.
+
+\bibitem{rfc9380}
+A.~Faz-Hernandez, S.~Scott, N.~Sullivan, R.~S. Wahby, and C.~A. Wood,
+  ``{Hashing to Elliptic Curves}.'' RFC 9380, Aug. 2023.
+
+\bibitem{DBLP:journals/siamcomp/GoldwasserMR89}
+S.~Goldwasser, S.~Micali, and C.~Rackoff, ``The knowledge complexity of
+  interactive proof systems,'' {\em SIAM J. Comput.}, vol.~18, no.~1,
+  pp.~186--208, 1989.
+
+\bibitem{10.1145/146585.146609}
+A.~Shamir, ``Ip = pspace,'' {\em J. ACM}, vol.~39, p.~869–877, Oct. 1992.
+
+\bibitem{arora2006computational}
+S.~Arora and B.~Barak, {\em Computational Complexity: A Modern Approach}.
+\newblock Cambridge University Press, 2006.
+
+\bibitem{Goldreich2001}
+O.~Goldreich, {\em Foundations of Cryptography}.
+\newblock Cambridge University Press, Aug. 2001.
+
+\bibitem{10.1145/2090236.2090263}
+N.~Bitansky, R.~Canetti, A.~Chiesa, and E.~Tromer, ``From extractable collision
+  resistance to succinct non-interactive arguments of knowledge, and back
+  again,'' in {\em Proceedings of the 3rd Innovations in Theoretical Computer
+  Science Conference}, ITCS '12, (New York, NY, USA), p.~326–349, Association
+  for Computing Machinery, 2012.
+
+\end{thebibliography}

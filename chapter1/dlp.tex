@@ -1,0 +1,13 @@
+% !TeX root = main.tex
+
+\begin{definition}[DLP]
+	Sea $G$ un grupo cíclico finito, y sea $g$ un generador de $G$. Dado $h = g^x \in G$, el problema del logaritmo discreto consiste en hallar un $x \in \mathbb{N}$ que satisfaga la ecuación. Se llama a $x$ como logartimo discreto de $h$ en base $g$, denotado $\log_g(h)$.
+\end{definition}
+
+En grupos cíclicos genéricos, DLP se considera computacionalmente difícil en el sentido de la complejidad algorítmica. Se sabe que cualquier algoritmo probabilístico que resuelva DLP requiere, en el peor caso, un número de operaciones del orden de $\theta(\sqrt{n})$, donde $n$ es el orden del grupo cíclico. (Debido a Shoup. TODO: Incluir bibliografia del algoritmo). No se sabe si el DLP pertenece a la clase de complejidad $\textbf{P}$, ni si es $\text{NP}-completo$.
+
+Cuando se considera es el grupo multiplicativo $F_p^*$, la estructura aritmética adicional permite algoritmos más eficientes que para un grupo genérico. El mejor algoritmo clásico conocido en este caso es el Number Field Sieve para logaritmos discretos (NFS-DL), cuya complejidad es subexponencial.
+
+El DLP es un pilar fundamental en la criptografía, ya que la seguridad de numerosos esquemas criptográficos depende de su dificultad computacional, como el intercambio de claves de Diffie-Hellman, y esquemas de clave pública/privada y esquemas de firma digital como Schnorr y DSA. En general, en este contexto una clave privada será $x \in \mathbb{N}$, mientras que la clave pública derivada de esta clave privada será $g^x$.
+
+Si bien es computacionalmente eficiente calcular potencias en un grupo cíclico (utilizando un algoritmo de divide-and-conquer), invertir esta operación es computacionalmente intratable con recursos realistas. En la criptografía, es sumamente útil la eficiencia del cálculo en una dirección y la dificultad de inversión.

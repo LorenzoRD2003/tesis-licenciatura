@@ -1,0 +1,53 @@
+% !TeX root = main.tex
+
+Ahora vamos a bajar a un tipo particular de protocolos de argumentos ZK. \textit{SNARK (Succint Non-Interactive ARgument of Knowledge)}. Fueron introducidos por primera vez en \cite{10.1145/2090236.2090263}. TODO: terminar este párrafo.
+
+\begin{definition}[SNARK, ZK-SNARK]
+	Sea $R \subseteq \mathcal{X} \times \mathcal{W}$ una relación en la clase de complejidad $\mathrm{NP}$. Un SNARK para $R$ es una tripla de algoritmos en tiempo polinomial
+	$$\mathcal{S} = (\text{Setup}, \mathcal{P}, \mathcal{V}),$$
+	definidos como:
+	\begin{itemize}
+		\item $\text{Setup}(1^\lambda)$ es un algoritmo aleatorio que genera un conjunto de parámetros públicos $\text{crs}$, conocido como \textit{Common Reference String}, que es usado tanto por el prover como por el verifier. $\lambda$ es un parámetro de seguridad.
+		\item $\mathcal{P}_{\text{crs}}: \mathcal{X} \times \mathcal{W} \to \Pi$ es un algoritmo aleatorio que produce una prueba $\pi$
+		\item $\mathcal{V}_\text{crs}: \mathcal{X} \times Pi \to \{0,1\}$ es un algoritmo determinístico.
+	\end{itemize}
+	
+	La tripla de algoritmos $\mathcal{S}$ debe, además, cumplir con las siguientes propiedades:
+	\begin{itemize}
+		\item Completitud: Para todo $(x,w) \in R$, $\mathbb{P}[\mathcal{V}_\text{crs}(x,\mathcal{P}_\text{crs}(x,w))] = 1$.
+		\item Solidez computacional: Para todo prover probabilístico en tiempo polinomial $(\mathcal{P}^\star$ que produce un argumento $\pi$ tal que
+		$$\mathbb{P}\left[\mathcal{V}_\text{crs}(x, \pi) = 1\right]$$
+		es no negligible, existe un extractor probabilístico en tiempo polinomial con acceso a $\mathcal{P}^\star$ que devuelve (extrae) un witness $w$ tal que \((x,w) \in R\). Es por esto que hablamos de que $\pi$ es un argumento y no una prueba. En adelante, cuando hablamos de SNARKs nos referimos a argumentos de conocimiento.
+		\item Sucintez: Esta propiedad se divide, a su vez, en otras subpropiedades:
+		\begin{itemize}
+			\item Existe un polinomio $p \in \mathbb{N}_0[x]$ tal que para todo $(x,w) \in R$, $|\pi| \leq p(\lambda, |x|)$, donde $\pi = \mathcal{P}_\text{crs}(x,w)$. En particular, el tamaño de la prueba es independiente de $|w|$.
+			\item El tiempo de ejecución de $\mathcal{V}_\text{crs}$ está acotado por $q(\lambda, |x|)$, donde $q \in \mathbb{N}_0[x]$.
+			\item El costo de verificación de $\pi = \mathcal{P}_\text{crs}(x, w)$ es sublineal con respecto al costo de verificar $(x,w) \in R$.
+		\end{itemize}
+	\end{itemize}
+	
+	Si además $\mathcal{S}$ satisface la siguiente propiedad, decimos que es un ZK-SNARK.
+	\begin{itemize}
+		\item Conocimiento cero: Para todo $x \in \mathcal{X}$, existe un simulador probabilístico en tiempo polinomial $S_{x,\text{crs}}$ tal que la distribución de las pruebas simuladas $S_{x,\text{crs}}(x)$ es indistinguible computacionalmente de la distribución de pruebas reales $\mathcal{P}_\text{crs}(x,w)$, para cualquier $w \in \mathcal{W}$ tal que $(x,w) \in R$.
+	\end{itemize}
+\end{definition}
+
+La definición de sucintez que dimos es informal. Para acercarnos a la formalidad, consideramos toda familia de instancias $(x_n,w_n) \in R)$ tales que el tamaño mínimo de $w_n$ para verificar $R$ con $x_n$ crece de forma no acotada, el costo de verificación es asintóticamente menor que el costo de verificar explícitamente la pertenencia de $(x_n, w_n)$ a $R$. Es decir, el verifier no debe volver a ejecutar el cómputo implícito en el witness.
+
+Recordar que, como $R$ está en $\mathrm{NP}$, entonces es seguro que existe una máquina de Turing determinística $M_R$ que decide $(x,w) \in R$ en tiempo polinomial $|x| + |w|$. Lo que no necesariamente es polinomial (y justamente nos sirve que no lo sea) es el lenguaje $L_R = \{x: \exists w \mid (x,w) \in R\}$. Tener presente que una relación en $\mathrm{NP}$ representa un cómputo siempre resulta útil a la hora de aprender o reforzar estos conceptos.
+
+Ahora, vamos a hablar más informalmente de SNARKs y ZK-SNARKs para ganar mayor intuición respecto a estos concceptos. En primer lugar, un SNARK puede entenderse como un mecanismo que permite a una parte demostrar que conoce un witness $w$ consistente con un input público $x$, sin interacción adicional y con una prueba de tamaño pequeño. La no interactividad surge del hecho de que primero se ejecuta $\mathcal{P}_\text{crs}$ y luego $\mathcal{V}_\text{crs}$, de modo que toda la comunicación entre el prover y el verifier es un único mensaje $\pi$. Esto es relevante en sistemas distribuidos, y en blockchain en general, donde la interacción es sumamente costosa o hasta imposible.
+
+La propiedad de solidez computacional asegura que ningún prover eficiente puede convencer al verifier de una afirmación falsa, salvo con probabilidad negligible. A diferencia de las pruebas interactivas clásicas, esta garantía no es incondicional: descansa en supuestos criptográficos y en la limitación computacional del adversario. Sin embargo, esta relajación es precisamente lo que habilita construcciones prácticas con verificación eficiente, como las que estudiaremos más adelante.
+TODO: Hablar de la relación entre la solidez por extracción y la intuición que generamos en la sección anterior.
+
+
+La sucintez es la característica distintiva de los SNARKs. Intuitivamente, esta propiedad establece que el costo de verificación depende únicamente del tamaño del input público $x$, y no de la complejidad del cómputo de $R$. En particular, el verifier no vuelve a ejecutar el algoritmo implícito en el witness $w$, sino que se limita a verificar una prueba corta de la corrección del cómputo. Este desacople entre el costo de probar y el costo de verificar es lo que permite utilizar SNARKs para la verificación de cómputos arbitrariamente grandes.
+
+Finalmente, los ZK-SNARKs tienen la propiedad adicional de conocimiento cero, que garantiza que la prueba $\pi$ no revela información adicional sobre el witness $w$ más allá de su existencia. Conceptualmente, podemos separar completamente la corrección del cómputo de la confidencialidad de los datos involucrados.
+
+Para concluir con esta sección, quiero hablar sobre el "misterioso" parámetro de seguridad $\lambda$, que es una abstracción en sistemas criptográficos. Intuitivamente, $\lambda$ mide el nivel de protección del sistema criptográfico frente a ataques. A mayor $\lambda$, menor probabilidad de que un algoritmo adversario logre romper las garantías de seguridad del sistema. En la práctica, $\lambda$ se relaciona en forma directa con el número de bits de seguridad del sistema: si decimos que ofrece $128$ bits de seguridad, significa que el mejor ataque conocido requiere del orden de $2^128$ operaciones para tener éxito, lo cual es computacionalmente inviable con la tecnología actual (y por eso $128$ suele ser el nivel deseado). Incrementar el valor de $\lambda$ aumenta la dificultad de los ataques, pero también incrementa el tiempo de ejecución de los algoritmos, así como el tamaño de los argumentos y los parámetros públicos.
+
+Como nota al pie, la notación $1^\lambda$ utilizada como entrada del algoritmo $\text{Setup}$ parece insensata, pero es una convención que indica que el parámetro se proporciona en forma unaria. En particular y como es indicado en \cite{Goldreich2001}, esto evita que algoritmos que dependen exponencialmente de $\lambda$ aparezcan artificialmente como eficientes debido a una codificación binaria del parámetro, y que los algoritmos considerados eficientes sean precisamente aquellos cuyo tiempo de ejecución es polinomial en la longitud de sus entradas, preservando así la interpretación estándar.
+
+Se remite al lector a los textos (TODO), pero idealmente luego de leer la siguiente sección (sobre circuitos aritméticos), ya que estos textos definen SNARKs asumiendo que ya tienen la construcción de circuitos aritméticos resuelta. En este trabajo, preferimos seguir este orden para introducir los conceptos de forma más intuitiva.

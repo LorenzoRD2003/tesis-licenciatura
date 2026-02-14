@@ -1,0 +1,22 @@
+% !TeX root = main.tex
+
+Las funciones de hash son una primitiva criptográfica sumamente popular. Ejemplos conocidos son MD5, SHA-1, SHA-256, BLAKE2, BLAKE3, RIPEMD-160, Poseidon, entre muchas otras. Estas serán utilizadas frecuentemente en el desarrollo del proyecto, y permiten construir primitivas criptográficas más avanzadas.
+
+\begin{definition}[Función de hash criptográfica]
+	Sea $n \in \mathbb{N}$. Se dice que $\mathcal{H}: \{0,1\}^* \to \{0,1\}^n$ es una función de hash criptográfica si satisface las siguientes propiedades:
+	\begin{itemize}
+		\item Pueden ser implementadas determinísticamente en forma eficiente.
+		\item Resistencia a preimagen: Dado $y \in \{0,1\}^n$, es difícil encontrar $x \in \{0,1\}^*$ tal que $\mathcal{H}(x) = y$.
+		\item Resistencia a segunda preimagen: Dados $x \in {0,1}^*, \mathcal{H}(x) \in \{0,1\}^*$, es difícil encontrar $x' \neq x$ tal que $\mathcal{H}(x) = \mathcal{H}(x')$.
+		\item Resistencia a colisiones: Es difícil encontrar $x \neq x'$ tales que $\mathcal{H}(x) = \mathcal{H}(x')$.
+	\end{itemize}
+\end{definition}
+
+La definición anterior es informal, ya que por ejemplo es necesario especificar qué significa "difícil". Es preferible quedarnos con la idea de "computacionalmente inviable" en menos de cierto tiempo, usualmente miles o millones de años. Es claro que la propiedad de resistencia a colisiones implica la propiedad de resistencia a segunda preimagen, y esta a su vez implica la propiedad de resistencia a preimagen. Dado que $\{0,1\}^*$ es un conjunto infinito, necesariamente van a existir colisiones. Entonces, es relevante que no haya algoritmos conocidos que puedan encontrar colisiones en una función de hash.
+
+En la criptografía, se busca demostrar la seguridad de construcciones. Sin embargo, no es posible demostrar de forma estrictamente formal las construcciones que utilizan funciones de hash. Por lo tanto, lo que se hace es suponer que $\mathcal{H}: \{0,1\}^* \to \{0,1\}^n$ es una función completamente aleatoria, de modo que se asume que todo algoritmo para hallar la preimagen de un elemento en $\mathcal{H}$ es de complejidad exponencial $\Theta(2^n)$, así como todo algoritmo para hallar colisiones en $\mathcal{H}$ es de complejidad $\Theta(2^{n/2})$. Se conoce a esto como Random Oracle Model (ROM). Toda propiedad de seguridad que se pueda demostrar eventualmente en trabajos futuros sobre este proyecto también estará enmarcada en el ROM.
+
+Podemos transformar cualquier estructura matemática o información finita a una tira de bytes, es decir al conjunto $\{0,1\}^*$, y elegir un $n$ suficientemente grande como para que valga la propiedad de resistencia a colisiones. Esto es lo que se hace en la práctica. Entonces, dada una función de hash $\mathcal{H}$ y un conjunto arbitrario $X$ donde sus elementos tienen tamaño finito, podemos hablar de la función de hash asociada $\mathcal{H}_X: X \to \{0,1\}^n$, y por comodidad de notación usar simplemente $\mathcal{H}$.
+
+TODO: Hablar sobre HashToCurve.
+\cite{rfc9380}

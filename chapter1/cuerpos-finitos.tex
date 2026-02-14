@@ -1,0 +1,43 @@
+% !TeX root = main.tex
+
+\begin{definition}[Cuerpo]
+	Sea $K$ un conjunto, y sean $+: K \times K \to K$ (suma) y $\cdot: K \times K \to K$ (producto) operaciones binarias en $K$. Diremos que $(K, +, \cdot)$ (lo notaremos simplemente $K$ por comodidad) es si valen:
+	\begin{itemize}[]
+		\item $+$ y $\cdot$ son operaciones asociativas y conmutativas.
+		\item Existe un elemento neutro para la suma, denotado $0_K$. Es decir, tal que $x + 0_K = x$ para todo $x \in K$.
+		\item Existe un elemento neutro para el producto, denotado $1_K$. Es decir, tal que $x \cdot 1_K = x$ para todo $x \in K$.
+		\item Todo $x \in K$ tiene un inverso aditivo, notado $-x$. Es decir, tal que $x + (-x) = 0_K$.
+		\item Todo $x \in K \setminus \{0_K\}$ tiene un inverso multiplicativo, notado $x^{-1}$. Es decir, tal que $x \cdot x^{-1} = 1_K$.
+		\item La operación $\cdot$ es distributiva sobre la operación $+$.
+	\end{itemize}
+\end{definition}
+
+La definición de cuerpo implica que si $K$ es un cuerpo, entonces $0_K \cdot x = 0_K$ para todo $x \in K$, y que para todos $x, y \in K$ no nulos, su producto es no nulo. Además, $(K, +)$ y $(K \setminus \{0_K\}, \cdot)$ son grupos abelianos. Por coloquialidad, utilizaremos el símbolo $0$ en vez de $0_K$ y el símbolo $1$ en lugar de $1_K$.
+
+Por ejemplo, $(\mathbb{R}, +, \cdot)$ es un cuerpo, así como lo son $(\mathbb{Q}, +, \cdot)$, $(\mathbb{C}, +, \cdot)$ y $\mathbb{K} = \{a + b\sqrt{2}: a, b \in \mathbb{Q}\}$.
+
+\begin{definition}[Cuerpo finito]
+	Un cuerpo finito es un cuerpo $(K, +, \cdot)$ donde $|K| < \infty$.
+\end{definition}
+
+Por ejemplo, los enteros módulo $n$ son un anillo si y sólo si $n$ es un número primo. Para un primo $p$, notamos $\mathbb{F}_p$ a su cuerpo finito asociado, con las operaciones binarias de suma y producto definidas módulo $p$. En particular, $\mathbb{F}_p^*$ es un grupo finito de $p - 1$ elementos con la multiplicación.
+
+\begin{definition}[Característica]
+	Sea $K$ un cuerpo, y sean $0_K, 1_K$ sus elementos neutros aditivos y multiplicativos, respectivamente. La característica de $K$, notada $\text{char }K$ se define como el menor número natural $n$ tal que $1_K + 1_K + \ldots + 1_K = 0_K$, donde hay $n$ sumandos, y en caso de que no exista ningún natural que cumpla esto, la característica se define como $0$.
+\end{definition}
+
+Es notable que $\mathbb{Q}, \mathbb{R}, \mathbb{C}$ son cuerpos de característica $0$, mientras que para todo primo $p \in \mathbb{N}$, $\text{char }\mathbb{F}_p = p$. Se puede probar que todo cuerpo tiene o bien característica $0$, o bien su característica es un número primo.
+
+\begin{definition}[Subgrupo, grupo cíclico, generador]
+	Dado un grupo $(G, \cdot)$ y $g \in G$, consideramos el conjunto $\langle g \rangle = \{g^k: k \in \mathbb{Z}\}$. El par $(\langle g \rangle, \cdot)$ es un subgrupo de $G$, y nos referimos a $\langle g \rangle$ como un subgrupo cíclico de $G$. Decimos que $g$ genera $\langle g \rangle$. Si $\langle g \rangle = G$, entonces decimos que $G$ es cíclico y que $g$ es un generador de $G$.
+\end{definition}
+
+Observar que siempre $g$ es un generador del grupo $\langle g \rangle$. Para un grupo finito, vale que $\langle g \rangle = \{1, g, g^2, \ldots, g_{n-1}\}$, y decimos que $n$ es el orden de $\langle g \rangle$. También nos podemos referir a $n$ como el orden de $\langle g \rangle$. Veremos una propiedad relevante de los subgrupos, que es corolario del Teorema de Lagrange sobre subgrupos:
+
+\begin{theorem}[Corolario del Teorema de Lagrange]
+	Sea $G$ un grupo y sea $H$ un subgrupo de $G$. Entonces, la cantidad de elementos de $H$ divide a la cantidad de elementos de $G$.
+\end{theorem}
+
+\begin{theorem}[Existencia de un generador en $\mathbb{F}_p^*$]
+	Sea $p \in \mathbb{N}$ un número primo. Entonces, existe $a \in \mathbb{F}_p^*$ (no necesariamente único) tal que $\mathbb{F}_p^* = \{1, a, a^2, a^{p-2}\}$.
+\end{theorem}

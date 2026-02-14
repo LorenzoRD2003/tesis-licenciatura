@@ -1,0 +1,161 @@
+\documentclass[11pt,a4paper,twoside]{tesis}
+% SI NO PENSAS IMPRIMIRLO EN FORMATO LIBRO PODES USAR
+%\documentclass[11pt,a4paper]{tesis}
+
+\usepackage{graphicx}
+\usepackage[utf8]{inputenc}
+
+\usepackage[left=3cm,right=3cm,bottom=3.5cm,top=3.5cm]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{hyperref}
+\usepackage[spanish, activeacute]{babel}
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage[shortlabels]{enumitem}
+\usepackage{booktabs}
+\usepackage{tikz}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{fancyhdr}
+\usepackage{pgfplots}
+\usepackage{stmaryrd}
+\pgfplotsset{compat=1.18}
+\usetikzlibrary{calc}
+\usetikzlibrary{babel}
+
+%%% Custom environments
+\newtheorem{theorem}{Teorema}[chapter]
+\newtheorem{definition}[theorem]{Definición}
+\newtheorem{algorithmpresentation}[theorem]{Algoritmo}
+\newtheorem{proposition}[theorem]{Proposición}
+
+% Traducciones al español
+\floatname{algorithm}{Algoritmo}
+\algrenewcommand\algorithmicrequire{\textbf{Requiere:}}
+\algrenewcommand\algorithmicensure{\textbf{Asegura:}}
+
+\begin{document}
+
+%%%% CARATULA
+
+\def\autor{Lorenzo Ruiz Díaz}
+\def\tituloTesis{Cardano ZkBridge \vspace{.2cm} \\ Interoperabilidad en Cardano}
+\def\runtitulo{Desarrollo de un ZK-Bridge en Cardano}
+\def\runtitle{Development of a ZK-Bridge in Cardano}
+\def\director{Matías López y Rosenfeld}
+\def\codirector{Agustín Garassino}
+\def\lugar{Buenos Aires, 2026}
+\input{caratula}
+
+%%%% ABSTRACTS, AGRADECIMIENTOS Y DEDICATORIA
+\frontmatter
+\pagestyle{empty}
+\input{abs_esp.tex}
+
+\cleardoublepage
+\input{abs_en.tex} % OPCIONAL: comentar si no se quiere
+
+\cleardoublepage
+\input{agradecimientos.tex} % OPCIONAL: comentar si no se quiere
+
+\cleardoublepage
+\input{dedicatoria.tex}  % OPCIONAL: comentar si no se quiere
+
+\cleardoublepage
+\tableofcontents
+
+\mainmatter
+\pagestyle{headings}
+
+%%%% ACA VA EL CONTENIDO DE LA TESIS
+
+\chapter{Primitivas Criptográficas}
+\section{Cuerpos Finitos}
+
+\input{chapter1/cuerpos-finitos}
+
+\section{Problema del logaritmo discreto (DLP)}
+
+\input{chapter1/dlp}
+
+\section{Polinomios}
+
+\input{chapter1/polinomios}
+
+\section{Curvas Elípticas}
+
+\input{chapter1/curvas-elipticas}
+
+\section{Pairings bilineales}
+
+\input{chapter1/pairings}
+
+\section{Hashes}
+
+\input{chapter1/hashes}
+
+\section{Merkle Trees}
+
+\input{chapter1/merkle_tree}
+
+\section{Sparse Merkle Trees}
+
+\input{chapter1/sparse-merkle-tree}
+
+
+%% ...
+\chapter{Aritmetización y Construcción de una SNARK}
+
+\section{Introducción a pruebas ZK}
+
+\input{chapter2/introduccion}
+
+\section{SNARKs}
+
+\input{chapter2/snark}
+
+\section{Circuitos Aritméticos}
+
+\input{chapter2/arithmetic-circuits}
+
+%\section{Sistema de Restricciones R1CS (Rank-1 Constraint Systems)}
+
+%\input{chapter2/r1cs}
+
+%\section{Sistemas de Ecuaciones Cuadráticas (QAP)}
+
+%\input{chapter2/qap}
+
+%\section{Esquemas de Compromiso (Commitment Schemes)}
+
+%\input{chapter2/commitment-schemes}
+
+%\section{KZG: Esquema de Compromiso y Verificación}
+
+%\input{chapter2/kzg}
+
+%\section{Protocolo Fiat-Shamir y No-Interactividad}
+
+%\input{chapter2/fiat-shamir}
+
+%\section{Groth16}
+
+%\input{chapter2/groth16}
+
+
+%\chapter{zkBridge}
+%\chapter{Cardano y Modelo eUTxO}
+%\chapter{Decisiones de Diseño}
+%\chapter{Implementación parte 1}
+%\chapter{Mithril}
+%\chapter{Implementación parte 2}
+%\chapter{Resultados}
+%\chapter{Conclusiones}
+
+%%%% BIBLIOGRAFIA
+\backmatter
+
+\bibliographystyle{ieeetr}
+\bibliography{tesis}
+
+\end{document}

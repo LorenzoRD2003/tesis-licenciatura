@@ -1,0 +1,173 @@
+% !TeX root = main.tex
+
+En esta sección introducimos las curvas elípticas sobre un cuerpo, y las dotamos de una estructura de grupo abeliano. Las curvas elípticas son claves en criptografía, por ejemplo ya que es más difícil resolver el DLP en un grupo de curva elíptica que en un grupo multiplicativo $\mathbb{F}_p^*$.
+
+\begin{definition}[Curva elíptica]
+	Sea $K$ un cuerpo con $\text{char }K \neq 2,3$. Una curva elíptica $E$ sobre $K$ es una curva, junto con un punto distinguido $\mathcal{O}$, que puede describirse mediante una ecuación de la forma
+	$$E: y^2 = x^3 + ax + b, \quad a,b \in K,$$
+	y sujeta a la condición de no singularidad $4a^3 + 27b^2 \neq 0$.
+	
+	El conjunto de puntos de la curva elíptica sobre $K$ se define como
+	$$E(K) = \{(x,y) \in K \times K: y^2 = x^3 + ax + b\} \cup \{\mathcal{O}\},$$
+	donde $\mathcal{O}$ denota el punto del infinito o punto identidad.
+\end{definition}
+
+La condición de no singularidad garantiza que la curva no posee puntos singulares, y por lo tanto que la curva es lisa. Es decir, si consideramos la función en dos variables $F(x,y) = y^2 - x^3 - ax - b$, sus derivadas parciales son $\frac{\partial F}{\partial x}(x,y) = -3x^2 - a$, y $\frac{\partial F}{\partial y}(x,y) = 2y$. Un punto de la curva es singular si ambas derivadas parciales de $F$ se anulan en él.
+
+\begin{definition}[Definición geométrica de suma en curvas elípticas]
+	Sea $K$ un cuerpo, y $E(K)$ una curva elíptica. Dados $P, Q \in \mathbb{E}(K)$, se define la suma $+: E(K) \times E(k) \to E(K)$ desde una perspectiva geométrica, como:
+	\begin{enumerate}
+		\item Se considera la recta que pasa por $P$ y $Q$. En el caso particular $P = Q$, se toma la recta tangente a la curva en $P$. En el caso particular $P \neq Q$, la recta es vertical.
+		\item La recta interseca a la curva elíptica en un tercer punto $R$ (contando multiplicidades).
+		\item Si $R'$ es la reflexión de $R$ por el eje $x$, se define $P + Q := R'$. En el caso particular de la recta vertical, tenemos $Q = -P$ y se define $P + Q := \mathcal{O}$.
+	\end{enumerate}
+\end{definition}
+
+\begin{figure}[ht]
+	\centering
+	\begin{tikzpicture}
+		\begin{axis}[
+			axis lines = middle,
+			axis equal,
+			xlabel = $x$,
+			ylabel = $y$,
+			xmin = -1.6,
+			xmax = 2.1,
+			ymin = -2.6,
+			ymax = 2.6,
+			samples = 300,
+			domain = -1.3247:2,
+			width = 10cm,
+			height = 7cm,
+			grid = both,
+			tick align = outside
+			]
+			
+			% Rama superior
+			\addplot[blue, thick] {sqrt(x^3 - x + 1)};
+			
+			% Rama inferior
+			\addplot[blue, thick] {-sqrt(x^3 - x + 1)};
+		\end{axis}
+	\end{tikzpicture}
+	\caption{Curva elíptica en $\mathbb{R}[x]$ asociada a la ecuación $E: y^2 = x^3 - x + 1$.}
+	\label{fig:curva-eliptica-real}
+\end{figure}
+
+
+La introducción del punto $\mathcal{O}$ es necesaria para que la suma de puntos esté definida en todos los casos, en particular cuando se suman puntos opuestos cuya recta secante es vertical. Sin este punto adicional, la operación no sería cerrada en $E(K)$. Esta operación cumple el resto de propiedades para poder considerar a $(E(K), +)$ como un grupo abeliano:
+\begin{itemize}
+	\item $P + \mathcal{O} = \mathcal{O} + P = P$ para todo $P \in E(K)$ (elemento neutro).
+	\item $P + (-P) = \mathcal{O}$ para todo $P \in E(K)$ (elemento inverso). Un detalle geométrico relevante es que $-P$ se obtiene al reflejar $P$ por el eje $x$.
+	\item $P + (Q + R) = (P + Q) + R$ para todos $P, Q, R \in E(K)$ (asociatividad).
+	\item $P + Q = Q + P$ para todos $P, Q \in E(K)$ (conmutatividad).
+\end{itemize}
+
+Dados $n \in \mathbb{N}$ y $P \in E(K)$, podemos definir $nP := P + P + \ldots + P$, donde hay $n$ sumandos.
+
+Al pasar a considerar curvas elípticas sobre cuerpos finitos, es decir de la forma $E(\mathbb{F}_p)$ con $p > 3$, perdemos toda la intuición geométrica. Pero seguimos teniendo un grupo abeliano, y en particular la operación de suma sigue siendo cerrada. Sin embargo, no tiene sentido definir la operación de forma geométrica, sino que deberemos hacerlo algebraicamente. Observar durante la definición cómo nos apoyamos en las definiciones geométricas para hacer las definiciones algebraicas.
+
+\begin{figure}[ht]
+	\centering
+	\begin{tikzpicture}
+		\begin{axis}[
+			axis equal,
+			xmin = -0.5,
+			xmax = 18.5,
+			ymin = -0.5,
+			ymax = 18.5,
+			xtick = {0,...,18},
+			ytick = {0,...,18},
+			grid = both,
+			xlabel = $x$,
+			ylabel = $y$,
+			width = 10cm,
+			height = 10cm
+			]
+			\addplot[
+			only marks,
+			mark = *,
+			mark size = 2.5pt,
+			blue
+			]
+			coordinates {
+				(0,1) (0,18)
+				(1,1) (1,18)
+				(2,8) (2,11)
+				(3,5) (3,14)
+				(4,2) (4,17)
+				(5,8) (5,11)
+				(8,7) (8,12)
+				(12,8) (12,11)
+				(13,0)
+				(15,6) (15,13)
+				(18,1) (18,18)
+			};		
+		\end{axis}
+	\end{tikzpicture}
+	\caption{Curva elíptica en $\mathbb{F}_{19}[x]$ asociada a la ecuación $E: y^2 = x^3 - x + 1$.}
+	\label{fig:curva-eliptica-f19}
+\end{figure}
+
+
+\begin{definition}[Definición algebraica de suma en curvas elípticas]
+	Sea $K$ un cuerpo finito, sea $E(K)$ una curva elíptica y sean $P, Q \in E(K)$. Se define la suma $+: E(K) \times E(k) \to E(K)$ desde una perspectiva algebraica mediante el siguiente algoritmo:
+	\begin{enumerate}
+		\item Si $P = \mathcal{O}$, entonces $P + Q := Q$. Similarmente, si $Q = \mathcal{O}$, entonces $P + Q := P$.
+		\item Si $P, Q \neq \mathcal{O}$, entonces son puntos de la forma $P = (x_P, y_P)$, $Q = (x_Q, y_Q)$ con coordenadas en $\mathbb{F}_p$. Si $Q = -P$, lo que es equivalente a $x_P = x_Q$ y $y_P = -y_Q$, entonces $P + Q := \mathcal{O}$.
+		\item Se calcula la pendiente $\lambda$ de la recta que pasa por $P$ y $Q$.
+		\begin{itemize}
+			\item En el caso $P = Q$, es una recta tangente a $P$ y $\lambda := \frac{3x_P^2 + a}{2y_P}$.
+			\item En el caso $P \neq Q$, se calcula de forma usual: $\lambda := \frac{y_Q - y_P}{x_Q - x_P}$.
+		\end{itemize}
+		\item Para $x^* := \lambda^2 - x_P - x_Q$ y $y^* = \lambda(x_P - x^*) - y_P$, se define $P + Q := (x^*, y^*)$.
+	\end{enumerate}
+\end{definition}
+
+Una curva elíptica sobre cuerpos finitos tiene finitos puntos. Pero es notable que, en general, $|E(\mathbb{F})_q| \neq |\mathbb{F}_q| = q$. La cota de Hasse establece un límite preciso para el número de puntos racionales de una curva elíptica definida sobre un cuerpo finito.
+
+\begin{theorem}[Cota de Hasse]
+	Sea $\mathbb{F}_q$ un cuerpo finito, y sea $E(\mathbb{F}_q)$ una curva elíptica. Entonces, $||E(\mathbb{F}_q)| - (q + 1)| \leq 2\sqrt{q}$.
+\end{theorem}
+
+En particular, es relevante en numerosos protocolos criptográficos que $|E(\mathbb{F}_q)|$ tenga un divisor primo grande. Usualmente se eligen curvas elípticas donde $|E(\mathbb{F}_q| = hr$, donde $r$ es un primo grande y $h$ (llamado el cofactor de la curva) es un número pequeño, como 1, 2, o 4. Ahora sí estamos preparados para adentrarnos en los subgrupos cíclicos de una curva elíptica sobre un cuerpo finito.
+
+\begin{definition}[Orden de un punto en una curva elíptica]
+	Sea $\mathbb{F}_q$ un cuerpo finito, y sea $E(\mathbb{F}_q)$ una curva elíptica. Para cada punto $P \in E(\mathbb{F}_q)$, definimos su orden como el menor $r \in \mathbb{N}$ tal que $rP = \mathcal{O}$. Es decir, como el orden del subgrupo de $E(K)$ generado por $P$.
+\end{definition}
+
+Observamos que el orden de $P$ siempre existe y es un divisor del orden de $E(\mathbb{F}_q)$ por el corolario del Teorema de Lagrange. Dentro de este grupo cíclico podemos volver a considerar el DLP, pero sobre un grupo de curva elíptica.
+
+\begin{definition}[ECDLP]
+	Sea $\mathbb{F}_q$ un cuerpo finito, y sea $E(\mathbb{F}_q)$ una curva elíptica. Dados un punto generador $G \in E(\mathbb{F}_q)$ y un punto $P \in \langle G \rangle$, el problema del logaritmo discreto sobre curvas elípticas (ECDLP) es encontrar un $k \in \mathbb{N}$ tal que $P = kG$.
+\end{definition}
+
+En este contexto, se entiende por qué es útil buscar que el orden $r$ de $\langle G \rangle$ sea un número primo grande. Observar que en el caso del ECDLP estamos usando notación aditiva en vez de multiplicativa. A diferencia del DLP en el grupo multiplicativo $\mathbb{F}_p^*$, los algoritmos conocidos más eficientes para resolver el ECDLP para cualquier curva elíptica son genéricos en la estructura de grupo, por lo que están en $\Theta(\sqrt{r})$. Esta diferencia algorítmica se traduce en una ventaja práctica en términos de bits de seguridad para algoritmos criptográficos, y por lo tanto en operaciones más rápidas, menos uso de memoria, claves de menor tamaño, y pruebas más pequeñas. En este contexto, las claves privadas serán de la forma $k \in \mathbb{F}_r$, mientras que sus claves públicas derivadas serán de la forma $K = kG \in E(\mathbb{F}_q)$.
+
+\begin{table}[h]
+	\centering
+	\begin{tabular}{ccc}
+		\toprule
+		\textbf{Bits de seguridad} &
+		\textbf{$\mathbb{F}_p^*$ (DLP clásico)} &
+		\textbf{$E(\mathbb{F}_p)$ (ECDLP)} \\
+		\midrule
+		128 & $\sim 3072$ bits & $\sim 256$ bits \\
+		192 & $\sim 7680$ bits & $\sim 384$ bits \\
+		256 & $\sim 15360$ bits & $\sim 512$ bits \\
+		\bottomrule
+	\end{tabular}
+	\caption{Comparación de tamaños de parámetros para niveles de seguridad equivalentes.}
+	\label{tab:security-comparison}
+\end{table}
+
+Sin embargo, existen curvas elípticas tales que existen algoritmos más eficientes (e incluso polinomiales) para resolver el ECDLP. Esto hace que seleccionar qué curvas elípticas usar para los protocolos criptográficos no dependa solamente de la eficiencia de las operaciones, sino también de las características de la curva. Esta advertencia también se aplica al $G$ elegido como generador de un subgrupo de la curva, ya que este subgrupo debe orden primo para garantizar la mayor seguridad.
+
+TODO: poner referencias a ataques a curvas anomalas (Smart-Satoh-Araki), supersingulares (MOV), con grado de incrustacion pequeño, o Weil Descent.
+
+Veremos que hay varias curvas elípticas que son usadas en distintas partes del proyecto. En general, a la hora de describir curvas elípticas sobre cuerpos finitos, vamos a diferenciar los siguientes parámetros:
+\begin{itemize}
+	\item El cuerpo base $\mathbb{F}_q$ sobre el que está construido la curva $E(\mathbb{F}_q)$, para un primo $q \in \mathbb{N}$.
+	\item Un generador $G \in E(\mathbb{F}_q)$ de un subgrupo $\langle G \rangle \subset E(\mathbb{F}_q)$.
+	\item El cuerpo escalar $\mathbb{F}_r$, donde $r \in \mathbb{N}$ es el orden del subgrupo generado por $G$. Idealmente, $r$ será un primo grande.
+\end{itemize}

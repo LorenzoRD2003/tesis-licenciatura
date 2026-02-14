@@ -1,0 +1,20 @@
+% !TeX root = main.tex
+
+Los pairings bilineales son una primitiva criptográfica fundamental en las construcciones modernas. Informalmente, un pairing es una aplicación que relaciona puntos de curvas elípticas con elementos de un grupo multiplicativo, preservando una estructura algebraica específica. Gracias a sus propiedades, los pairings permiten reducir ciertos problemas difíciles en curvas elípticas (como el ECDLP) a problemas equivalentes en otros grupos, lo que habilita nuevas construcciones criptográficas que no son posibles en el modelo clásico sin pairings.
+
+\begin{definition}[Pairing bilineal]
+	Sea $E(\mathbb{F}_q)$ una curva elíptica definida sobre un cuerpo finito $\mathbb{F}_q$, y sea $r \in \mathbb{N}$ primo tal que $r$ divide a $|E(\mathbb{F}_q)|$. Un pairing bilineal es una función
+	\[
+	e : \mathbb{G}_1 \times \mathbb{G}_2 \to \mathbb{G}_T,
+	\]
+	donde $\mathbb{G}_1,\mathbb{G}_2$ son subgrupos cíclicos de orden $r$ de $E(\mathbb{F}_q)$ (o de extensiones de $E(\mathbb{F}_q)$), y $\mathbb{G}_T$ es un subgrupo multiplicativo de un cuerpo finito (o de una extensión), también de orden $r$. Además, debe cumplir las siguientes propiedades:
+	\begin{itemize}
+		\item \textbf{Bilinealidad:} Para todos $P \in \mathbb{G}_1, Q \in \mathbb{G}_2, a,b \in \mathbb{F}_r$, vale $e(aP,bQ) = e(P,Q)^{ab}$. Observar que en el lado derecho de la ecuación, se está utilizando la notación de grupo multiplicativo.
+		\item \textbf{No degeneración:} Para cualesquiera generadores $G_1 \in \mathbb{G}_1, G_2 \in \mathbb{G}_2$ de los subgrupos de orden $r$, $e(G_1,G_2) \neq 1_{\mathbb{G}_T}$.
+		\item \textbf{Computabilidad eficiente:} Existe un algoritmo eficiente para computar $e(P,Q)$, para todos $P \in \mathbb{G}_1, Q \in \mathbb{G}_2$.
+	\end{itemize}
+\end{definition}
+
+La construcción explícita de un pairing bilineal involucra una cantidad considerable de teoría adicional, incluyendo el uso de cuerpos de extensión, divisores en curvas algebraicas, funciones racionales y algoritmos específicos como el algoritmo del loop de Miller. El desarrollo completo de estos conceptos excede el objetivo de esta tesis y requeriría una extensión significativa que no sería reutilizada en las secciones posteriores. Ejemplos clásicos de pairings bilineales utilizados en la práctica son el pairing de Weil y el pairing de Tate. Por lo tanto, se asumirá la existencia de los pairings bilineales junto con las propiedades mencionadas anteriormente, sin entrar en los detalles de su construcción matemática. Se remite al lector interesado a \cite{costello2010pairings}, que proporciona una amigable aproximación a los pairigs bilineales.
+
+Los pairings bilineales que vamos a necesitar tienen un detalle relevante en su seguridad criptográfica, y es que se eligen los subgrupos $\mathbb{G}_1,\mathbb{G}_2$ de modo que no se conozca ningún isomorfismo eficiente entre ambos subgrupos, y tales que el ECDLP sea difícil de resolver en ellos.
