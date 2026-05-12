@@ -1,23 +1,32 @@
-% !TeX root = main.tex
+% !TeX root = tesis.tex
 
-Los Merkle Trees tradicionales permiten realizar pruebas eficientes de pertenencia a un conjunto de datos finito. Pero hay una limitación fundamental a la hora de realizar pruebas de exclusión, es decir de la \textbf{no pertenencia} de un dato $\ell$ a un conjunto $L$. En un Merkle Tree clásico, las hojas corresponden exclusivamente a los elementos de $L$. Una posible solución sería definir un orden total sobre $L$ (si fuera posible), construyendo una prueba de exclusión mostrando que el elemento consultado se encuentra entre dos hojas consecutivas del árbol. Observamos que en protocolos criptográficos esto no es ideal, pues se debe revelar información adicional sobre elementos vecinos en $L$. Para superar estas limitaciones se introducen los Sparse Merkle Trees.
+\subsection{Definición e Intuición}
 
-\begin{definition}[Sparse Merkle Tree]
-	Sean $k, n \in \mathbb{N}$, y $\mathcal{H}$ una función de hash criptográfica. Sea $D = \{0,1\}^k$ el dominio completo de posibles elementos (cadenas de $k$ bits). Dado $L \subseteq D$, un Sparse Merkle Tree $\mathcal{T}_{L,\mathcal{H}} = \mathcal{T}$ de altura $k$ y conjunto de datos almacenados $L$ es un árbol binario definido recursivamente de la siguiente manera:
+Los Merkle Trees tradicionales permiten realizar pruebas eficientes de pertenencia a un conjunto de datos finito. Pero hay una limitación fundamental a la hora de realizar pruebas de exclusión, es decir de la \textbf{no pertenencia} de un dato $\ell$ a un conjunto $L$. En un Merkle Tree clásico, las hojas corresponden exclusivamente a los elementos de $L$. Una posible solución sería definir un orden total sobre $L$ (si fuera posible), construyendo una prueba de exclusión mostrando que el elemento consultado se encuentra entre dos hojas consecutivas del árbol. Observamos que en protocolos criptográficos esto no es ideal, pues se debe revelar información adicional sobre elementos vecinos en $L$.
+
+Para superar estas limitaciones se introducen los \SMT. La idea de una estructura de datos que permite tanto actualizar como revocar certificados fue introducida por primera vez en \cite{Naor2000}.
+
+\begin{definition}[Default hashes, Sparse Merkle Tree]
+	Sean $k, n \in \N$, y $\Hash$ una función de hash criptográfica, y sea $D = \Strings{k}$ el dominio completo de posibles elementos (cadenas de $k$ bits). Definimos primero los \textbf{default hashes} por nivel de forma recursiva:
+	
+	$$z_0 := \Hash(\EmptyNode), \qquad \defaultHash{i} := \Hash(\defaultHash{i-1} \concat \defaultHash{i-1}) \quad \text{para } 0 < i \leq k.$$
+	
+		Dado $L \subseteq D$, un \SMT $\MerkleTree{T}_{L,\Hash} = \mathcal{T}$ de altura $k$ y datos almacenados $L$ es un árbol binario completo de altura $k$ definido recursivamente de la siguiente manera:
 	\begin{enumerate}
 		\item Hojas: Cada elemento $x \in D$ se asocia en forma ordenada a una hoja $h_x$ de la siguiente forma:
 		$$h_x = \begin{cases}
-		\mathcal{H}(x), \text{ si } x \in L \\
-		\mathcal{H}(\bot), \text{ si } x \not\in L
+		\Hash(x), \text{ si } x \in L \\
+		z_0 \text{ si } x \not\in L
 		\end{cases}$$
-		donde $\bot \in D$ es un valor por defecto, predefinido y constante (default hash).
-		\item Cada nodo interno $N$ con hijos $N_i$ (nodo hijo izquierdo) y $N_d$ (nodo hijo derecho) se define como $N = \mathcal{H}(N_i \Vert N_d)$.
-		\item Es el nodo que sintetiza criptográficamente toda la información de $L$ sobre el dominio $D$.
-		\item Aunque conceptualmente $\mathcal{T}$ tiene $2^k$ hojas, en la práctica solo se almacenan y calculan los nodos necesarios para representar los elementos de $L$ y los hashes por defecto de las ramas no ocupadas. Esto permite mantener las pruebas de pertenencia y exclusión de tamaño $O(k)$.
+		\item Cada nodo interno $N$ con hijos $N_i$ (nodo hijo izquierdo) y $N_d$ (nodo hijo derecho) se define como $N = \Hash(N_i \concat N_d)$.
+		\item La raíz $\MerkleRoot{\MerkleTree{T}}$ es el nodo que sintetiza criptográficamente toda la información de $L$ sobre el dominio $D$.
+		\item Aunque conceptualmente $\MerkleTree{T}$ tiene $2^k$ hojas, en la práctica solo se almacenan y calculan los nodos necesarios para representar los elementos de $L$ y los hashes por defecto de las ramas no ocupadas. Esto permite mantener las pruebas de pertenencia y exclusión de tamaño $\BigO(k)$.
 	\end{enumerate}
 \end{definition}
 
-\begin{figure}[h]
+Cada default hash $\defaultHash{i}$ es un valor que representa un subárbol completamente vacío de altura $i$. cuyos nodos hoja contienen únicamente el valor por defecto.Intuitivamente, los default hashes $\defaultHash{i}$ son valores que representan subárboles completamente vacíos. Entonces, la raíz de un \SMT vacío $\MerkleTree{T}_\emptyset$ de altura $k$ es exactamente $\defaultHash{k}$. Esto provee a los \SMT de una estructura algebraica bien definida.
+
+\begin{figure}[ht]
 	\centering
 	\begin{tikzpicture}[
 		scale=0.9,
@@ -38,104 +47,122 @@ Los Merkle Trees tradicionales permiten realizar pruebas eficientes de pertenenc
 		edge from parent/.style={draw}
 		]
 		
-		\node[stored] {$r(\mathcal{T}) = \mathcal{H}(h_3 \Vert h_4)$}
-		child { node[stored] {$h_3 = \mathcal{H}(h_0 \Vert h_1)$}
-			child { node[stored] {$h_0 = \mathcal{H}(\mathcal{H}(\bot) \Vert \mathcal{H}(001))$}
-				child { node[implicit] {$\mathcal{H}(H(\bot))$}}
-				child { node[stored] {$\mathcal{H}(001)$}
+		\node[stored] {$\MerkleRoot{\MerkleTree{T}} = \Hash(h_3 \concat h_4)$}
+		child { node[stored] {$h_3 = \Hash(h_0 \concat h_1)$}
+			child { node[stored] {$h_0 = \Hash(\Hash(\EmptyNode) \concat \Hash(001))$}
+				child { node[implicit] {$\Hash(H(\EmptyNode))$}}
+				child { node[stored] {$\Hash(001)$}
 					child { node[stored] {$001$} }
 				}
 			}
-			child { node[implicit] {$h_1 = \mathcal{H}(\mathcal{H}(\bot) \Vert \mathcal{H}(\bot))$}
-				child { node[implicit] {$\mathcal{H}(\bot)$}}
-				child { node[implicit] {$\mathcal{H}(\bot)$}}
+			child { node[implicit] {$h_1 = \Hash(\Hash(\EmptyNode) \concat \Hash(\EmptyNode))$}
+				child { node[implicit] {$\Hash(\EmptyNode)$}}
+				child { node[implicit] {$\Hash(\EmptyNode)$}}
 			}
 		}
-		child { node[stored] {$h_4 = \mathcal{H}(h_1 \Vert h_2)$}
+		child { node[stored] {$h_4 = \Hash(h_1 \concat h_2)$}
 			child { node[implicit] {$h_1$}
-				child { node[implicit] {$\mathcal{H}(\bot)$}}
-				child { node[implicit] {$\mathcal{H}(\bot)$}}
+				child { node[implicit] {$\Hash(\EmptyNode)$}}
+				child { node[implicit] {$\Hash(\EmptyNode)$}}
 			}
-			child { node[stored] {$h_2 = \mathcal{H}(\mathcal{H}(110) \Vert \mathcal{H}(111))$}
-				child { node[stored] {$\mathcal{H}(110)$}
+			child { node[stored] {$h_2 = \Hash(\Hash(110) \concat \Hash(111))$}
+				child { node[stored] {$\Hash(110)$}
 					child { node[stored] {$110$} }
 				}
-				child { node[stored] {$\mathcal{H}(111)$}
+				child { node[stored] {$\Hash(111)$}
 					child { node[stored] {$111$} }
 				}
 			}
 		};
 	\end{tikzpicture}
-	\caption{Sparse Merkle Tree - Nodos implícitos con valor por defecto}
+		\caption{Sparse Merkle Tree - Nodos implícitos con valor por defecto}
 	\label{fig:sparse-merkle-tree}
 \end{figure}
 
-En la imagen \ref{fig:sparse-merkle-tree} no llega a apreciarse la gran ventaja de reducir la cantidad de nodos guardados. Sin embargo, al considerar un $m$ grande usado en la práctica, como $224$ o $256$, la cantidad de nodos que se necesitarían almacenar supera con creces el límite computacional posible, y se acerca al número de átomos en el universo visible.
+En la imagen \ref{fig:sparse-merkle-tree} no llega a apreciarse la gran ventaja de reducir la cantidad de nodos guardados. Sin embargo, al considerar un $m$ grande usado en la práctica, como $224$ o $256$, la cantidad de nodos que se necesitarían almacenar supera con creces el límite computacional posible, y excede cualquier límite físico concebible.
 
-Esta construcción permite definir pruebas de exclusión eficientes: para demostrar que $\ell \not\in L$, basta con exhibir Merkle Path desde la hoja asociada a $ell \in D \setminus {L}$ (que contiene el default hash) hasta la raíz del árbol. La verificación de dicha prueba depende únicamente del valor de $r(\mathcal{T})$ y de la resistencia a colisiones de $\mathcal{H}$.
+\subsection{Sparse Merkle Proofs}
+
+Los \SMT permiten definir pruebas de exclusión eficientes: para demostrar que $\ell \not\in L$, basta con exhibir el camino $\MerklePath$ desde la hoja asociada a $\ell \in D \setminus {L}$ (que contiene el default hash $\defaultHash{0}$) hasta la raíz del árbol. La verificación de dicha prueba depende únicamente del valor de $\MerkleRoot{\MerkleTree{T}}$ y de la resistencia a colisiones de $\Hash$. 
 
 \begin{definition}[Sparse Merkle Proof]
-	Sea $\mathcal{T}$ un Sparse Merkle Tree de altura $k$ con raíz $r(\mathcal{T})$, construido sobre un conjunto finito $L \subseteq \{0,1\}^k$ y de función criptográfica asociada $\mathcal{H}$. Sea $\ell \in \{0,1\}^k$. Una Sparse Merkle Proof de $\ell$ en $L$ es una lista ordenada $\pi = [(h_1, b_1), \ldots, (h_k, b_k)]$, donde:
+	Sea $\MerkleTree{T}$ un Sparse Merkle Tree de altura $k$ con raíz $\MerkleRoot{\MerkleTree{T}}$, construido sobre un conjunto finito $L \subseteq \Strings{k}$ y de función criptográfica asociada $\Hash$. Sea $\ell = (b_1, \ldots, b_k) \in \Strings{k}$. Una Sparse Merkle Proof de $\ell$ en $L$ es una lista ordenada $\MerkleProof = [h_1, \ldots, h_k]$, donde:
 	\begin{itemize}
-		\item Cada $h_i \in \{0,1\}^n$ es el hash del hermano del nodo del nivel $i$ en el camino desde la hoja correspondiente a $\ell$ hasta $r(\mathcal{T})$.
-		\item Cada $b_i \in \{0,1\}$ es un bit que indica si el hash $h_i$ está a la izquierda ($b_i = 0$) o a la derecha ($b_i = 1$) del nodo en el camino.
+		\item Cada $h_i \in \{0,1\}^n$ es el hash del hermano del nodo del nivel $i$ en el camino desde la hoja correspondiente a $\ell$ hasta $\MerkleRoot{\MerkleTree{T}}$.
+		\item Cada $b_i \in \{0,1\}$ es un bit que indica si el hash $h_i$ está a la izquierda ($b_i = 0$) o a la derecha ($b_i = 1$) del nodo en el camino. Los bits $b_i$ no forman parte de la prueba sino de la representación binaria de $\ell$.
 	\end{itemize}
-	Nos referimos a $\pi$ como una prueba de inclusión si $l \in L$, y como una prueba de exclusión si $l \not\in L$.
+	Nos referimos a $\MerkleProof$ como una prueba de inclusión si $\ell \in L$, y como una prueba de exclusión si $\ell \not\in L$.
 \end{definition}
 
-Se puede dar una función de verificación (y su algoritmo correspondiente) para una Sparse Merkle Proof, así como hicimos con la Merkle Proof tradicional.
+Se puede dar una función de verificación (y su algoritmo correspondiente) para una Sparse Merkle Proof, así como hicimos con la Merkle Proof tradicional. Nuevamente, vamos reconstruyendo el camino $\MerklePath$ de $\ell$ en un vector $x$, y la prueba es válida si y solo si el valor obtenido al final del camino es consistente con la raíz: $x_k = \MerkleRoot{\MerkleTree{T}}$. Si los hermanos no estuvieran almacenados explícitamente en $\MerkleTree{T}$, hay que usar los default hashes del nivel correspondientes.
 
 \begin{definition}[Función de verificación de una Sparse Merkle Proof]
-	Sea $\mathcal{T}$ un Sparse Merkle Tree de altura $k$ con raíz $r(\mathcal{T})$ y función de hash criptográfica asociada $\mathcal{H}$ y valor por defecto $\bot$, y sea $\pi$ una Sparse Merkle Proof para un elemento $l \in \{0,1\}^k$. Sea $b$ un bit que indica si $\pi$ es una prueba de inclusión o de exclusión. La función de verificación de $\pi$ se define como:
-	$$\mathsf{Verify}(\ell, \pi, r(\mathcal{T}), b) = \llbracket x_k = r(\mathcal{T}) \rrbracket,$$
+	Sea $\MerkleTree{T}$ un Sparse Merkle Tree de altura $k$ con raíz $\MerkleRoot{\MerkleTree{T}}$ y función de hash criptográfica asociada $\Hash$ y valor por defecto $\EmptyNode$, y sea $\MerkleProof$ una Sparse Merkle Proof para un elemento $\ell = (b_1, \ldots, b_k) \in \Strings{k}$. La función de verificación de $\MerkleProof$ se define como:
+		$$\Verify(\ell, \MerkleProof, \MerkleRoot{\MerkleTree{T}}, b) = \llbracket x_k = \MerkleRoot{\MerkleTree{T}} \rrbracket,$$
 	donde
 	$$x_0 := \begin{cases}
-		\mathcal{H}(\ell) \text{ si } b = 1, \\
-		\mathcal{H}(\bot) \text{ si } b = 0,
+		\Hash(\ell) \text{ (prueba de inclusión)}, \\
+			\defaultHash{0} \text{ (prueba de exclusión)},
 	\end{cases}$$
 	y para cada $1 \leq i \leq k$:
 	$$x_i = \begin{cases}
-		\mathcal{H}(h_i \Vert x_{i-1}) & \text{ si } b_i = 0, \\
-		\mathcal{H}(x_{i-1} \Vert h_i) & \text{ si } b_i = 1,
+		\Hash(h_i \concat x_{i-1}) & \text{ si } b_i = 0, \\
+		\Hash(x_{i-1} \concat h_i) & \text{ si } b_i = 1,
 	\end{cases} \quad 1 \leq i \leq k.$$
 \end{definition}
 
-\begin{algorithm}[h]
+Para el algoritmo de verificación, podemos simplemente indicar con un bit adicional $b'$ si $\MerkleProof$ es una prueba de inclusión o exclusión: $b = 1$ indica que es una prueba de inclusión, mientras que $b = 0$ implica una prueba de exclusión.
+
+\begin{algorithm}[ht]
 	\caption{Verificación de una Sparse Merkle Proof}
 	\label{alg:verify-sparse-merkle-proof}
 	\begin{algorithmic}[1]
-		\Require Elemento $\ell \in \{0,1\}^*$, Sparse Merkle Proof $\pi = [(h_1,b_1), \ldots, (h_k,b_k)]$, raíz $r(\mathcal{T}) \in \{0,1\}^n$, bit $b \in \{0,1\}$
-		\Ensure \textbf{true} si $\pi$ prueba que $\ell \in L$ o $\ell \notin L$, \textbf{false} en caso contrario
-		\State $x \gets \textbf{if } b = 1 \textbf{ then } \mathcal{H}(\ell) \textbf{ else } \mathcal{H}(\bot)$
-		\For{$i = 1$ \textbf{to} $m$}
-		\If{$b_i = 0$} \Comment{$h_i$ es hijo izquierdo}
-		\State $x \gets \mathcal{H}(h_i \Vert x)$
-		\Else \Comment{$h_i$ es hijo derecho}
-		\State $x \gets \mathcal{H}(x \Vert h_i)$
-		\EndIf
+		\Require Elemento $\ell \in \{0,1\}^*$, Sparse Merkle Proof $\MerkleProof = h_1, \ldots, h_k]$, raíz $\MerkleRoot{\MerkleTree{T}} \in \{0,1\}^n$, bit $b \in \{0,1\}$
+		\Ensure \textbf{true} si $\MerkleProof$ prueba que $\ell \in L$ o $\ell \notin L$, \textbf{false} en caso contrario
+		\State $(b_1, \ldots, b_k) \gets \ell$ \Comment{representación binaria de $\ell$}
+		\State $x \gets \textbf{if } \text{b = 1} \textbf{ then } \Hash(\ell) \textbf{ else } \defaultHash{0}$
+		\For{$i = 1$ \textbf{to} $k$}
+			\If{$b_i = 0$} \Comment{$h_i$ es hijo izquierdo}
+				\State $x \gets \Hash(h_i \concat x)$
+			\Else \Comment{$h_i$ es hijo derecho}
+				\State $x \gets \Hash(x \concat h_i)$
+			\EndIf
 		\EndFor
-		\State \Return $\llbracket x = r(\mathcal{T}) \rrbracket$
+		\State \Return $\llbracket x = \MerkleRoot{\MerkleTree{T}} \rrbracket$
 	\end{algorithmic}
 \end{algorithm}
 
-Hasta ahora, esto resulta demasiado similar a un Merkle Tree tradicional. Pero lo que es diferente es la función de actualización de un Sparse Merkle Tree, ya que idealmente es usado como una estructura de datos dinámica: al agregar un nuevo elemento $v \in \{0,1\}^k$, se deben añadir nuevos nodos al árbol, correspondientes al Merkle Path de $\ell$ en $\mathcal{T}$ (la parte que no haya sido creada antes). El algoritmo \ref{alg:update-sparse-merkle-tree} explica cómo hacer esto en tiempo $O(k)$. TODO: Probablemente lo más útil en este caso es proveer un link a una implementación ya hecha. https://github.com/nervosnetwork/sparse-merkle-tree/tree/master/src
+Se observa que nada nos impide combinar una Sparse Merkle Proof de exclusión y otra de inclusión para poder hacer una prueba sobre la actualización correcta de un \SMT. En efecto, tenemos una estructura \textbf{autenticada} de datos, lo que quiere decir que todas las actualizaciones que se hagan en $\MerkleTree{T}$ producen resultados que pueden ser autenticados por terceros \cite{Miller2014}. Esto nos será útil durante el trabajo.
 
-\begin{algorithm}[h]
-	\caption{Actualización de un Sparse Merkle Tree}
+\subsection{Actualización de un Sparse Merkle Tree}
+
+Hasta ahora, los \SMT resultan demasiado similares a los Merkle Tree tradicionales. Pero lo que es diferente es la función de actualización de los \SMT, ya que idealmente es usado como una estructura de datos dinámica: al agregar un nuevo elemento $\ell \in \Strings{k}$, se deben añadir nuevos nodos al árbol, correspondientes al Merkle Path de $\ell$ en $\MerkleTree{T}$ (la parte que no haya sido creada antes). El algoritmo \ref{alg:update-sparse-merkle-tree} explica cómo hacer esto en tiempo $O(k)$.
+
+% TODO: Probablemente lo más útil en este caso es proveer un link a una implementación ya hecha. https://github.com/nervosnetwork/sparse-merkle-tree/tree/master/src
+
+\begin{algorithm}[ht]
+	\caption{Actualización de una hoja en un Sparse Merkle Tree}
 	\label{alg:update-sparse-merkle-tree}
 	\begin{algorithmic}[1]
-		\Require elemento $\ell \in \{0,1\}^m$, función hash $\mathcal{H}$, valor por defecto $\bot$
-		\Ensure Nueva raíz $r'(\mathcal{T})$ tras insertar o actualizar $\ell \mapsto v$
-		\State TODO
+		\Require $\ell \in \Strings{k}$, Sparse Merkle Proof $\MerkleProof = [h_1, \ldots, h_k]$
+		\Ensure $\MerkleTree{T}$ es actualizado correctamente
+		\State $(b_1, \ldots, b_k) \gets \ell$ \Comment{representación binaria de $\ell$}
+		\State $x \gets \Hash(\ell)$
+		\For{$i = 1$ \textbf{to} $k$}
+			\If{$b_i = 0$}
+				\State $x \gets \Hash(h_i \concat x)$
+			\Else
+				\State $x \gets \Hash(x \concat h_i)$
+			\EndIf
+			\State \text{Guardar $x$ como valor del nodo correspondiente al prefijo $(b_1, \ldots, b_i)$}
+		\EndFor
+		\State \Return $x$
 	\end{algorithmic}
 \end{algorithm}
 
-Los detalles implementativos de un Sparse Merkle Tree son los siguientes:
+En la figura \ref{fig:update-sparse-merkle-tree-100-path}, podemos ver la actualización de un Sparse Merkle Tree de altura $3$ luego de agregarle el elemento $000 \in \{0,1\}^3$. Observar que se encuentra coloreado de rojo su Merkle Path asociado, en donde los nodos marcados como $\Hash(0)$ y $h_5$ no existían antes, mientras que los nodos marcados con $h_6$ y $r^*(\MerkleTree{T})$ vieron actualizado su hash.
 
-En la figura \ref{fig:update-sparse-merkle-tree-100-path}, podemos ver la actualización de un Sparse Merkle Tree de altura $3$ luego de agregarle el elemento $000 \in \{0,1\}^3$. Observar que se encuentra coloreado de rojo su Merkle Path asociado, en donde los nodos marcados como $\mathcal{H}(0)$ y $h_5$ no existían antes, mientras que los nodos marcados con $h_6$ y $r^*(\mathcal{T})$ vieron actualizado su hash.
-
-
-\begin{figure}[h]
+\begin{figure}[ht]
 	\centering
 	\begin{tikzpicture}[
 		scale=0.9,
@@ -159,44 +186,38 @@ En la figura \ref{fig:update-sparse-merkle-tree-100-path}, podemos ver la actual
 		edge from parent/.style={draw}
 		]
 		
-		\node[stored,pathnode] {$r^*(\mathcal{T}) = \mathcal{H}(h_3 \Vert h_6)$}
-		child { node[stored,] {$h_3 = \mathcal{H}(h_0 \Vert h_1)$}
-			child { node[stored] {$h_0 = \mathcal{H}(\mathcal{H}(\bot) \Vert \mathcal{H}(001))$}
-				child { node[implicit] {$\mathcal{H}(H(\bot))$}}
-				child { node[stored] {$\mathcal{H}(001)$}
+		\node[stored,pathnode] {$r^*(\MerkleTree{T}) = \Hash(h_3 \concat h_6)$}
+		child { node[stored,] {$h_3 = \Hash(h_0 \concat h_1)$}
+			child { node[stored] {$h_0 = \Hash(\Hash(\EmptyNode) \concat \Hash(001))$}
+				child { node[implicit] {$\Hash(H(\EmptyNode))$}}
+				child { node[stored] {$\Hash(001)$}
 					child { node[stored] {$001$} }
 				}
 			}
-			child { node[implicit] {$h_1 = \mathcal{H}(\mathcal{H}(\bot) \Vert \mathcal{H}(\bot))$}
-				child { node[implicit] {$\mathcal{H}(\bot)$}}
-				child { node[implicit] {$\mathcal{H}(\bot)$}}
+			child { node[implicit] {$h_1 = \Hash(\Hash(\EmptyNode) \concat \Hash(\EmptyNode))$}
+				child { node[implicit] {$\Hash(\EmptyNode)$}}
+				child { node[implicit] {$\Hash(\EmptyNode)$}}
 			}
 		}
-		child { node[stored,pathnode] {$h_6 = \mathcal{H}(h_5 \Vert h_2)$}
-			child { node[stored,pathnode] {$h_5 = \mathcal{H}(\mathcal{H}(\bot) \Vert \mathcal{H}(100))$}
-				child { node[stored,pathnode] {$\mathcal{H}(100)$}
+		child { node[stored,pathnode] {$h_6 = \Hash(h_5 \concat h_2)$}
+			child { node[stored,pathnode] {$h_5 = \Hash(\Hash(\EmptyNode) \concat \Hash(100))$}
+				child { node[stored,pathnode] {$\Hash(100)$}
 					child { node[stored] {$100$} }
 				}
-				child { node[implicit] {$\mathcal{H}(\bot)$}}
+				child { node[implicit] {$\Hash(\EmptyNode)$}}
 			}
-			child { node[stored] {$h_2 = \mathcal{H}(\mathcal{H}(110) \Vert \mathcal{H}(111))$}
-				child { node[stored] {$\mathcal{H}(110)$}
+			child { node[stored] {$h_2 = \Hash(\Hash(110) \concat \Hash(111))$}
+				child { node[stored] {$\Hash(110)$}
 					child { node[stored] {$110$} }
 				}
-				child { node[stored] {$\mathcal{H}(111)$}
+				child { node[stored] {$\Hash(111)$}
 					child { node[stored] {$111$} }
 				}
 			}
 		};
 	\end{tikzpicture}
-	\caption{Sparse Merkle Tree con el nodo $100$. Merkle Path de $100$ en azul.}
+		\caption{Sparse Merkle Tree con el nodo $100$. Camino de $100$ en azul.}
 	\label{fig:update-sparse-merkle-tree-100-path}
 \end{figure}
 
-Se observa que nada nos impide combinar una Sparse Merkle Proof de exclusión y otra de inclusión para poder verificar la actualización correcta de un Sparse Merkle Tree. Esto nos será útil durante el trabajo.
-
-
-
-
-
-
+Las implementaciones reales aprovechan que la gran mayoría de los nodos son implícitos (default hashes) y representan únicamente los caminos relevantes mediante estructuras derivadas de tries binarios. La idea es interpretar $\ell$ como una ruta en el trie. Entonces, en el trie solamente existen nodos correspondientes a prefijos compartidos por claves efectivamente insertadas. Más aún, para los \SMT reales muy grandes, esto suele implementarse sobre un almacenamiento direccionado por hash, donde cada nodo existente se identifica por su hash y se reconstruye el árbol de forma dinámica a partir de una base de datos key-value.

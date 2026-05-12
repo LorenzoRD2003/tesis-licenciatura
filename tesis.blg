@@ -1,46 +1,46 @@
-This is BibTeX, Version 0.99d (TeX Live 2023/Debian)
+This is BibTeX, Version 0.99d (TeX Live 2025)
 Capacity: max_strings=200000, hash_size=200000, hash_prime=170003
 The top-level auxiliary file: tesis.aux
 The style file: ieeetr.bst
 Database file #1: tesis.bib
-You've used 7 entries,
+You've used 64 entries,
             1876 wiz_defined-function locations,
-            524 strings with 4663 characters,
-and the built_in function-call counts, 1712 in all, are:
-= -- 170
-> -- 62
+            853 strings with 14005 characters,
+and the built_in function-call counts, 15491 in all, are:
+= -- 1579
+> -- 549
 < -- 0
-+ -- 24
-- -- 17
-* -- 97
-:= -- 230
-add.period$ -- 9
-call.type$ -- 7
-change.case$ -- 5
++ -- 214
+- -- 150
+* -- 706
+:= -- 1933
+add.period$ -- 86
+call.type$ -- 64
+change.case$ -- 49
 chr.to.int$ -- 0
-cite$ -- 7
-duplicate$ -- 100
-empty$ -- 166
-format.name$ -- 17
-if$ -- 437
+cite$ -- 64
+duplicate$ -- 935
+empty$ -- 1524
+format.name$ -- 150
+if$ -- 4069
 int.to.chr$ -- 0
-int.to.str$ -- 7
-missing$ -- 7
-newline$ -- 26
-num.names$ -- 7
-pop$ -- 31
+int.to.str$ -- 64
+missing$ -- 50
+newline$ -- 217
+num.names$ -- 64
+pop$ -- 357
 preamble$ -- 1
 purify$ -- 0
 quote$ -- 0
-skip$ -- 84
+skip$ -- 880
 stack$ -- 0
-substring$ -- 64
-swap$ -- 49
+substring$ -- 533
+swap$ -- 503
 text.length$ -- 0
 text.prefix$ -- 0
 top$ -- 0
 type$ -- 0
 warning$ -- 0
-while$ -- 11
-width$ -- 8
-write$ -- 69
+while$ -- 98
+width$ -- 66
+write$ -- 586

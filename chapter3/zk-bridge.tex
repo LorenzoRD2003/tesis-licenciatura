@@ -1,0 +1,143 @@
+% !TeX root = tesis.tex
+
+\subsection{Esquema general de un \zkBridge}
+
+El trabajo \textit{\zkBridge: Trustless Cross-chain Bridges Made Practical} \cite{Xie2022} propone una arquitectura general de bridge \emph{trustless} cuyo objetivo es permitir que una blockchain $\ChainB$ verifique, de manera eficiente, hechos ocurridos en otra blockchain $\ChainA$, sin depender de un comité privilegiado de validadores. La idea central es reemplazar la confianza en un comunicador por argumentos sucintos que certifiquen que la evolución del consenso de $\ChainA$ fue correctamente verificada \Offchain, y que su resultado puede ser aceptado \Onchain en $\ChainB$. El paper enfatiza que el problema principal de los \LightClients tradicionales no es conceptual sino práctico: verificar \textit{headers} y mantener su estado \Onchain puede ser demasiado costoso, especialmente cuando la cadena de origen usa consenso PoS o esquemas de firma poco amigables para aritmetización, como ocurre en varios sistemas modernos.
+
+La base de la construcción es un \LightClientProtocol. En el modelo del paper, un \LightClient no almacena ni reejecuta toda la blockchain de origen, sino solamente la información necesaria para verificar una fracción de sus propiedades. El paper toma esta idea como punto de partida y observa que un bridge entre $\ChainA$ y $\ChainB$ puede reducirse a lo siguiente: mantener en $\ChainB$ un estado compacto que represente el progreso del \LightClient de $\ChainA$, y luego usar ese estado para verificar eventos concretos (por ejemplo, que una transacción fue incluida en un bloque, o que cierto valor aparece en el estado de un contrato).
+
+El obstáculo es que ejecutar directamente ese \LightClient dentro de $\ChainB$ suele ser demasiado caro. \zkBridge traslada entonces esa verificación a un prover \Offchain, que genera un argumento sucinto de que la transición del \LightClient fue correcta. A alto nivel, la arquitectura de \zkBridge tiene tres componentes:
+
+\begin{enumerate}[noitemsep]
+		\item Una red de provers. Cualquier nodo de esta red puede consultar nodos completos de $\ChainA$, obtener el siguiente \textit{block header} $\Header$ y construir un argumento \ZK $\pi_{\Header}$.
+		\item Un contrato \Onchain en $\ChainB$, llamado \emph{updater contract}, y que notaremos $\SmartContract{\Updater}$, el cual recibe $\pi_{\Header}$ y, si es válida, actualiza el estado del \LightClient en $\ChainB$ para registrar el nuevo \textit{header} $\Header$.
+		\item Contratos de aplicación desplegados en $\ChainB$ que usan la información ya aceptada por $\SmartContract{\Updater}$ para realizar verificaciones específicas del bridge, como transferencias de activos. Esta separación modular es importante: el \textit{updater} no sabe nada de la lógica particular de una aplicación, sino que solamente mantiene una vista autenticada, compacta y consistente de $\ChainA$.
+\end{enumerate}
+
+Conceptualmente, \zkBridge desacopla la verificación del consenso de la cadena remota del uso de sus eventos. Como muestra la Figura~\ref{fig:zkbridge-simplified}, una red de provers genera argumentos criptográficos que certifican el estado de la cadena  $\ChainA$, los cuales son verificados por el contrato $\SmartContract{\Updater}$ en $\ChainB$. Los contratos de aplicación pueden entonces consultar este estado autenticado para ejecutar operaciones cross-chain.
+
+\begin{figure}[ht]
+	\centering
+	\begin{tikzpicture}[
+		scale=0.82,
+		transform shape,
+		font=\small,
+		chainbox/.style={
+			draw, thick,
+			minimum width=3.4cm,
+			minimum height=0.95cm,
+			rounded corners=2pt,
+			align=center
+		},
+		contractblue/.style={
+			draw=blue!70!black, fill=blue!10,
+			thick,
+			minimum width=2.5cm,
+			minimum height=1.05cm,
+			rounded corners=4pt,
+			align=center
+		},
+		contractgold/.style={
+			draw=orange!70!black, fill=orange!15,
+			thick,
+			minimum width=2.6cm,
+			minimum height=1.05cm,
+			rounded corners=4pt,
+			align=center
+		},
+		relaybox/.style={
+			draw, thick, fill=gray!15,
+			minimum width=2.5cm,
+			minimum height=1cm,
+			rounded corners=4pt,
+			align=center
+		},
+		updater/.style={
+			draw=orange!70!black, fill=orange!15,
+			thick,
+			minimum width=2.55cm,
+			minimum height=0.95cm,
+			rounded corners=4pt,
+			align=center
+		},
+		lbl/.style={
+			font=\small,
+			fill=white,
+			inner sep=1pt
+		}
+		]
+		
+		% Usuario
+		\node (user) at (0,3.5) {\textbf{Usuario $\User$}};
+		
+		% Contratos
+		\node[contractblue] (sclock) at (-5.6,2.0) {$\SmartContract{\Lock}$};
+		\node[contractgold] (scmint) at (5.6,2.0) {$\SmartContract{\Mint}$};
+		
+		% Cadenas
+		\node[chainbox, draw=blue!70!black, fill=blue!10] (c1) at (-5.6,0.0) {Cadena origen $\ChainA$};
+		\node[chainbox, draw=orange!70!black, fill=orange!15] (c2) at (5.6,0.0) {Cadena destino $\ChainB$};
+		
+		% Relay network
+		\node[relaybox] (relay) at (0.0,0.0) {Red de provers};
+		
+		% Updater contract
+		\node[updater] (updater) at (2.8,-1.5) {$\SmartContract{\Updater}$};
+		
+		% Relaciones usuario-contratos
+		\draw[<->] (user.south west) -- node[lbl, above left] {bloquea tokens} (sclock.north east);
+		\draw[<->] (scmint.north west) -- node[lbl, above right] {mintea tokens} (user.south east);
+		
+		% Relaciones contrato-cadena
+		\draw[->, blue!70!black, line width=1pt]
+		(sclock.south) -- (c1.north)
+		node[midway, right=3pt, text=blue!70!black, fill=white, inner sep=1pt]
+		{emite evento};
+		
+		\draw[->, orange!70!black, line width=1pt]
+		(c2.north) -- (scmint.south)
+		node[midway, left=3pt, text=orange!70!black, fill=white, inner sep=1pt]
+		{lee estado validado};
+		
+		% Relay network: lee cadena azul
+		\draw[->, blue!70!black]
+		(c1.east) -- (relay.west)
+		node[midway, above=0.1 cm, text=blue!70!black, fill=white, inner sep=1pt]
+		{observa eventos};
+		
+		% Relay network -> updater
+		\draw[->]
+		(relay.south) -- (updater.west)
+		node[midway, below left=3pt, fill=white, inner sep=1pt]
+		{argumento ZK sobre $\ChainA$};
+		
+		% Updater -> cadena destino
+		\draw[->, orange!70!black]
+		(updater.east) -- (c2.south)
+		node[midway, below right=3pt, text=orange!70!black, fill=white, inner sep=1pt]
+		{verifica argumento};
+		
+		\end{tikzpicture}
+		\caption{Esquema simplificado de zkBridge.}
+	\label{fig:zkbridge-simplified}
+\end{figure}
+
+La intuición es la siguiente. Supongamos que queremos convencer a un contrato en $\ChainB$ de que un cierto hecho ocurrió en $\ChainA$. Primero, $\SmartContract{\Updater}$ debe haber aceptado el \textit{header} del bloque correspondiente de $\ChainA$ donde se registró el hecho. Luego, el contrato de aplicación obtiene ese \textit{header} desde el \textit{updater} y verifica el argumento \ZK correspondiente. El problema queda así separado en dos capas:
+\begin{enumerate}[noitemsep]
+		\item Por un lado, demostrar que cierto \textit{header} $\Header$ pertenece a la historia válida de $\ChainA$.
+	\item Por otro lado, demostrar que dentro de ese bloque o de ese estado autenticado ocurre el evento que nos interesa.
+\end{enumerate}
+
+El modelo de seguridad del paper supone que ambas blockchains tienen propiedades de \emph{consistencia} y \emph{liveness}, que la cadena de origen posee un \LightClientProtocol correcto, que el protocolo de argumentos \ZK usado tiene la propiedad de solidez, y que existe al menos un nodo honesto en la red de provers. Bajo estas hipótesis, \zkBridge obtiene heredadas las propiedades de consistencia y liveness:
+\begin{itemize}[noitemsep]
+	\item Consistencia quiere decir que $\ChainB$ no aceptará \textit{headers} incompatibles con la historia válida de $\ChainA$.
+	\item Liveness quiere decir que, si $\ChainA$ progresa con más bloques a lo largo del tiempo y existe un prover honesto en la red, entonces los \textit{headers} eventualmente podrán ser incorporados en $\ChainB$.
+\end{itemize}
+
+\subsection{Un \zkBridge en la práctica}
+
+Hasta aquí, la propuesta sería conceptualmente atractiva pero todavía podría ser impracticable. El punto técnico central del paper es justamente mostrar cómo hacer que la generación de estos argumentos sea suficientemente rápida. El cuello de botella aparece porque verificar el consenso de algunas blockchains dentro de un circuito aritmético puede requerir verificar cientos de firmas digitales y otras operaciones costosas. El paper observa, sin embargo, que estos circuitos suelen tener una estructura paralela: contienen muchas copias idénticas de un mismo subcircuito pequeño. A partir de esta observación, los autores diseñan \emph{deVirgo}, un protocolo de argumentos distribuido que explota esa estructura repetitiva para paralelizar la generación de argumentos casi linealmente en la cantidad de máquinas disponibles.
+
+Aunque deVirgo acelera fuertemente al prover, el tamaño de los argumentos sigue siendo demasiado grande para ser verificadas cómodamente \Onchain. Para resolver esto, los autores aplican una capa recursiva adicional: primero generan un argumento grande con deVirgo, y luego demuestran con \Groth que el argumento generado con deVirgo es válido. Así, \Groth se usa para comprimir un argumento ya generado por un sistema más escalable para el prover, lo que se traduce en una verificación \Onchain barata (argumentos de tamaño constante, y tiempo de verificación bajo). Esta idea se conoce como \emph{proof recursion}, y será utilizada más adelante en el capítulo 8, ya que la red de \Cardano tiene restricciones muy limitantes en cuanto a tiempo de cómputo y unidades de ejecución en sus transacciones.
+
+Finalmente, el paper valida empíricamente esta arquitectura implementando un prototipo: un bridge desde Cosmos hacia \Ethereum. Los resultados muestran que la compresión recursiva reduce drásticamente tanto el tamaño del argumento como el costo de verificación \Onchain, lo que hace viable el uso de este esquema en blockchains programables como \Ethereum.

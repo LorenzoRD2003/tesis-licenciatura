@@ -8,7 +8,7 @@
 \usepackage[left=3cm,right=3cm,bottom=3.5cm,top=3.5cm]{geometry}
 \usepackage[T1]{fontenc}
 \usepackage{lmodern}
-\usepackage{hyperref}
+\usepackage[unicode,pdfencoding=auto,psdextra,hypertexnames=false]{hyperref}
 \usepackage[spanish, activeacute]{babel}
 \usepackage{amsmath, amssymb, amsthm}
 \usepackage[shortlabels]{enumitem}
@@ -19,9 +19,18 @@
 \usepackage{fancyhdr}
 \usepackage{pgfplots}
 \usepackage{stmaryrd}
+\usepackage{xspace}
+
+\setlength{\emergencystretch}{3em}
+\Urlmuskip=0mu plus 2mu\relax
+\hfuzz=20pt
+\hbadness=10000
+\vbadness=2000
+
 \pgfplotsset{compat=1.18}
 \usetikzlibrary{calc}
 \usetikzlibrary{babel}
+\usetikzlibrary{positioning}
 
 %%% Custom environments
 \newtheorem{theorem}{Teorema}[chapter]
@@ -34,16 +43,22 @@
 \algrenewcommand\algorithmicrequire{\textbf{Requiere:}}
 \algrenewcommand\algorithmicensure{\textbf{Asegura:}}
 
+%% Herramientas de debug
+%\renewcommand{\cite}[1]{}
+
+%%% COMANDOS
+\input{commands.tex}
+
 \begin{document}
 
 %%%% CARATULA
 
 \def\autor{Lorenzo Ruiz Díaz}
-\def\tituloTesis{Cardano ZkBridge \vspace{.2cm} \\ Interoperabilidad en Cardano}
-\def\runtitulo{Desarrollo de un ZK-Bridge en Cardano}
-\def\runtitle{Development of a ZK-Bridge in Cardano}
+\def\tituloTesis{Cardano \zkBridge \vspace{.2cm} \\ Interoperabilidad en \Cardano}
+\def\runtitulo{Desarrollo de un zkBridge en Cardano}
+\def\runtitle{Development of a zkBridge in Cardano}
 \def\director{Matías López y Rosenfeld}
-\def\codirector{Agustín Garassino}
+\def\codirector{Bruno Weisz}
 \def\lugar{Buenos Aires, 2026}
 \input{caratula}
 
@@ -74,7 +89,7 @@
 
 \input{chapter1/cuerpos-finitos}
 
-\section{Problema del logaritmo discreto (DLP)}
+\section{Problema del logaritmo discreto (\DLP)}
 
 \input{chapter1/dlp}
 
@@ -98,15 +113,15 @@
 
 \input{chapter1/merkle_tree}
 
-\section{Sparse Merkle Trees}
+\section{Sparse Merkle Trees (\SMT)}
 
 \input{chapter1/sparse-merkle-tree}
 
 
 %% ...
-\chapter{Aritmetización y Construcción de una SNARK}
+\chapter{Aritmetización y Construcción de un \SNARK}
 
-\section{Introducción a pruebas ZK}
+\section{Introducción a pruebas \ZK}
 
 \input{chapter2/introduccion}
 
@@ -118,39 +133,62 @@
 
 \input{chapter2/arithmetic-circuits}
 
-%\section{Sistema de Restricciones R1CS (Rank-1 Constraint Systems)}
+\section{Sistemas de Restricciones \ROneCS (Rank-1 Constraint Systems)}
 
-%\input{chapter2/r1cs}
+\input{chapter2/r1cs}
 
-%\section{Sistemas de Ecuaciones Cuadráticas (QAP)}
+\section{\QAP: Quadratic Arithmetic Programs}
 
-%\input{chapter2/qap}
+\input{chapter2/qap}
 
-%\section{Esquemas de Compromiso (Commitment Schemes)}
+\section{Esquemas de Compromiso (Commitment Schemes)}
 
-%\input{chapter2/commitment-schemes}
+\input{chapter2/commitment-schemes}
 
-%\section{KZG: Esquema de Compromiso y Verificación}
+\section{\KZG}
 
-%\input{chapter2/kzg}
+\input{chapter2/kzg}
 
-%\section{Protocolo Fiat-Shamir y No-Interactividad}
+\section{Protocolo \FiatShamir y No-Interactividad}
 
-%\input{chapter2/fiat-shamir}
+\input{chapter2/fiat-shamir}
 
-%\section{Groth16}
+\section{\Groth16}
 
-%\input{chapter2/groth16}
+\input{chapter2/groth16}
 
 
-%\chapter{zkBridge}
-%\chapter{Cardano y Modelo eUTxO}
-%\chapter{Decisiones de Diseño}
-%\chapter{Implementación parte 1}
-%\chapter{Mithril}
-%\chapter{Implementación parte 2}
-%\chapter{Resultados}
-%\chapter{Conclusiones}
+\chapter{Bridges y \zkBridge}
+
+\section{Bridges en la Blockchain}
+
+\input{chapter3/bridges}
+
+\section{Problemas de seguridad en \Bridges}
+
+\input{chapter3/security-issues}
+
+\section{Resumen del paper \zkBridge}
+
+\input{chapter3/zk-bridge}
+
+\chapter{Cardano y Modelo \eUTxO}
+
+\input{chapter4/motivation}
+
+\chapter{Decisiones de Diseño}
+
+\input{chapter5/design-decisions}
+
+\chapter{Implementación parte 1}
+
+\chapter{Mithril}
+
+\chapter{Implementación parte 2}
+
+\chapter{Resultados}
+
+\chapter{Conclusiones}
 
 %%%% BIBLIOGRAFIA
 \backmatter

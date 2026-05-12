@@ -1,1 +1,83 @@
-% !TeX root = main.tex
+% !TeX root = tesis.tex
+
+\subsection{Definición formal e intuición}
+
+\begin{definition}[\KZG \PCS]
+	Consideremos el cuerpo finito $\Fp$, y sea $\PolynomialSpace = \poly{\Fp}_{\leq d}$ el espacio de polinomios de grado a lo sumo $d$. Sea además $(\GOne, \GTwo, \GT)$ una tripla de grupos cíclicos, junto con $G_1 \in \GOne, G_2 \in \GTwo$ y un pairing bilineal no degenerado
+	$$
+	e : \GOne \times \GTwo \to \GT.
+	$$
+	
+	El esquema de compromisos polinomiales \KZG consta de los siguientes algoritmos:
+	
+	\begin{itemize}
+		\item $\Setup$: Se elige $\tau \overset{\$}{\leftarrow}  \Fp$ y se publica la Structured Reference String (\SRS):
+		$$\SRS = \left(G_1, \tau G_1, \tau^2 G_1, \ldots, \tau^d G_1,\; G_2, \tau G_2 \right).$$
+		\item $\Commit$: Dado un polinomio $P(x) = \sum_{i=0}^{d} a_i x^i \in \PolynomialSpace,$
+		se define el compromiso
+		$$c := \Commit(P) = \sum_{i=0}^{d} a_i \tau^i G_1 = P(\tau) G_1 \in \GOne$$
+		
+		\item $\Open$: Para un punto $z \in  \Fp$ enviado por el verifier, se computan $y := P(z)$ y el polinomio cociente $Q(x) := \frac{P(x) - y}{x - z}$. El argumento de evaluación se define como
+		$\pi := \Commit(Q) = Q(\tau) G_1 \in \GOne$.
+		
+		\item $\Verify$: Dados $(c, z, y, \pi)$, se acepta si
+		$$\pairing{c - yG_1}{G_2} = \pairing{\pi}{(\tau - z)G_2}.$$
+	\end{itemize}
+\end{definition}
+
+Para relacionarlo con las definición general dada en la sección anterior, observamos la instancia específica utilizada para cada uno de los conjuntos:
+\begin{itemize}[itemsep=0.1cm]
+	\item El espacio de polinomios $\PolynomialSpace$ es $ \Fp[x]_{\leq d}$.
+	\item El espacio de compromisos $\CommitmentSpace$ es $\gen{G_1} \subseteq \GOne$.
+	\item El espacio de argumentos $\ProofSpace$ también es $\gen{G_1}$. Efectivamente, el argumento contiene un solo elemento de grupo, de modo que la prueba es de tamaño constante y por lo tanto sucinta.
+\end{itemize}
+
+Ahora, vamos a verificar efectivamente que el esquema de compromisos polinomiales \KZG satisface la propiedad de completitud. Recordemos que esto quiere decir que un prover honesto siempre va a poder convencer a un verifier honesto. En efecto, recordando que $P(\tau) - y = (\tau - z)Q(\tau)$, tenemos que:
+
+$$\begin{aligned}
+	\pairing{c - yG_1}{G_2} &= \pairing{P(\tau) - yG_1}{G_2} \\
+	&= \pairing{G_1}{G_2}^{P(\tau) - y} \quad (\text{bilinealidad del pairing}) \\
+	&= \pairing{G_1}{G_2}^{(\tau - z)Q(\tau)} \\
+	&= \pairing{Q(\tau)G_1}{(\tau - z)G_2} \quad (\text{bilinealidad del pairing}) \\
+	&= \pairing{\pi}{(\tau - z)G_2} \quad (\text{definición de } \pi)
+\end{aligned}$$
+
+Por otra parte, la solidez de \KZG se sostiene en que un compromiso fija efectivamente el valor $P(\tau)$ sin revelar $\tau$. Si un prover intenta convencer al verifier de una evaluación falsa $y \neq P(z)$, entonces el polinomio $P(x) - y$ no será divisible por el polinomio $x - z$. En consecuencia, no existe ningún polinomio 
+$Q(x)$ tal que $P(x) - y = (x - z)Q(x)$. La verificación exige precisamente que esa identidad se cumpla “en el exponente” vía la ecuación de pairing bilineal. Fabricar un argumento válido $\pi = Q(\tau) G_1$ sin que la divisibilidad sea cierta implicaría resolver una relación algebraica que, bajo el supuesto $t$-Bilinear Strong Diffie-Hellman ($t$-\BSDH) es computacionalmente inviable \cite{Kate2010}. Intuitivamente: sin conocer 
+$\tau$, no se puede falsificar coherentemente la aritmética polinomial codificada en la \SRS.
+
+En la práctica, los grupos $\GOne, \GTwo, \GT$ no son grupos arbitrarios, sino grupos derivados de curvas elípticas emparejables (\textit{pairing-friendly elliptic curves}). Estas curvas están construidas específicamente para admitir pairings bilineales eficientes y seguros. En construcciones tipo \KZG, los compromisos y pruebas viven en $\GOne$, los elementos de verificación utilizan $\GTwo$, y las ecuaciones se evalúan en $\GT$. En la práctica, estos grupos suelen instanciarse mediante curvas emparejables como \BLS o \BN, ampliamente utilizadas en sistemas de argumentos \zkSNARK.
+
+\subsection{Trusted Setup}
+
+El \textit{trusted setup} en \KZG es, esencialmente, el mecanismo mediante el cual se genera la Structured Reference String (\SRS). Intuitivamente, la \SRS contiene “potencias secretas” de un valor desconocido $\tau \in \Fp$. Es decir, de la forma
+$$\SRS = \left(G_1, \tau G_1, \tau^2 G_1, \ldots, \tau^d G_1,\; G_2, \tau G_2 \right),$$
+que son las necesarias para poder calcular $P(\tau)G_1$ para cualquier $P \in \PolynomialSpace$, así como $(\tau - z)G_2$ para cualquier $z \in  \Fp$.
+
+Toda la seguridad del esquema depende de que \emph{nadie} conozca el valor de $\tau$. Conocer $\tau$ permite computar directamente $Q(\tau)$ para cualquier $Q \in \Fp[x]_{\leq d}$, lo que posibilita construir aperturas válidas para valores $y \in \Fp$ arbitrarios, rompiendo la propiedad de binding.
+
+Para eliminar el supuesto de confiar en una sola entidad, se utilizan ceremonias \emph{multi-party computation} (\MPC). Supongamos $n$ participantes. Cada participante $i$ elige un secreto $\tau_i \in \K$, y actualiza la \SRS multiplicando todos los valores por $\tau_i$. Es decir que cuando terminen los $n$ participantes, el valor final será
+$$\tau := \tau_1 \cdot \tau_2 \ldots \tau_n = \prod_{i=1}^{n} \tau_i.$$
+
+Notamos que si al menos uno de los participantes destruye su $\tau_i$, entonces es computacionalmente imposible que alguien pueda conocer $\tau$. No hace falta confiar en todos los participantes, sino en que hay alguno que es honesto. Es por esto que este modelo se llama \emph{at least one honest participant}. Por este motivo, las ceremonias modernas pueden involucrar cientos o miles de contribuyentes.
+
+Observamos que una \SRS para polinomios en el espacio $ \Fp[x]_{\leq d}$ requiere $\Theta(d)$ elementos de grupo ($d + 1$ elementos de $\GOne$ y $2$ elementos de $\GTwo$). Como hacer circuitos aritméticos más grandes implica que el grado máximo necesario va a incrementar, que esto escale de forma lineal genera dificultades prácticas. Una \SRS \KZG es universal para todos los polinomios de grado menor o igual a $d$, lo cual limita el tamaño máximo que pueden tener los circuitos aritméticos (medido en el número de restricciones de su \ROneCS asociado) para los que queremos hacer \SNARK.
+
+Para \SNARK pequeños, suelen ser miles de elementos de la curva. Pero para sistemas grandes, pueden ser millones de elementos, lo que puede ocupar numerosos GB de almacenamiento, copiado en dispositivos de muchos desarrolladores. Como el proceso no es rápido y no pueden realizarlo dos desarrolladores al mismo tiempo, hay una complejidad social adicional. Por eso, es que hay alternativas para sistemas de pruebas que no requieren una fase de \textit{trusted setup}, o que el mismo es universal para cualquier circuito \cite{cryptoeprint:2019/953, BenSasson2017FastRI, cryptoeprint:2018/046}. Por otra parte, estos sistemas de pruebas alternativos tienen como contrapartida un mayor tamaño de prueba, al mismo tiempo que más tiempo de ejecución en sus algoritmos.
+
+\subsection{Lo que tenemos hasta ahora}
+
+En la sección de \QAP mostramos que la verificación de un circuito aritmético puede reducirse a comprobar una identidad polinomial de la forma
+$$A(r)B(r) - C(r) = H(r)Z(r),$$
+para un punto aleatorio $r \in \Fp$. Conceptualmente, esto transforma la verificación de muchas restricciones en una única verificación algebraica. Sin embargo, ese enfoque presentaba un obstáculo fundamental: el verifier debía conocer explícitamente los polinomios (o al menos sus evaluaciones). Esto es incompatible con los objetivos criptográficos del sistema. Queremos que el witness permanezca oculto, la prueba sea sucinta y no interactiva, y que el verifier no necesite reconstruir objetos grandes.
+
+
+Los compromisos polinomiales, y en particular \KZG, nos permiten reemplazar las evaluaciones explícitas de los polinomios en $r$ por argumentos criptográficos de evaluación. En lugar de enviar $A(r), B(r), C(r), H(r)$, envía compromisos a los polinomios junto con argumentos de evaluación de tamaño constante (ya que son elementos de $\GOne$), y la verificación se hace en el grupo objetivo del pairing bilineal $e$. Esta reducción es extremadamente poderosa: la complejidad del verifier deja de depender del tamaño del circuito y pasa a depender únicamente del número de ecuaciones de pairing, que es constante. Del mismo modo, se están verificando identidades polinomiales sin necesidad de conocer los polinomios.
+
+No obstante, todavía faltan componentes esenciales para obtener un \zkSNARK completo:
+\begin{itemize}[itemsep=0.1 cm]
+	\item No interactividad: El esquema \KZG \PCS asume desafíos enviados por el verifier (en concreto, el punto $z \in \Fp$). Para eliminar esta interacción, necesitaremos la transformación de \FiatShamir, que veremos en la siguiente sección.
+	\item Conocimiento cero a nivel de protocolo: \KZG no garantiza conocimiento cero por sí mismo. El ocultamiento va a aparecer al combinar compromisos, aleatoriedad y demás estructura del protocolo. En particular, vamos a ver cómo los compromisos a $A, B, C, H$ se ensamblan en una prueba coherente en la última sección del capítulo.
+\end{itemize}
+
+En las siguientes secciones formalizaremos estos pasos finales. Primero, eliminaremos la interacción mediante la transformación de \FiatShamir \cite{Fiat}. Luego, presentaremos \Groth \cite{cryptoeprint:2016/260} como una instanciación concreta donde todas las piezas desarrolladas en el capítulo se combinan en un sistema de \zkSNARK funcional, y que utilizamos en nuestro proyecto.

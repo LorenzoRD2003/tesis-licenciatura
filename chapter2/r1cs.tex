@@ -1,1 +1,133 @@
-% !TeX root = main.tex
+% !TeX root = tesis.tex
+
+\subsection{Introducción a \ROneCS}
+
+Hasta ahora, el argumento $\pi$ asociado a un circuito aritmético $\Circuit$ consiste en una asignación explícita de valores a todas las variables del cómputo: el witness y cada valor intermedio producido por las puertas del circuito. En el ejemplo simple de la sección anterior, esto implicaba transmitir todos los valores. Si bien este enfoque permite al verifier comprobar localmente la corrección de cada operación, su tamaño crece linealmente con el número de puertas del circuito, por lo que no cumple la propiedad de sucintez. Más aún, como también se transmite el witness, no cumple la propiedad de conocimiento cero.
+
+Para evitar esto, resulta necesario abstraer el cómputo de una manera estructurada. Observamos que la corrección del circuito no depende de los valores individuales en sí mismos, sino del hecho de que estos satisfacen un conjunto de igualdades algebraicas bien definidas. En el ejemplo considerado, la ejecución correcta del circuito equivale a verificar que existen valores $w_1, w_2, w_3, s_1, s_2, s_3, m_1, m_2, y' \in \Fp$ tales que se cumplen simultáneamente las ecuaciones
+\begin{itemize}[noitemsep]
+	\item $s_1 = x_1 + w_1$.
+	\item $s_2 = x_2 + w_2$.
+	\item $s_3 = s_2 + 1$.
+	\item $m_1 = s_1 \cdot s_3$.
+	\item $m_2 = x_3 \cdot w_3$.
+	\item $y' = m_1 + m_2$.
+\end{itemize}
+
+Más generalmente, cada puerta del circuito induce una relación algebraica entre un número \textit{reducido de variables}, y la validez del cómputo completo se reduce a satisfacer todas estas ecuaciones a la vez. Esta observación permite reformular el problema de verificación de un circuito como un problema puramente algebraico: demostrar la existencia de una asignación a un conjunto de variables que satisface un sistema de ecuaciones estructuradas sobre un cuerpo finito. Desde esta perspectiva, el prover ya no necesita revelar la asignación completa, sino únicamente convencer al verifier de que dicha asignación existe. Durante todo este capítulo siempre debemos recordar el paso conceptual fundamental en la construcción de \SNARK: transformar cómputo en álgebra \cite{Gennaro2013, Parno2016}. Esta sección y la siguiente se dedican a introducir representaciones algebraicas. Ahora definiremos una de ellas.
+
+\begin{definition}[\ROneCS]
+	Sea $\K$ un cuerpo finito. Un \emph{sistema de restricciones de rango uno} (Rank-1 Constraint System, \ROneCS) sobre $\K$ es una colección de $m \in \N$ restricciones de la forma
+	$$\InnerProduct{\ConstraintA_i}{\AssignmentVector} \cdot \InnerProduct{\ConstraintB_i}{\AssignmentVector} = \InnerProduct{\ConstraintC_i}{\AssignmentVector}, \quad 1 \leq i \leq m,$$
+		donde los $\ConstraintA_i, \ConstraintB_i, \ConstraintC_i \in \K^n$ son vectores fijos, y $\AssignmentVector \in \K^n$ es un vector de variables.
+	
+	En este contexto, $\InnerProduct{\cdot}{\cdot}: \K^n \times \K^n \to \K$ denota el producto interno estándar en $\K^n$. El vector $\AssignmentVector$ se denomina \emph{vector de asignación} del sistema, e incluye, además de las variables correspondientes al witness del problema original, una coordenada constante igual a $1$, así como variables auxiliares que representan valores intermedios del cómputo. En el contexto de pruebas de conocimiento, $\AssignmentVector$ también se conoce como el \emph{witness algebraico}.
+\end{definition}
+
+Intuitivamente, un \ROneCS no describe cómo computar una función, sino qué igualdades deben satisfacerse para que una computación sea válida.
+
+El término rango uno proviene del hecho de que cada restricción involucra el producto de dos formas lineales, en lugar de polinomios arbitrarios.
+
+Los \ROneCS poseen un alto poder expresivo, ya que permiten capturar la semántica de cualquier cómputo expresable mediante un circuito aritmético \Circuit sobre un cuerpo finito $\K$. Aunque cada restricción individual impone únicamente una igualdad bilineal entre combinaciones lineales de variables, la conjunción de muchas de estas restricciones permite describir de manera completa y estructurada la correcta ejecución de un algoritmo. En este marco, el \ROneCS no especifica cómo computar una función, sino cómo verificar que una ejecución dada es consistente con el cómputo esperado: cada restricción actúa como un chequeo local de una operación elemental, y satisfacer todas a la vez garantiza que el conjunto de valores proporcionado por el prover corresponde a una evaluación válida de \Circuit. Esto puede ser expresado como un teorema.
+
+\begin{theorem}
+	Existe una transformación eficiente (en tiempo polinomial) que, dado un circuito aritmético \Circuit sobre un cuerpo finito $\K$, produce un \ROneCS equivalente sobre $\K$. Es decir, tal que toda asignación que satisface el \ROneCS corresponde a una evaluación correcta de \Circuit, y viceversa.
+\end{theorem}
+
+Un \ROneCS puede representarse de forma compacta mediante tres matrices $\MatrixA, \MatrixB, \MatrixC \in \K^{m \times n}$, donde cada fila codifica una restricción del sistema. Dado un vector de asignación $\AssignmentVector \in \K^n$, el \ROneCS queda expresado como
+$$(\MatrixA\AssignmentVector) \Hadamard (\MatrixB\AssignmentVector) = \MatrixC\AssignmentVector,$$
+donde $\Hadamard$ denota el producto de Hadamard (producto componente a componente). En esta representación, la $i$-ésima fila de las matrices $\MatrixA,\MatrixB,\MatrixC$ corresponde a los vectores $\ConstraintA_i, \ConstraintB_i, \ConstraintC_i$ de la restricción original, y la ecuación resultante impone que la $i$-ésima restricción de rango uno se satisfaga. Esta notación matricial no introduce nueva semántica, sino que organiza el conjunto de restricciones de forma algebraicamente conveniente.
+
+\subsection{Construcción de un ejemplo}
+
+Vamos a continuar el ejemplo iniciado en la sección anterior: un circuito aritmético para la relación $\Relation \subseteq \Fp^4 \times \Fp^3$ dada por:
+$$R = \{((x_1, x_2, x_3, y), (w_1, w_2, w_3)) \mid y = (w_1 + x_1) \cdot (w_2 + x_2 + 1) + w_3 \cdot x_3\}$$
+
+Ya tenemos la descomposición del cómputo de la relación en operaciones elementales con la introducción de variables intermedias. En este caso, el vector de asignación $\AssignmentVector$ estará dado por:
+
+$$\AssignmentVector = (1, x_1, x_2, x_3, w_1, w_2, w_3, s_1, s_2, s_3, m_1, m_2, y) \in \Fp^{13}.$$
+
+Observamos que el vector $\AssignmentVector$ contiene una coordenada constante, los public inputs, el witness, y las variables intermedias del circuito. Hemos dicho que no queremos revelar tampoco las variables intermedias. Por lo tanto, el \ROneCS terminará siendo para la relación (determinísticamente derivable desde $\Relation$) $\Relation^* \in \subseteq \Fp^4 \times \Fp^8$, donde se extiende al vector witness con las variables intermedias $s_1, s_2, s_3, m_1, m_2$. En este ejemplo continuaremos así por ser más intuitivo pedagógicamentes, pero se suele estandarizar que las variables intermedias se llamen luego $w_4, w_5, w_6$, etc.
+
+Vamos a ver cómo representar cada una de las ecuaciones del circuito anterior utilizando restricciones de rango uno (para familiarizarnos con estos conceptos, resulta útil verificar esto a mano). Obtendremos un \ROneCS. La transformación es completamente sistemática: expresar ambos lados como combinaciones lineales, y forzar la igualdad mediante un producto con el vector canónico adecuado para $\ConstraintB_i$.
+
+\begin{itemize}
+	\item La restricción $s_1 = x_1 + w_1$ se reescribe como $\InnerProduct{\ConstraintA_1}{\AssignmentVector} \cdot \InnerProduct{\ConstraintB_1}{\AssignmentVector} = \InnerProduct{\ConstraintC_1}{\AssignmentVector}$ para:
+	$$\begin{aligned}
+		\ConstraintA_1 &= (0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0), \\
+		\ConstraintB_1 &= (1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), \\
+		\ConstraintC_1 &= (0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0)
+	\end{aligned}$$
+	\item La restricción $s_2 = x_2 + w_2$ se reescribe como $\InnerProduct{\ConstraintA_2}{\AssignmentVector} \cdot \InnerProduct{\ConstraintB_2}{\AssignmentVector} = \InnerProduct{\ConstraintC_2}{\AssignmentVector}$ para:
+	$$\begin{aligned}
+		\ConstraintA_2 &= (0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0), \\
+		\ConstraintB_2 &= (1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), \\
+		\ConstraintC_2 &= (0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0)
+	\end{aligned}$$
+	\item La restricción $s_3 = s_2 + 1$ se reescribe como $\InnerProduct{\ConstraintA_3}{\AssignmentVector} \cdot \InnerProduct{\ConstraintB_3}{\AssignmentVector} = \InnerProduct{\ConstraintC_3}{\AssignmentVector}$ para:
+	$$\begin{aligned}
+		\ConstraintA_3 &= (1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0), \\
+		\ConstraintB_3 &= (1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), \\
+		\ConstraintC_3 &= (0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0)
+	\end{aligned}$$
+	\item La restricción $m_1 = s_1 \cdot s_3$ se reescribe como $\InnerProduct{\ConstraintA_4}{\AssignmentVector} \cdot \InnerProduct{\ConstraintB_4}{\AssignmentVector} = \InnerProduct{\ConstraintC_4}{\AssignmentVector}$ para:
+	$$\begin{aligned}
+		\ConstraintA_4 &= (0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0), \\
+		\ConstraintB_4 &= (0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0), \\
+		\ConstraintC_4 &= (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0)
+	\end{aligned}$$
+	\item La restricción $m_2 = x_3 \cdot w_3$ se reescribe como $\InnerProduct{\ConstraintA_5}{\AssignmentVector} \cdot \InnerProduct{\ConstraintB_5}{\AssignmentVector} = \InnerProduct{\ConstraintC_5}{\AssignmentVector}$para:
+	$$\begin{aligned}
+		\ConstraintA_5 &= (0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0), \\
+		\ConstraintB_5 &= (0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0), \\
+		\ConstraintC_5 &= (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0)
+	\end{aligned}$$
+	\item La restricción $y = m_1 + m_2$ se reescribe como $\InnerProduct{\ConstraintA_6}{\AssignmentVector} \cdot \InnerProduct{\ConstraintB_6}{\AssignmentVector} = \InnerProduct{\ConstraintC_6}{\AssignmentVector}$ para:
+	$$\begin{aligned}
+		\ConstraintA_6 &= (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0), \\
+		\ConstraintB_6 &= (1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), \\
+		\ConstraintC_6 &= (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1)
+	\end{aligned}$$
+\end{itemize}
+
+Para pasar el \ROneCS anterior a forma matricial, agrupamos los vectores $\ConstraintA_i, \ConstraintB_i, \ConstraintC_i \in \Fp^{13}$ como filas de tres matrices $\MatrixA, \MatrixB, \MatrixC \in \Fp^{6 \times 13}$, de modo que el sistema completo se escriba como $(\MatrixA\AssignmentVector) \Hadamard (\MatrixB\AssignmentVector) = \MatrixC\AssignmentVector$. Para compactar la notación, utilizaremos los vectores $e_1, e_2, \ldots, e_{13}$ de la base canónica de $\Fp^{13}$.
+$$\begin{aligned}
+	\MatrixA = \begin{pmatrix}
+		e_2 + e_5 \\
+		e_3 + e_6 \\
+		e_1 + e_9 \\
+		e_8 \\
+		e_4 \\
+		e_{11} + e_{12}
+	\end{pmatrix},
+	\qquad
+	\MatrixB =
+	\begin{pmatrix}
+		e_1 \\
+		e_1 \\
+		e_1 \\
+		e_{10} \\
+		e_7 \\
+		e_1
+	\end{pmatrix},
+	\qquad
+	\MatrixC =
+	\begin{pmatrix}
+		e_8 \\
+		e_9 \\
+		e_{10} \\
+		e_{11} \\
+		e_{12} \\
+		e_{13}
+	\end{pmatrix}.
+\end{aligned}$$
+
+\subsection{Lo que tenemos hasta ahora}
+
+A pesar de haber transformado el cómputo original en un sistema de restricciones algebraicas compacto y estructurado, el problema fundamental de qué argumento $\pi$ publicar persiste. En efecto, una prueba ingenua de que un \ROneCS es satisfacible consistiría nuevamente en revelar el vector de asignación completo $\AssignmentVector$, lo cual expone el witness y todos los valores intermedios del cómputo. Si bien la forma matricial organiza las restricciones de manera conveniente, verificar explícitamente su validez sigue requiriendo acceso directo a $\AssignmentVector$, violando tanto la propiedad de sucintez (como la de conocimiento cero) que se esperan de un \SNARK (o \zkSNARK).
+
+La dificultad central puede formularse de la siguiente manera: necesitamos convencer al verifier de que existe un vector $\AssignmentVector$ que satisface $(\MatrixA\AssignmentVector) \Hadamard (\MatrixB\AssignmentVector) = \MatrixC\AssignmentVector$ sin revelar dicho vector, y sin que el costo de verificación dependa del tamaño del \ROneCS. Resolver este problema requiere herramientas adicionales que permitan comprimir globalmente las restricciones de forma eficiente. En particular, buscamos una representación en la cual todas las restricciones puedan verificarse simultáneamente mediante una única condición algebraica.
+
+Este objetivo se alcanza reformulando el \ROneCS como una identidad polinómica. En lugar de verificar ecuaciones individuales, podemos construir polinomios cuidadosamente diseñados cuya correcta relación encapsule simultáneamente todas las restricciones del \ROneCS. De esta manera, el problema combinatorio de verificar muchas ecuaciones se transforma en un problema algebraico de verificar una única igualdad entre polinomios.
+
+Las estructuras que emergen de esta transformación se denominan Quadratic Arithmetic Programs (\QAP). Los \QAP preservan exactamente la semántica del \ROneCS, pero la expresan en un lenguaje polinómico particularmente adecuado para la construcción de \SNARK basados en compromisos algebraicos y pairings bilineales. En la siguiente sección introducimos formalmente esta representación.

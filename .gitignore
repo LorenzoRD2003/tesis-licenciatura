@@ -1,7 +1,12 @@
+.omx/
+docs/
+venv/
 *.aux
+*.fdb_latexmk
+*.fls
 *.log
-*.toc
+*.md
 *.out
 *.pdf
-venv/
+*.toc
 .DS_Store

@@ -1,1 +1,74 @@
-% !TeX root = main.tex
+% !TeX root = tesis.tex
+
+\subsection{Equivalencia entre \ROneCS y \QAP}
+
+Un \QAP puede entenderse como un mecanismo algebraico que codifica simultáneamente todas las restricciones de un \ROneCS en una única relación polinómica global. La idea fundamental es que los polinomios "recuerden" cada restricción. Daremos la definición formal ahora mismo.
+
+\begin{definition}[\QAP, Polinomio objetivo]
+	Sea $\K$ un cuerpo finito, y sean $m, n \in \N$. Un \emph{Quadratic Arithmetic Program} (\QAP) sobre $\K$ de tamaño $m$ y dimensión $n$ está dado por:
+	\begin{itemize}[no]
+		\item Tres familias de $n$ polinomios en $\poly{\K}$:
+		$$\PolyA = \{A_i(x)\}^n_{i=1}, \quad \PolyB = \{B_i(x)\}^n_{i=1}, \quad \PolyC = \{C_i(x)\}^n_{i=1},$$
+		cada uno de grado a lo sumo $m - 1$.
+		\item Un \emph{polinomio objetivo} $Z \in \poly{\K}$ (también llamado \emph{vanishing polynomial}) dado por
+		$$Z(x) = \prod_{j=1}^{m}(x - r_j),$$
+		donde $r_1, \ldots, r_m \in \K$ son distintos dos a dos.
+	\end{itemize}
+	Notaremos en forma sintética a un \QAP como una $4$-upla $\left(\PolyA, \PolyB, \PolyC, Z\right)$.
+\end{definition}
+
+\begin{definition}[Satisfacción de un \QAP]
+	Sean $\K$ un cuerpo finito, $(\PolyA, \PolyB, \PolyC, Z)$ un \QAP sobre $\K$ de tamaño $m$ y dimensión $n$, sea $\AssignmentVector \in \K^n$ un vector de asignación. Decimos que $\AssignmentVector$ \emph{satisface} el \QAP si existe un polinomio $H \in \poly{\K}$ tal que
+	$$\left(\sum_{i=1}^{n} \AssignmentVector_i A_i(x)\right) \cdot \left(\sum_{i=1}^{n} \AssignmentVector_i B_i(x) \right) - \left(\sum_{i=1}^{n} \AssignmentVector_i C_i(x)\right) = H(x)Z(x)$$
+\end{definition}
+
+Vamos a demostrar que hay un isomorfismo entre los \ROneCS y los \QAP. Es decir, son dos vistas algebraicas diferentes del mismo objeto. Para ello, primero generaremos intuición a partir de la comparación de los parámetros que definen en cada uno.
+
+\begin{itemize}[noitemsep]
+	\item Ambos se definen sobre un cuerpo finito $\K$.
+	\item $n$ es el número de variables del sistema que hay en un \ROneCS (longitud de los vectores de asignación incluyendo la constante $1$), mientras que es el tamaño en un \QAP.
+	\item $m$ es el número de restricciones que hay en un \ROneCS, mientras que en un \QAP controla el grado máximo de los polinomios $A_1, \ldots, A_n, B_1, \ldots, B_n, C_1, \ldots, C_n$.
+	\item En un \ROneCS, la información está condensada en las matrices $\MatrixA,\MatrixB,\MatrixC$. En un \QAP, se busca que los polinomios $A_1, \ldots, A_n, B_1, \ldots, B_n, C_1, \ldots, C_n$ interpolen las columnas de $\MatrixA,\MatrixB, \MatrixC$. Nos referiremos a estos $3n$ polinomios como los polinomios interpoladores del \QAP.
+	\item En un \QAP, tomamos $m$ elementos diferentes de $\K$, uno por cada restricción. En particular, construimos el polinomio objetivo $Z$ de modo que se anule en exactamente estos $m$ puntos.
+\end{itemize}
+
+Para cualquier conjunto de $m$ puntos distintos de $r_1, \ldots, r_m \in \K$ y valores $y_1, \ldots, y_m \in \K$, existe exactamente un polinomio de grado a lo sumo $m - 1$ que los interpolará. En particular, existe exactamente un polinomio interpolador de grado a lo sumo $m - 1$ para el conjunto de elementos de $\K$ tomados de cada una de las columnas de las matrices $\MatrixA, \MatrixB, \MatrixC \in \K^{m \times n}$ de un \ROneCS asignados uno a uno con $\{r_1, \ldots, r_m\}$, y más aún, tenemos su construcción explícita. Por ejemplo, para la primera columna de $A$, podemos definir exactamente un polinomio $A_1$ de grado a lo sumo $m - 1$ que cumpla:
+$$A_1(r_1) = A_{1,1}, A_1(r_2) = A_{2,1}, \ldots, A_1(r_m) = A_{m,1}.$$
+
+Intuitivamente, observar que cada columna de las matrices puede verse como una función definida en los $m$ puntos $r_1, \ldots, r_m$. El \QAP simplemente reemplaza esa tabla de valores por su polinomio interpolador.
+
+El polinomio resultante $A_1$ pasará por el conjunto de puntos $\{(r_1, A_{1,1}, \ldots, (r_m, A_{m,1})\} \subset \K \times \K$. Por lo tanto, podemos definir $3n$ polinomios en $\poly{\K}$ mediante interpolación, de modo que los primeros $n$ correspondan a las columnas de $A$, los siguientes $n$ correspondan a las columnas de $B$, y los últimos $n$ correspondan a las columnas de $C$:
+$$A_i(r_j) = A_{j,i}, B_i(r_j) = B_{j,i}, C_i(r_j) = C_{j,i}, \quad \forall 1 \leq i \leq n, 1 \leq j \leq m.$$
+
+Luego, observamos que evaluando la identidad polinómica que define al \QAP en cada uno de $r_1, \ldots, r_m$, el lado derecho se hace cero (pues son las $m$ raíces del polinomio objetivo $Z$). En cada caso, se obtiene algo conocido por nosotros (para cualquier vector de asignación $\AssignmentVector \in \K^n$). Este es el paso crucial.
+
+$$\begin{aligned}
+	\left(\sum_{i=1}^{n} \AssignmentVector_i A_i(r_j)\right) \cdot \left(\sum_{i=1}^{n} \AssignmentVector_i B_i(r_j)\right) &= \sum_{i=1}^{n} \AssignmentVector_i C_i(r_j) \\
+	\left(\sum_{i=1}^{n} \AssignmentVector_i A_{j,i} \right) \cdot \left(\sum_{i=1}^{n} \AssignmentVector_i B_{j,i} \right) &= \sum_{i=1}^{n} \AssignmentVector_i C_{j,i} \\
+	\langle \ConstraintA_j, \AssignmentVector \rangle  \cdot \langle \ConstraintB_j, \AssignmentVector \rangle &= \langle \ConstraintC_j, \AssignmentVector \rangle.\\
+\end{aligned}$$
+
+Es decir que la identidad polinómica que define al \QAP se anula en $r_j$ si $\AssignmentVector$ satisface la $j$-ésima restricción del \ROneCS. Por lo tanto, que se anule en $r_1, \ldots, r_m$ indica que $\AssignmentVector$ satisface todas las restricciones del \ROneCS. Concluimos entonces que esto ocurre si y solo si $\AssignmentVector$ es satisface el \QAP. Tenemos demostrada entonces la primera dirección del siguiente teorema (la segunda queda como ejercicio para el lector, y no es una transformación que nos sirva hacer en este trabajo):
+
+\begin{theorem}[Equivalencia entre \ROneCS-\QAP]
+	Sea $\K$ un cuerpo finito. Para todo \ROneCS sobre $\K$, definido por matrices $A, B, C \in \K^{m \times n}$, existe un \QAP canónicamente asociado $(\PolyA, \PolyB, \PolyC, Z)$ sobre $\K$ de tamaño $m$ y dimensión $n$ tal que, para todo vector de asignación $\AssignmentVector$,
+	$$(A\AssignmentVector) \Hadamard (B\AssignmentVector) = C\AssignmentVector \iff \left(\sum_{i=1}^{n} \AssignmentVector_i A_i(x)\right) \cdot \left(\sum_{i=1}^{n} \AssignmentVector_i B_i(x)\right) - \left(\sum_{i=1}^{n} \AssignmentVector_i C_i(x)\right) = H(x)Z(x).$$
+	
+	Recíprocamente, todo \QAP induce un \ROneCS equivalente, en el sentido de que ambos definen la misma relación algebraica sobre los vectores de asignación.
+\end{theorem}
+
+\subsection{Construcción de un ejemplo}
+
+Para continuar con nuestro ejemplo, con $m = 6$ y $n = 13$, debemos interpolar los $39$ polinomios de grado menor o igual a $5$ dados por cada columna de $\MatrixA,\MatrixB,\MatrixC \in \Fp^{6 \times 13}$. Para ello, primero debemos elegir un conjunto de $6$ puntos diferentes de $\Fp$, que van a definir el polinomio objetivo. Sin perder generalidad, pueden ser $r_i = i$ para $1 \leq i \leq 6$. Entonces:
+$$Z(x) = (x - 1)(x - 2)(x - 3)(x - 4)(x - 5)(x - 6) = \prod_{i=1}^{6} (x - i).$$
+
+Hacer todas las interpolaciones paso por paso a mano sería sumamente engorroso. Por lo tanto, nos limitaremos a mostrar cómo se haría para construir el polinomio $A_1$. Observamos que la primera columna de $A$ es el vector $(0, 0, 1, 0, 0, 0)$. Es decir, $A_1$ es el único polinomio de grado menor o igual a $5$ tal que $A_1(1) = A_1(2) = A_1(4) = A_1(5) = A_1(6) = 0$ y $A_1(3) = 1$, usando la base de Lagrange.
+$$A_1(x) = \frac{(x - 1)(x - 2)(x - 4)(x - 5)(x - 6)}{(3 - 1)(3 - 2)(3 - 4)(3 - 5)(3 - 6)}.$$
+
+\subsection{Lo que tenemos hasta ahora}
+
+Reformulamos un circuito aritmético como un \ROneCS, y luego como un \QAP. El problema se transformó en una única condición de divisibilidad polinómica. Basta verificar que cierta identidad polinómica se anula en cierto conjunto de puntos, o equivalentemente, que es múltiplo del polinomio objetivo $Z \in \poly{\K}$.
+
+Esta transformación es precisamente lo que habilita la construcción de pruebas sucintas. Recordemos el Lema de Schwartz-Zippel, introducido en el capítulo anterior. Esa herramienta permitía verificar la igualdad de dos polinomios en forma probabilística utilizando solamente un punto elegido aleatoriamente para evaluarlos, sin necesidad de manipular y comparar sus coeficientes.
+
+Del mismo modo, verificar la divisibilidad de polinomios puede realizarse de manera probabilística mediante evaluaciones en puntos aleatorios. Veremos cómo hacer esto en las siguientes secciones, y lograremos que la verificación deja de depender linealmente del número de restricciones. En el camino, veremos que también se introduce la propiedad de conocimiento cero, ya que la representación polinómica permite agregar criptografía para comprometer evaluaciones sin revelar los valores (usando esquemas de compromiso polinomiales).

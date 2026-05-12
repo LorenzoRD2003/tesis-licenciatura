@@ -1,22 +1,60 @@
-% !TeX root = main.tex
+% !TeX root = tesis.tex
 
-Las funciones de hash son una primitiva criptográfica sumamente popular. Ejemplos conocidos son MD5, SHA-1, SHA-256, BLAKE2, BLAKE3, RIPEMD-160, Poseidon, entre muchas otras. Estas serán utilizadas frecuentemente en el desarrollo del proyecto, y permiten construir primitivas criptográficas más avanzadas.
+\subsection{Funciones de hash criptográficas}
+
+Las funciones de hash son una primitiva criptográfica sumamente popular. Ejemplos conocidos son \MDFive, \SHAOne, \SHATwoFiveSix, \BLAKETwo, \BLAKEThree, \RIPEMD, \PoseidonHash, entre muchas otras. Estas serán utilizadas frecuentemente en el desarrollo del proyecto, y permiten construir primitivas criptográficas más avanzadas.
 
 \begin{definition}[Función de hash criptográfica]
-	Sea $n \in \mathbb{N}$. Se dice que $\mathcal{H}: \{0,1\}^* \to \{0,1\}^n$ es una función de hash criptográfica si satisface las siguientes propiedades:
-	\begin{itemize}
+	Sea $n \in \mathbb{N}$. Se dice que $\Hash: \Strings{*} \to \Strings{n}$ es una función de hash criptográfica si satisface las siguientes propiedades:
+	\begin{itemize}[noitemsep]
 		\item Pueden ser implementadas determinísticamente en forma eficiente.
-		\item Resistencia a preimagen: Dado $y \in \{0,1\}^n$, es difícil encontrar $x \in \{0,1\}^*$ tal que $\mathcal{H}(x) = y$.
-		\item Resistencia a segunda preimagen: Dados $x \in {0,1}^*, \mathcal{H}(x) \in \{0,1\}^*$, es difícil encontrar $x' \neq x$ tal que $\mathcal{H}(x) = \mathcal{H}(x')$.
-		\item Resistencia a colisiones: Es difícil encontrar $x \neq x'$ tales que $\mathcal{H}(x) = \mathcal{H}(x')$.
+		\item Resistencia a preimagen: Dado $y \in \Strings{n}$, es difícil encontrar $x \in \Strings{*}$ tal que $\Hash(x) = y$.
+		\item Resistencia a segunda preimagen: Dados $x \in \Strings{*}, \Hash(x) \in \Strings{n}$, es difícil encontrar $x' \neq x$ tal que $\Hash(x) = \Hash(x')$.
+		\item Resistencia a colisiones: Es difícil encontrar $x \neq x'$ tales que $\Hash(x) = \Hash(x')$.
 	\end{itemize}
 \end{definition}
 
-La definición anterior es informal, ya que por ejemplo es necesario especificar qué significa "difícil". Es preferible quedarnos con la idea de "computacionalmente inviable" en menos de cierto tiempo, usualmente miles o millones de años. Es claro que la propiedad de resistencia a colisiones implica la propiedad de resistencia a segunda preimagen, y esta a su vez implica la propiedad de resistencia a preimagen. Dado que $\{0,1\}^*$ es un conjunto infinito, necesariamente van a existir colisiones. Entonces, es relevante que no haya algoritmos conocidos que puedan encontrar colisiones en una función de hash.
+La definición anterior es informal, ya que por ejemplo es necesario especificar qué significa \textit{difícil}. Es preferible quedarnos con la idea de \textit{computacionalmente prohibitivo}, en tiempos usualmente de miles o millones de años. Las definiciones formales de estas propiedades pueden encontrarse en \cite{hac,katz}.
 
-En la criptografía, se busca demostrar la seguridad de construcciones. Sin embargo, no es posible demostrar de forma estrictamente formal las construcciones que utilizan funciones de hash. Por lo tanto, lo que se hace es suponer que $\mathcal{H}: \{0,1\}^* \to \{0,1\}^n$ es una función completamente aleatoria, de modo que se asume que todo algoritmo para hallar la preimagen de un elemento en $\mathcal{H}$ es de complejidad exponencial $\Theta(2^n)$, así como todo algoritmo para hallar colisiones en $\mathcal{H}$ es de complejidad $\Theta(2^{n/2})$. Se conoce a esto como Random Oracle Model (ROM). Toda propiedad de seguridad que se pueda demostrar eventualmente en trabajos futuros sobre este proyecto también estará enmarcada en el ROM.
+Existe una relación jerárquica entre estas propiedades. En particular, la resistencia a colisiones implica resistencia a segunda preimagen, y esta última implica resistencia a preimagen.
 
-Podemos transformar cualquier estructura matemática o información finita a una tira de bytes, es decir al conjunto $\{0,1\}^*$, y elegir un $n$ suficientemente grande como para que valga la propiedad de resistencia a colisiones. Esto es lo que se hace en la práctica. Entonces, dada una función de hash $\mathcal{H}$ y un conjunto arbitrario $X$ donde sus elementos tienen tamaño finito, podemos hablar de la función de hash asociada $\mathcal{H}_X: X \to \{0,1\}^n$, y por comodidad de notación usar simplemente $\mathcal{H}$.
+La compresión de un dominio infinitamente grande $\Strings{*}$ en un codominio finito $\Strings{n}$ implica inevitablemente la existencia de colisiones. La seguridad no radica en su inexistencia, sino en la imposibilidad computacional de encontrarlas.
 
-TODO: Hablar sobre HashToCurve.
-\cite{rfc9380}
+En la criptografía, se busca demostrar la seguridad de construcciones. En general, no se modelan las funciones de hash como objetos matemáticos explícitos, sino como primitivas ideales. Por ello, muchas demostraciones de seguridad se formulan en modelos idealizados como el Random Oracle Model (\ROM) \cite{Bellare1993}. En este modelo, lo que se hace es suponer que $\Hash: \Strings{*} \to \Strings{n}$ es una función completamente aleatoria, de modo que se asume que todo algoritmo para hallar la preimagen de un elemento en $\Hash$ es genérico, y por lo tanto de complejidad $\BigTheta(2^n)$, así como todo algoritmo para hallar colisiones en $\Hash$ es genérico, y por lo tanto de complejidad $\BigTheta(2^{n/2})$ (ver \cite{hac}). Toda propiedad de seguridad que se pueda demostrar eventualmente en trabajos futuros sobre este proyecto también estará enmarcada en el \ROM.
+
+Podemos transformar cualquier estructura matemática o información finita a una tira de bytes, es decir al conjunto $\Strings{*}$, y elegir un $n$ suficientemente grande como para que valga la propiedad de resistencia a colisiones. Esto es lo que se hace en la práctica. Entonces, dada una función de hash $\Hash$ y un conjunto arbitrario $X$ donde sus elementos tienen tamaño finito, podemos hablar de la función de hash asociada $\Hash_X: X \to \Strings{n}$, y por comodidad de notación usar simplemente $\Hash$.
+
+\subsection{Domain separation}
+
+En construcciones criptográficas modernas es habitual reutilizar una misma función de hash en múltiples contextos dentro de un protocolo. Sin embargo, esta reutilización puede introducir interacciones indeseadas entre componentes que, idealmente, deberían comportarse de manera independiente. La técnica de \textit{domain separation} consiste en forzar dicha independencia lógica modificando la entrada de la función de hash mediante etiquetas, prefijos o parámetros públicos.
+
+Es decir, permite que una misma función $\Hash$ actúe como si fueran múltiples funciones independientes. Por ejemplo, en lugar de computar simplemente $\Hash(x)$, se evalúan expresiones del tipo $\Hash(\texttt{commit} \concat x)$ o $\Hash(\texttt{challenge} \concat x)$. De esta forma, aunque los valores de entrada coincidan, los hashes pertenecen a dominios criptográficamente aislados. Esta técnica resulta fundamental a lo largo de esta tesis, por ejemplo, en la heurística de \FiatShamir.
+
+\subsection{Hash hacia curvas elípticas}
+
+En numerosos protocolos criptográficos modernos resulta necesario mapear datos arbitrarios (es decir, tiras de bits de $\Strings{*}$) a puntos de una curva elíptica. Este problema no es trivial: una función de hash produce cadenas de bits, mientras que los puntos de una curva elíptica deben satisfacer una ecuación algebraica específica. Formalmente, buscamos una función determinística y eficiente
+
+$$
+\HashToCurve : \Strings{*} \to \E(\Fq)
+$$
+
+que modele, idealmente, una distribución uniforme sobre un subgrupo criptográficamente relevante de $\E(\Fq)$  \cite{Fouque2012, Wahby2019}. Es decir, que ambas distribuciones (la del hash y la uniforme) sean computacionalmente indistinguibles.
+
+En esta tesis asumiremos la existencia de funciones HashToCurve seguras y eficientes, sin profundizar en sus construcciones explícitas. El estándar moderno que formaliza estas construcciones es RFC 9380 \cite{rfc9380}, que especifica algoritmos concretos. Conceptualmente, dichos algoritmos implementan funciones del tipo
+
+$$
+\Strings{*} \to \Fq \to \E(\Fq)
+$$
+
+minimizando sesgos estadísticos \cite{Fouque2012} y evitando ataques estructurales.
+
+En la práctica, estas funciones no se construyen directamente, sino mediante transformaciones intermedias. Típicamente, el proceso involucra:
+
+\begin{enumerate}[noitemsep]
+	\item Expandir la entrada mediante una función de hash convencional.
+	\item Interpretar la salida como uno o más elementos del cuerpo base $\Fq$ de la curva.
+	\item Aplicar un mapeo algebraico hacia la curva \cite{Wahby2019, cryptoeprint:2013/325}, es decir una función $f: \Fq \to \E(\Fq)$.
+	\item (Opcionalmente) Forzar la pertenencia al subgrupo de orden primo deseado mediante multiplicación por el cofactor de la curva.
+\end{enumerate}
+
+Más precisamente, estos mapeos algebraicos consisten en funciones racionales definidas sobre $\Fq$, diseñadas de modo que su imagen pertenezca a $\E(\Fq)$ con alta probabilidad o de forma determinística. Dichas funciones se construyen utilizando identidades algebraicas que garantizan la satisfacción de la ecuación de la curva.

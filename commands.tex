@@ -1,0 +1,298 @@
+% Conjuntos numericos
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\Q}{\mathbb{Q}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\C}{\mathbb{C}}
+
+% Cuerpos
+\newcommand{\K}{\mathbb{K}}
+\newcommand{\F}{\mathbb{F}}
+\newcommand{\charac}[1]{\mathrm{char}(#1)}
+\newcommand{\Fp}{\F_p}
+\newcommand{\Fq}{\F_q}
+\newcommand{\Fr}{\F_r}
+
+% Grupo multiplicativo
+\newcommand{\Fmul}[1]{\F_{#1}^{\times}}
+
+% Subgrupos
+\newcommand{\gen}[1]{\left\langle #1 \right\rangle}
+\newcommand{\ord}[1]{|#1|}
+
+% Grupos
+\newcommand{\GG}{\mathbb{G}}
+\newcommand{\HH}{\mathbb{G}}
+
+% Pairings
+\newcommand{\pairing}[2]{e\!\left(#1,#2\right)}
+\newcommand{\GOne}{\mathbb{G}_1}
+\newcommand{\GTwo}{\mathbb{G}_2}
+\newcommand{\GT}{\mathbb{G}_T}
+
+% Curvas usadas frecuentemente
+\newcommand{\BN}{\texttt{BN254}\xspace}
+\newcommand{\BLS}{\texttt{BLS12-381}\xspace}
+
+% Curvas Elipticas
+\newcommand{\E}{\mathcal{E}}
+\newcommand{\OO}{\mathcal{O}}
+
+% Problemas criptograficos
+\newcommand{\DLP}{\textsf{DLP}\xspace} % Discrete Logarithm Problem
+\newcommand{\ECDLP}{\textsf{ECDLP}\xspace} % Elliptic Curve Discrete Logarithm Problem
+\newcommand{\BDH}{\textsf{BDH}\xspace} % Bilineal Diffie Hellman
+\newcommand{\BSDH}{\textsf{BSDH}\xspace} % Bilinear Strong Diffie-Hellman
+\newcommand{\CDH}{\textsf{CDH}\xspace} % C Diffie Hellman
+\newcommand{\DDH}{\textsf{DDH}\xspace} % D Diffie Hellman 
+\newcommand{\ECDH}{\textsf{ECDH}\xspace} % Elliptic Curve Diffie Hellman
+\newcommand{\NFSDL}{\textsf{NFS-DL}\xspace} % Number Field Sieve - Discrete Logarithm
+\newcommand{\PIT}{\textsf{PIT}\xspace} % Polynomial Identity Testing
+\newcommand{\QBF}{\textsf{QBF}\xspace}
+
+% Notacion de Complejidad Computacional
+\newcommand{\BigO}{\mathcal{O}}
+\newcommand{\BigOmega}{\Omega}
+\newcommand{\BigTheta}{\Theta}
+
+% Clases de complejidad
+\newcommand{\Pclass}{\mathrm{P}}
+\newcommand{\NP}{\mathrm{NP}}
+\newcommand{\IP}{\mathrm{IP}\xspace}
+\newcommand{\PSPACE}{\mathrm{PSPACE}\xspace}
+
+% Claves
+\newcommand{\sk}{\mathsf{sk}}
+\newcommand{\pk}{\mathsf{pk}}
+
+% Polinomios
+\newcommand{\poly}[1]{#1[x]}
+\newcommand{\degp}{\mathrm{deg}}
+
+\newcommand{\PolyA}{\mathcal{A}}
+\newcommand{\PolyB}{\mathcal{B}}
+\newcommand{\PolyC}{\mathcal{C}}
+
+% Probabilidad
+\newcommand{\Prob}{\mathbb{P}}
+
+% Strings
+\newcommand{\Strings}[1]{\{0,1\}^{#1}}
+
+% Funciones de hash
+\newcommand{\Hash}{\mathcal{H}}
+\newcommand{\HashToCurve}{\textsf{HashToCurve}\xspace}
+\newcommand{\Challenge}{\ensuremath{z}\xspace}
+
+% Modelos criptograficos
+\newcommand{\ROM}{\textsf{ROM}\xspace} % Random Oracle Model
+
+% Concatenacion
+\newcommand{\concat}{\mathbin{\|}}
+
+% Funciones de hash concretas
+\newcommand{\MDFive}{\texttt{MD5}\xspace}
+\newcommand{\SHAOne}{\texttt{SHA-1}\xspace}
+\newcommand{\SHATwoFiveSix}{\texttt{SHA-256}\xspace}
+\newcommand{\BLAKETwo}{\texttt{BLAKE2}\xspace}
+\newcommand{\BLAKEThree}{\texttt{BLAKE3}\xspace}
+\newcommand{\RIPEMD}{\texttt{RIPEMD-160}\xspace}
+\newcommand{\PoseidonHash}{\texttt{Poseidon}\xspace}
+
+% Merkle Trees
+\newcommand{\MerkleTree}[1]{\mathcal{#1}}
+\newcommand{\MerkleRoot}[1]{\mathsf{r}_{#1}}
+\newcommand{\MerkleProof}{\pi}
+\newcommand{\MerklePath}{\mathsf{Path}}
+\newcommand{\MerkleLeaf}{\ensuremath{\ell}\xspace}
+\newcommand{\MerkleSibling}{\ensuremath{h}\xspace}
+\newcommand{\MerkleIndex}{\ensuremath{i}\xspace}
+\newcommand{\SMT}{\textsf{SMT}\xspace}
+\newcommand{\defaultHash}[1]{z_{#1}} % Default Hashes
+\newcommand{\EmptyNode}{\bot} % Bottom / empty leaf
+
+% Algoritmos
+\newcommand{\Commit}{\mathsf{Commit}}
+\newcommand{\Open}{\mathsf{Open}}
+\newcommand{\Prove}{\mathsf{Prove}}
+\newcommand{\Setup}{\mathsf{Setup}}
+\newcommand{\Sign}{\mathsf{Sign}}
+\newcommand{\Update}{\mathsf{Update}}
+\newcommand{\Verify}{\mathsf{Verify}}
+
+% Zero-knowledge
+\newcommand{\ZeroKnowledge}{\textit{zero-knowledge}\xspace}
+\newcommand{\ZeroKnowledgeProof}{\textit{zero-knowledge proof}\xspace}
+\newcommand{\ZK}{\textsf{ZK}\xspace}
+
+% Protocol participants
+\newcommand{\Prover}{\mathcal{P}}
+\newcommand{\Verifier}{\mathcal{V}}
+
+% Proof systems
+\newcommand{\NIZK}{\textsf{NIZK}\xspace}
+\newcommand{\SNARK}{\textsf{SNARK}\xspace}
+\newcommand{\zkSNARK}{\textsf{zk\hbox{-}SNARK}\xspace}
+\newcommand{\STARK}{\textsf{STARK}\xspace}
+\newcommand{\zkSTARK}{\textsf{zk\hbox{-}STARK}\xspace}
+\newcommand{\ProofSystem}{\ensuremath{\Pi}\xspace}
+\newcommand{\CRS}{\mathsf{crs}}
+\newcommand{\SRS}{\textsf{SRS}}
+\newcommand{\securityparam}{\lambda}
+\newcommand{\negl}{\mathrm{negl}}
+\newcommand{\RecursiveProof}{\ensuremath{\pi_{\mathsf{rec}}}\xspace}
+\newcommand{\AggregatedProof}{\ensuremath{\pi_{\mathsf{agg}}}\xspace}
+
+% Variables semanticas
+\newcommand{\PublicInput}{x}
+\newcommand{\Witness}{w}
+\newcommand{\Proof}{\pi}
+\newcommand{\PublicInputs}{\ensuremath{\mathbf{x}}\xspace}
+\newcommand{\PrivateInputs}{\ensuremath{\mathbf{w}}\xspace}
+\newcommand{\WitnessVec}{\ensuremath{\mathbf{w}}\xspace}
+
+% Espacios
+\newcommand{\InstanceSpace}{\mathcal{X}}
+\newcommand{\WitnessSpace}{\mathcal{W}}
+\newcommand{\ProofSpace}{\Pi}
+\newcommand{\MessageSpace}{\mathcal{M}}
+\newcommand{\RandomnessSpace}{\mathcal{R}}
+\newcommand{\CommitmentSpace}{\mathcal{C}}
+\newcommand{\PolynomialSpace}{\mathcal{P}}
+
+% Relaciones
+\newcommand{\Relation}{\mathcal{R}}
+% Lenguajes
+\newcommand{\Language}{\mathcal{L}}
+
+% Machines / simulators / extractors
+\newcommand{\Simulator}{S}
+\newcommand{\Extractor}{\mathcal{E}}
+
+% Circuitos Aritmeticos
+\newcommand{\Circuit}{C}
+\newcommand{\Constraint}{\mathcal{C}}
+
+% Gates booleanas
+\newcommand{\AND}{\mathrm{AND}}
+\newcommand{\OR}{\mathrm{OR}}
+\newcommand{\NOT}{\mathrm{NOT}}
+\newcommand{\XOR}{\mathrm{XOR}}
+
+% Matrices / vectores de R1CS
+\newcommand{\AssignmentVector}{\mathbf{z}}
+\newcommand{\ConstraintA}{\mathbf{a}}
+\newcommand{\ConstraintB}{\mathbf{b}}
+\newcommand{\ConstraintC}{\mathbf{c}}
+
+% Matrices globales
+\newcommand{\MatrixA}{A}
+\newcommand{\MatrixB}{B}
+\newcommand{\MatrixC}{C}
+
+% Producto de Hadamard
+\newcommand{\Hadamard}{\circ}
+
+% Producto interno
+\newcommand{\InnerProduct}[2]{\left\langle #1, #2 \right\rangle}
+
+% Miscelaneo
+\newcommand{\ROneCS}{\textsf{R1CS}\xspace}
+\newcommand{\QAP}{\textsf{QAP}\xspace}
+\newcommand{\PCS}{\textsf{PCS}\xspace} % Polynomial Commitment Scheme
+\newcommand{\VCS}{\textsf{VCS}\xspace} % Vector Commitment Scheme
+\newcommand{\KZG}{\textsf{KZG}\xspace}
+\newcommand{\AGM}{\textsf{AGM}\xspace}
+\newcommand{\MPC}{MPC}
+\newcommand{\SigmaProtocol}{\textit{$\Sigma$-protocol}\xspace}
+\newcommand{\FiatShamir}{Fiat--Shamir\xspace}
+\newcommand{\Groth}{\textsf{Groth16}\xspace}
+\newcommand{\MSM}{\textsf{MSM}\xspace}
+\newcommand{\FFT}{\textsf{FFT}\xspace}
+\newcommand{\VRF}{\textsf{VRF}\xspace}
+\newcommand{\KES}{\textsf{KES}\xspace}
+\newcommand{\LightClient}{\textit{light client}}
+\newcommand{\LightClients}{\textit{light clients}}
+\newcommand{\LightClientProtocol}{\textit{light client protocol}}
+
+% Bridges
+\newcommand{\Bridge}{\textsf{Bridge}\xspace}
+\newcommand{\Bridges}{\textsf{Bridges}\xspace}
+\newcommand{\zkBridge}{\textsf{zkBridge}\xspace}
+\newcommand{\Header}{\ensuremath{h}\xspace}
+\newcommand{\BlockHeader}{\ensuremath{\mathsf{hdr}}\xspace}
+\newcommand{\Block}{\ensuremath{B}\xspace}
+\newcommand{\BlockHeight}{\ensuremath{t}\xspace}
+\newcommand{\Commitment}{\ensuremath{c}\xspace}
+\newcommand{\Commitments}{\ensuremath{\mathcal{C}}\xspace}
+
+% Blockchains
+\newcommand{\Bitcoin}{\textsc{Bitcoin}\xspace}
+\newcommand{\Ethereum}{\textsc{Ethereum}\xspace}
+\newcommand{\ChainA}{\mathcal{A}}
+\newcommand{\ChainB}{\mathcal{B}}
+\newcommand{\event}{e}
+\newcommand{\state}{s}
+\newcommand{\tx}{\mathsf{tx}}
+\newcommand{\Nonce}{\ensuremath{\eta}\xspace}
+\newcommand{\Offchain}{off-chain\xspace}
+\newcommand{\Onchain}{on-chain\xspace}
+\newcommand{\User}{\mathcal{U}}
+
+% Smart Contracts
+\newcommand{\SmartContract}[1]{\mathcal{SC}_{#1}}
+\newcommand{\Updater}{\mathrm{updater}}
+\newcommand{\Burn}{\mathrm{burn}}
+\newcommand{\Lock}{\mathrm{lock}}
+\newcommand{\Mint}{\mathrm{mint}}
+\newcommand{\Unlock}{\mathrm{unlock}}
+\newcommand{\LockTx}{\ensuremath{\tx_{\Lock}}\xspace}
+\newcommand{\MintTx}{\ensuremath{\tx_{\Mint}}\xspace}
+\newcommand{\BurnTx}{\ensuremath{\tx_{\Burn}}\xspace}
+\newcommand{\UnlockTx}{\ensuremath{\tx_{\Unlock}}\xspace}
+\newcommand{\UpdaterTx}{\ensuremath{\tx_{\Updater}}\xspace}
+
+% Cardano ecosystem
+\newcommand{\Cardano}{\textsc{Cardano}\xspace}
+\newcommand{\UTxO}{\textsf{UTxO}\xspace}
+\newcommand{\UTxOs}{\textsf{UTxOs}\xspace}
+\newcommand{\eUTxO}{\textsf{eUTxO}\xspace}
+\newcommand{\eUTxOs}{\textsf{eUTxOs}\xspace}
+\newcommand{\Plutus}{\textsc{Plutus}\xspace}
+\newcommand{\UPLC}{\textsf{UPLC}\xspace}
+\newcommand{\Ouroboros}{\textsc{Ouroboros}\xspace}
+\newcommand{\Praos}{\textsc{Ouroboros Praos}\xspace}
+\newcommand{\Peras}{\textsc{Ouroboros Peras}\xspace}
+\newcommand{\Leios}{\textsc{Ouroboros Leios}\xspace}
+\newcommand{\Mithril}{\textsc{Mithril}\xspace}
+\newcommand{\Epoch}{\ensuremath{\mathsf{epoch}}\xspace}
+\newcommand{\Slot}{\ensuremath{\mathsf{slot}}\xspace}
+\newcommand{\Stake}{\ensuremath{\sigma}\xspace}
+\newcommand{\StakeDistribution}{\ensuremath{\mathsf{StakeDist}}\xspace}
+\newcommand{\ActiveSlotCoeff}{\ensuremath{f}\xspace}
+\newcommand{\LeaderProb}{\ensuremath{\phi}\xspace}
+\newcommand{\Certificate}{\ensuremath{\mathsf{cert}}\xspace}
+\newcommand{\Certificates}{\ensuremath{\mathcal{C}}\xspace}
+\newcommand{\Snapshot}{\ensuremath{\mathsf{snapshot}}\xspace}
+\newcommand{\Snapshots}{\ensuremath{\mathcal{S}}\xspace}
+\newcommand{\TransactionSnapshot}{\ensuremath{\mathsf{TxSnapshot}}\xspace}
+\newcommand{\CertificateChain}{\ensuremath{\mathsf{CertChain}}\xspace}
+\newcommand{\CIP}{\textsf{CIP}\xspace}
+\newcommand{\SPO}{\textsf{SPO}\xspace}
+\newcommand{\SPOs}{\textsf{SPOs}\xspace}
+\newcommand{\datum}{\delta}
+\newcommand{\redeemer}{\rho}
+\newcommand{\validator}{\nu}
+\newcommand{\txcontext}{\mathsf{tx}}
+\newcommand{\True}{\texttt{True}}
+\newcommand{\False}{\texttt{False}}
+
+% Resource limits
+\newcommand{\ExUnits}{\texttt{ExUnits}\xspace}
+\newcommand{\maxTxSize}{\texttt{maxTxSize}}
+\newcommand{\maxBlockBodySize}{\texttt{maxBlockBodySize}}
+\newcommand{\maxBlockHeaderSize}{\texttt{maxBlockHeaderSize}}
+\newcommand{\maxTxExUnits}{\texttt{maxTxExUnits}}
+\newcommand{\maxBlockExUnits}{\texttt{maxBlockExUnits}}
+\newcommand{\collateralPercentage}{\texttt{collateralPercentage}}
+\newcommand{\maxCollateralInputs}{\texttt{maxCollateralInputs}}

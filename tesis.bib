@@ -1,8 +1,31 @@
+@book{hac,
+	author    = {Alfred J. Menezes and Paul C. van Oorschot and Scott A. Vanstone},
+	title     = {Handbook of Applied Cryptography},
+	publisher = {CRC Press},
+	year      = {1996}
+}
+
+@book{katz,
+	author    = {Jonathan Katz and Yehuda Lindell},
+	title     = {Introduction to Modern Cryptography},
+	publisher = {CRC Press},
+	year      = {2020}
+}
+
+@article{shoup1997lowerbounds,
+	author  = {Victor Shoup},
+	title   = {Lower Bounds for Discrete Logarithms and Related Problems},
+	journal = {Journal of Cryptology},
+	year    = {1997},
+	volume  = {10},
+	number  = {2},
+	pages   = {97--123}
+}
+
 @book{arora2006computational,
 	added-at = {2020-10-15T14:57:45.000+0200},
 	author = {Arora, S. and Barak, B.},
 	biburl = {https://www.bibsonomy.org/bibtex/29e14d7a20ce00ed47c48dde9e4528345/jaeschke},
-	chapter   = {8},
 	interhash = {a490f7d3e4b8ec10e1132cb507a5119f},
 	intrahash = {9e14d7a20ce00ed47c48dde9e4528345},
 	isbn = {978-0-521-42426-4},
@@ -14,24 +37,19 @@
 	year = 2006
 }
 
-@article{10.1145/146585.146609,
-	author = {Shamir, Adi},
+@article{Shamir1992,
 	title = {IP = PSPACE},
-	year = {1992},
-	issue_date = {Oct. 1992},
-	publisher = {Association for Computing Machinery},
-	address = {New York, NY, USA},
 	volume = {39},
+	ISSN = {1557-735X},
+	url = {http://dx.doi.org/10.1145/146585.146609},
+	DOI = {10.1145/146585.146609},
 	number = {4},
-	issn = {0004-5411},
-	url = {https://doi.org/10.1145/146585.146609},
-	doi = {10.1145/146585.146609},
-	abstract = {In this paper, it is proven that when both randomization and interaction are allowed, the proofs that can be verified in polynomial time are exactly those proofs that can be generated with polynomial space.},
-	journal = {J. ACM},
+	journal = {Journal of the ACM},
+	publisher = {Association for Computing Machinery (ACM)},
+	author = {Shamir,  Adi},
+	year = {1992},
 	month = oct,
-	pages = {869–877},
-	numpages = {9},
-	keywords = {IP, PSPACE, interactive proofs}
+	pages = {869–877}
 }
 
 @book{Goldreich2001,
@@ -84,19 +102,659 @@
 	year = 1989
 }
 
-@inproceedings{10.1145/2090236.2090263,
-	author = {Bitansky, Nir and Canetti, Ran and Chiesa, Alessandro and Tromer, Eran},
-	title = {From extractable collision resistance to succinct non-interactive arguments of knowledge, and back again},
-	year = {2012},
-	isbn = {9781450311151},
-	publisher = {Association for Computing Machinery},
-	address = {New York, NY, USA},
-	url = {https://doi.org/10.1145/2090236.2090263},
-	doi = {10.1145/2090236.2090263},
-	abstract = {The existence of succinct non-interactive arguments for NP (i.e., non-interactive computationally-sound proofs where the verifier's work is essentially independent of the complexity of the NP nondeterministic verifier) has been an intriguing question for the past two decades. Other than CS proofs in the random oracle model [Micali, FOCS '94], the only existing candidate construction is based on an elaborate assumption that is tailored to a specific protocol [Di Crescenzo and Lipmaa, CiE '08].We formulate a general and relatively natural notion of an extractable collision-resistant hash function (ECRH) and show that, if ECRHs exist, then a modified version of Di Crescenzo and Lipmaa's protocol is a succinct non-interactive argument for NP. Furthermore, the modified protocol is actually a succinct non-interactive adaptive argument of knowledge (SNARK). We then propose several candidate constructions for ECRHs and relaxations thereof.We demonstrate the applicability of SNARKs to various forms of delegation of computation, to succinct non-interactive zero knowledge arguments, and to succinct two-party secure computation. Finally, we show that SNARKs essentially imply the existence of ECRHs, thus demonstrating the necessity of the assumption.},
+@inproceedings{Bitansky2012,
+	series = {ITCS ’12},
+	title = {From extractable collision resistance to succinct non-interactive arguments of knowledge,  and back again},
+	url = {http://dx.doi.org/10.1145/2090236.2090263},
+	DOI = {10.1145/2090236.2090263},
 	booktitle = {Proceedings of the 3rd Innovations in Theoretical Computer Science Conference},
+	publisher = {ACM},
+	author = {Bitansky,  Nir and Canetti,  Ran and Chiesa,  Alessandro and Tromer,  Eran},
+	year = {2012},
+	month = jan,
 	pages = {326–349},
-	numpages = {24},
-	location = {Cambridge, Massachusetts},
-	series = {ITCS '12}
+	collection = {ITCS ’12}
+}
+
+@article{Smart1999,
+	title = {The Discrete Logarithm Problem on Elliptic Curves of Trace One},
+	volume = {12},
+	ISSN = {1432-1378},
+	url = {http://dx.doi.org/10.1007/s001459900052},
+	DOI = {10.1007/s001459900052},
+	number = {3},
+	journal = {Journal of Cryptology},
+	publisher = {Springer Science and Business Media LLC},
+	author = {Smart,  N. P.},
+	year = {1999},
+	month = jun,
+	pages = {193–196}
+}
+
+@article{Menezes1993,
+	title = {Reducing elliptic curve logarithms to logarithms in a finite field},
+	volume = {39},
+	ISSN = {0018-9448},
+	url = {http://dx.doi.org/10.1109/18.259647},
+	DOI = {10.1109/18.259647},
+	number = {5},
+	journal = {IEEE Transactions on Information Theory},
+	publisher = {Institute of Electrical and Electronics Engineers (IEEE)},
+	author = {Menezes,  A.J. and Okamoto,  T. and Vanstone,  S.A.},
+	year = {1993},
+	pages = {1639–1646}
+}
+
+@inbook{Hess2005,
+	title = {Weil Descent Attacks},
+	ISBN = {9780511546570},
+	url = {http://dx.doi.org/10.1017/CBO9780511546570.010},
+	DOI = {10.1017/cbo9780511546570.010},
+	booktitle = {Advances in Elliptic Curve Cryptography},
+	publisher = {Cambridge University Press},
+	author = {Hess,  F.},
+	year = {2005},
+	month = apr,
+	pages = {151–180}
+}
+
+@article{miller86,
+	author  = {Victor S. Miller},
+	title   = {Short Programs for Functions on Curves},
+	journal = {Journal of Cryptology},
+	year    = {2004},
+	note    = {Originally presented in 1986}
+}
+
+@inproceedings{Bellare1993,
+	series = {CCS ’93},
+	title = {Random oracles are practical: a paradigm for designing efficient protocols},
+	url = {http://dx.doi.org/10.1145/168588.168596},
+	DOI = {10.1145/168588.168596},
+	booktitle = {Proceedings of the 1st ACM conference on Computer and communications security  - CCS ’93},
+	publisher = {ACM Press},
+	author = {Bellare,  Mihir and Rogaway,  Phillip},
+	year = {1993},
+	pages = {62–73},
+	collection = {CCS ’93}
+}
+
+@article{Wahby2019,
+	title = {Fast and simple constant-time hashing to the BLS12-381 elliptic curve},
+	ISSN = {2569-2925},
+	url = {http://dx.doi.org/10.46586/tches.v2019.i4.154-179},
+	DOI = {10.46586/tches.v2019.i4.154-179},
+	journal = {IACR Transactions on Cryptographic Hardware and Embedded Systems},
+	publisher = {Universitatsbibliothek der Ruhr-Universitat Bochum},
+	author = {Wahby,  Riad S. and Boneh,  Dan},
+	year = {2019},
+	month = aug,
+	pages = {154–179}
+}
+
+@misc{cryptoeprint:2013/325,
+	author = {Daniel J.  Bernstein and Mike Hamburg and Anna Krasnova and Tanja Lange},
+	title = {Elligator: Elliptic-curve points indistinguishable from uniform random strings},
+	howpublished = {Cryptology {ePrint} Archive, Paper 2013/325},
+	year = {2013},
+	doi = {10.1145/2508859.2516734},
+	url = {https://eprint.iacr.org/2013/325}
+}
+
+@inbook{Fouque2012,
+	title = {Indifferentiable Hashing to Barreto–Naehrig Curves},
+	ISBN = {9783642334818},
+	ISSN = {1611-3349},
+	url = {http://dx.doi.org/10.1007/978-3-642-33481-8_1},
+	DOI = {10.1007/978-3-642-33481-8_1},
+	booktitle = {Progress in Cryptology – LATINCRYPT 2012},
+	publisher = {Springer Berlin Heidelberg},
+	author = {Fouque,  Pierre-Alain and Tibouchi,  Mehdi},
+	year = {2012},
+	pages = {1–17}
+}
+
+@inbook{Merkle1988,
+	title = {A Digital Signature Based on a Conventional Encryption Function},
+	ISBN = {9783540481843},
+	ISSN = {1611-3349},
+	url = {http://dx.doi.org/10.1007/3-540-48184-2_32},
+	DOI = {10.1007/3-540-48184-2_32},
+	booktitle = {Advances in Cryptology — CRYPTO ’87},
+	publisher = {Springer Berlin Heidelberg},
+	author = {Merkle,  Ralph C.},
+	year = {1988},
+	pages = {369–378}
+}
+
+@misc{nakamoto2009bitcoin,
+	added-at = {2022-06-15T13:43:05.000+0200},
+	author = {Nakamoto, Satoshi},
+	interhash = {423c2cdff70ba0cd0bca55ebb164d770},
+	intrahash = {974d35fdb27dea57296ed2245556aa18},
+	keywords = {itsecseminar},
+	howpublished = {\url{http://www.bitcoin.org/bitcoin.pdf}},
+	month = may,
+	timestamp = {2022-06-15T13:43:05.000+0200},
+	title = {Bitcoin: A Peer-to-Peer Electronic Cash System},
+	url = {http://www.bitcoin.org/bitcoin.pdf},
+	year = {2009}
+}
+
+@inbook{Catalano2013,
+	title = {Vector Commitments and Their Applications},
+	ISBN = {9783642363627},
+	ISSN = {1611-3349},
+	url = {http://dx.doi.org/10.1007/978-3-642-36362-7_5},
+	DOI = {10.1007/978-3-642-36362-7_5},
+	booktitle = {Public-Key Cryptography – PKC 2013},
+	publisher = {Springer Berlin Heidelberg},
+	author = {Catalano,  Dario and Fiore,  Dario},
+	year = {2013},
+	pages = {55–72}
+}
+
+@article{Naor2000,
+	title = {Certificate revocation and certificate update},
+	volume = {18},
+	ISSN = {0733-8716},
+	url = {http://dx.doi.org/10.1109/49.839932},
+	DOI = {10.1109/49.839932},
+	number = {4},
+	journal = {IEEE Journal on Selected Areas in Communications},
+	publisher = {Institute of Electrical and Electronics Engineers (IEEE)},
+	author = {Naor,  M. and Nissim,  K.},
+	year = {2000},
+	month = apr,
+	pages = {561–570}
+}
+
+@inproceedings{Miller2014,
+	series = {POPL ’14},
+	title = {Authenticated data structures,  generically},
+	url = {http://dx.doi.org/10.1145/2535838.2535851},
+	DOI = {10.1145/2535838.2535851},
+	booktitle = {Proceedings of the 41st ACM SIGPLAN-SIGACT Symposium on Principles of Programming Languages},
+	publisher = {ACM},
+	author = {Miller,  Andrew and Hicks,  Michael and Katz,  Jonathan and Shi,  Elaine},
+	year = {2014},
+	month = jan,
+	pages = {411–423},
+	collection = {POPL ’14}
+}
+
+@article{DBLP:journals/ftsec/Thaler22,
+	author       = {Justin Thaler},
+	title        = {Proofs, Arguments, and Zero-Knowledge},
+	journal      = {Found. Trends Priv. Secur.},
+	volume       = {4},
+	number       = {2-4},
+	pages        = {117--660},
+	year         = {2022},
+	url          = {https://doi.org/10.1561/3300000030},
+	doi          = {10.1561/3300000030},
+	timestamp    = {Thu, 05 Jan 2023 16:25:49 +0100},
+	biburl       = {https://dblp.org/rec/journals/ftsec/Thaler22.bib},
+	bibsource    = {dblp computer science bibliography, https://dblp.org}
+}
+
+@article{Parno2016,
+	title = {Pinocchio: nearly practical verifiable computation},
+	volume = {59},
+	ISSN = {1557-7317},
+	url = {http://dx.doi.org/10.1145/2856449},
+	DOI = {10.1145/2856449},
+	number = {2},
+	journal = {Communications of the ACM},
+	publisher = {Association for Computing Machinery (ACM)},
+	author = {Parno,  Bryan and Howell,  Jon and Gentry,  Craig and Raykova,  Mariana},
+	year = {2016},
+	month = jan,
+	pages = {103–112}
+}
+
+@article{vonzurGathen1991,
+	title = {Boolean circuits versus arithmetic circuits},
+	volume = {91},
+	ISSN = {0890-5401},
+	url = {http://dx.doi.org/10.1016/0890-5401(91)90078-G},
+	DOI = {10.1016/0890-5401(91)90078-g},
+	number = {1},
+	journal = {Information and Computation},
+	publisher = {Elsevier BV},
+	author = {von zur Gathen,  Joachim and Seroussi,  Gadiel},
+	year = {1991},
+	month = mar,
+	pages = {142–154}
+}
+
+@inbook{Gennaro2013,
+	title = {Quadratic Span Programs and Succinct NIZKs without PCPs},
+	ISBN = {9783642383489},
+	ISSN = {1611-3349},
+	url = {http://dx.doi.org/10.1007/978-3-642-38348-9_37},
+	DOI = {10.1007/978-3-642-38348-9_37},
+	booktitle = {Advances in Cryptology – EUROCRYPT 2013},
+	publisher = {Springer Berlin Heidelberg},
+	author = {Gennaro,  Rosario and Gentry,  Craig and Parno,  Bryan and Raykova,  Mariana},
+	year = {2013},
+	pages = {626–645}
+}
+
+@inbook{Pedersen,
+	title = {Non-Interactive and Information-Theoretic Secure Verifiable Secret Sharing},
+	ISBN = {9783540551881},
+	url = {http://dx.doi.org/10.1007/3-540-46766-1_9},
+	DOI = {10.1007/3-540-46766-1_9},
+	booktitle = {Advances in Cryptology — CRYPTO ’91},
+	publisher = {Springer Berlin Heidelberg},
+	author = {Pedersen,  Torben Pryds},
+	year = {1991},
+	pages = {129–140}
+}
+
+@inbook{Kate2010,
+	title = {Constant-Size Commitments to Polynomials and Their Applications},
+	ISBN = {9783642173738},
+	ISSN = {1611-3349},
+	url = {http://dx.doi.org/10.1007/978-3-642-17373-8_11},
+	DOI = {10.1007/978-3-642-17373-8_11},
+	booktitle = {Advances in Cryptology - ASIACRYPT 2010},
+	publisher = {Springer Berlin Heidelberg},
+	author = {Kate,  Aniket and Zaverucha,  Gregory M. and Goldberg,  Ian},
+	year = {2010},
+	pages = {177–194}
+}
+
+@misc{cryptoeprint:2019/953,
+	author = {Ariel Gabizon and Zachary J.  Williamson and Oana Ciobotaru},
+	title = {{PLONK}: Permutations over Lagrange-bases for Oecumenical Noninteractive arguments of Knowledge},
+	howpublished = {Cryptology {ePrint} Archive, Paper 2019/953},
+	year = {2019},
+	url = {https://eprint.iacr.org/2019/953}
+}
+
+@inproceedings{BenSasson2017FastRI,
+	title={Fast Reed-Solomon Interactive Oracle Proofs of Proximity},
+	author={Eli Ben-Sasson and Iddo Bentov and Yinon Horesh and Michael Riabzev},
+	booktitle={Electron. Colloquium Comput. Complex.},
+	year={2017},
+	url={https://api.semanticscholar.org/CorpusID:5637668}
+}
+
+@misc{cryptoeprint:2018/046,
+	author = {Eli Ben-Sasson and Iddo Bentov and Yinon Horesh and Michael Riabzev},
+	title = {Scalable, transparent, and post-quantum secure computational integrity},
+	howpublished = {Cryptology {ePrint} Archive, Paper 2018/046},
+	year = {2018},
+	url = {https://eprint.iacr.org/2018/046}
+}
+
+@inbook{Fiat,
+	title = {How To Prove Yourself: Practical Solutions to Identification and Signature Problems},
+	ISBN = {9783540180470},
+	url = {http://dx.doi.org/10.1007/3-540-47721-7_12},
+	DOI = {10.1007/3-540-47721-7_12},
+	booktitle = {Advances in Cryptology — CRYPTO’ 86},
+	publisher = {Springer Berlin Heidelberg},
+	author = {Fiat,  Amos and Shamir,  Adi},
+	year = {1986},
+	pages = {186–194}
+}
+
+@inproceedings{Goldwasser,
+	series = {SFCS-03},
+	title = {On the (In)security of the Fiat-Shamir paradigm},
+	url = {http://dx.doi.org/10.1109/SFCS.2003.1238185},
+	DOI = {10.1109/sfcs.2003.1238185},
+	booktitle = {44th Annual IEEE Symposium on Foundations of Computer Science,  2003. Proceedings.},
+	publisher = {IEEE Computer. Soc},
+	author = {Goldwasser,  S. and Kalai,  Y.T.},
+	year = {2003},
+	pages = {102–113},
+	collection = {SFCS-03}
+}
+
+@inbook{Khovratovich2025,
+	title = {How to Prove False Statements: Practical Attacks on Fiat-Shamir},
+	ISBN = {9783032018878},
+	ISSN = {1611-3349},
+	url = {http://dx.doi.org/10.1007/978-3-032-01887-8_1},
+	DOI = {10.1007/978-3-032-01887-8_1},
+	booktitle = {Advances in Cryptology – CRYPTO 2025},
+	publisher = {Springer Nature Switzerland},
+	author = {Khovratovich,  Dmitry and Rothblum,  Ron D. and Soukhanov,  Lev},
+	year = {2025},
+	pages = {3–26}
+}
+
+@inproceedings{Dao2023,
+	title = {Weak Fiat-Shamir Attacks on Modern Proof Systems},
+	url = {http://dx.doi.org/10.1109/SP46215.2023.10179408},
+	DOI = {10.1109/sp46215.2023.10179408},
+	booktitle = {2023 IEEE Symposium on Security and Privacy (SP)},
+	publisher = {IEEE},
+	author = {Dao,  Quang and Miller,  Jim and Wright,  Opal and Grubbs,  Paul},
+	year = {2023},
+	month = may,
+	pages = {199–216}
+}
+
+@misc{cryptoeprint:2016/260,
+	author = {Jens Groth},
+	title = {On the Size of Pairing-based Non-interactive Arguments},
+	howpublished = {Cryptology {ePrint} Archive, Paper 2016/260},
+	year = {2016},
+	url = {https://eprint.iacr.org/2016/260}
+}
+
+@misc{cryptoeprint:2024/1565,
+	author = {Hieu Nguyen and Uyen Ho and Alex Biryukov},
+	title = {Fiat-Shamir in the Wild},
+	howpublished = {Cryptology {ePrint} Archive, Paper 2024/1565},
+	year = {2024},
+	url = {https://eprint.iacr.org/2024/1565}
+}
+
+@misc{cryptoeprint:2024/590,
+	author = {Quan Yuan and Chao Sun and Tsuyoshi Takagi},
+	title = {Revisiting the Security of Fiat-Shamir Signature Schemes under Superposition Attacks},
+	howpublished = {Cryptology {ePrint} Archive, Paper 2024/590},
+	year = {2024},
+	url = {https://eprint.iacr.org/2024/590}
+}
+
+@inbook{Fuchsbauer2018,
+	title = {The Algebraic Group Model and its Applications},
+	ISBN = {9783319968810},
+	ISSN = {1611-3349},
+	url = {http://dx.doi.org/10.1007/978-3-319-96881-0_2},
+	DOI = {10.1007/978-3-319-96881-0_2},
+	booktitle = {Advances in Cryptology – CRYPTO 2018},
+	publisher = {Springer International Publishing},
+	author = {Fuchsbauer,  Georg and Kiltz,  Eike and Loss,  Julian},
+	year = {2018},
+	pages = {33–62}
+}
+
+@inproceedings{Pippenger1976,
+	title = {On the evaluation of powers and related problems},
+	url = {http://dx.doi.org/10.1109/SFCS.1976.21},
+	DOI = {10.1109/sfcs.1976.21},
+	booktitle = {17th Annual Symposium on Foundations of Computer Science (sfcs 1976)},
+	publisher = {IEEE},
+	author = {Pippenger,  Nicholas},
+	year = {1976},
+	month = oct,
+	pages = {258–263}
+}
+
+@misc{gnark,
+	author       = {Gautam Botrel and Thomas Piellard and Youssef El Housni and Ivo Kubjas and Arya Tabaie and contributors},
+	title        = {gnark: A Go library for zk-SNARK circuits and proof systems},
+	year         = {2025},
+	howpublished = {\url{https://github.com/Consensys/gnark}},
+	note         = {GitHub repository, accessed 2026-03-06}
+}
+
+@misc{arkworks,
+	author = {arkworks contributors},
+	title = {\texttt{arkworks} zkSNARK ecosystem},
+	howpublished = {\url{https://arkworks.rs}},
+	url = {https://arkworks.rs},
+	year = {2022},
+}
+
+@misc{bellman,
+	author       = {{zkcrypto contributors}},
+	title        = {bellman: A Rust library for building zk-SNARK circuits},
+	year         = {2023},
+	howpublished = {\url{https://github.com/zkcrypto/bellman}},
+	note         = {GitHub repository, accessed 2026-03-06}
+}
+
+@misc{groth_validator_modulop,
+	author       = {{Modulo-P}},
+	title        = {groth-validator: Groth16 verifier implementation for Cardano},
+	year         = {2024},
+	howpublished = {\url{https://github.com/Modulo-P/groth-validator}},
+	note         = {GitHub repository, accessed 2026-03-06}
+}
+
+@article{Belchior2021,
+	title = {A Survey on Blockchain Interoperability: Past,  Present,  and Future Trends},
+	volume = {54},
+	ISSN = {1557-7341},
+	url = {http://dx.doi.org/10.1145/3471140},
+	DOI = {10.1145/3471140},
+	number = {8},
+	journal = {ACM Computing Surveys},
+	publisher = {Association for Computing Machinery (ACM)},
+	author = {Belchior,  Rafael and Vasconcelos,  André and Guerreiro,  Sérgio and Correia,  Miguel},
+	year = {2021},
+	month = oct,
+	pages = {1–41}
+}
+
+@inproceedings{Xie2022,
+	series = {CCS ’22},
+	title = {zkBridge: Trustless Cross-chain Bridges Made Practical},
+	url = {http://dx.doi.org/10.1145/3548606.3560652},
+	DOI = {10.1145/3548606.3560652},
+	booktitle = {Proceedings of the 2022 ACM SIGSAC Conference on Computer and Communications Security},
+	publisher = {ACM},
+	author = {Xie,  Tiancheng and Zhang,  Jiaheng and Cheng,  Zerui and Zhang,  Fan and Zhang,  Yupeng and Jia,  Yongzheng and Boneh,  Dan and Song,  Dawn},
+	year = {2022},
+	month = nov,
+	pages = {3003–3017},
+	collection = {CCS ’22}
+}
+
+@misc{belenkov2025sokreviewcrosschainbridge,
+	title={SoK: A Review of Cross-Chain Bridge Hacks in 2023}, 
+	author={Nikita Belenkov and Valerian Callens and Alexandr Murashkin and Kacper Bak and Martin Derka and Jan Gorzny and Sung-Shine Lee},
+	year={2025},
+	eprint={2501.03423},
+	archivePrefix={arXiv},
+	primaryClass={cs.CR},
+	url={https://arxiv.org/abs/2501.03423}, 
+}
+
+@inbook{Chakravarty2020,
+	title = {The Extended UTXO Model},
+	ISBN = {9783030544553},
+	ISSN = {1611-3349},
+	url = {http://dx.doi.org/10.1007/978-3-030-54455-3_37},
+	DOI = {10.1007/978-3-030-54455-3_37},
+	booktitle = {Financial Cryptography and Data Security},
+	publisher = {Springer International Publishing},
+	author = {Chakravarty,  Manuel M. T. and Chapman,  James and MacKenzie,  Kenneth and Melkonian,  Orestis and Peyton Jones,  Michael and Wadler,  Philip},
+	year = {2020},
+	pages = {525–539}
+}
+
+@misc{eutxo_handbook_2022,
+	author = {Input Output Global (IOG)},
+	title = {The {EUTXO} {Handbook}},
+	year = {2022},
+	howpublished = {\url{https://www.essentialcardano.io/article/the-eutxo-handbook}},
+	note = {Accessed: 2026-03-22},
+	keywords = {Cardano, EUTXO, Blockchain}
+}
+
+@misc{aiken2026,
+	author  = {{Aiken Team}},
+	title   = {Aiken Language Documentation},
+	year    = {2026},
+	howpublished = {\url{https://aiken-lang.org/}},
+	url     = {https://aiken-lang.org/},
+	urldate = {2026-03-22}
+}
+
+@misc{cryptoeprint:2017/573,
+	author = {Bernardo David and Peter Gaži and Aggelos Kiayias and Alexander Russell},
+	title = {Ouroboros Praos: An adaptively-secure, semi-synchronous proof-of-stake protocol},
+	howpublished = {Cryptology {ePrint} Archive, Paper 2017/573},
+	year = {2017},
+	url = {https://eprint.iacr.org/2017/573}
+}
+
+@misc{cryptoeprint:2021/916,
+	author = {Pyrros Chaidos and Aggelos Kiayias},
+	title = {Mithril: Stake-based Threshold Multisignatures},
+	howpublished = {Cryptology {ePrint} Archive, Paper 2021/916},
+	year = {2021},
+	url = {https://eprint.iacr.org/2021/916}
+}
+
+@misc{MithrilDocsOverview,
+	author = {Input Output Global / Mithril Team},
+	title  = {Mithril documentation (overview, protocol, certificates, client)},
+	year   = {2024--2026},
+	note   = {Documentación oficial del protocolo y la red Mithril.}
+}
+
+@misc{MithrilDocsCertChain,
+	author = {Mithril Team},
+	title  = {Certificate chain design (Mithril documentation)},
+	year   = {2024--2026}
+}
+
+@misc{MithrilDocsClient,
+	author = {Mithril Team},
+	title  = {Mithril client and certificate chain verification (Mithril documentation)},
+	year   = {2024--2026}
+}
+
+@misc{MithrilDocsSecurity,
+	author = {Mithril Team},
+	title  = {Protocol security (Mithril documentation)},
+	year   = {2024--2026}
+}
+
+@misc{MithrilDocsThreatModel,
+	author = {Mithril Team},
+	title  = {Threat model analysis (Mithril documentation)},
+	year   = {2024--2026}
+}
+
+@misc{CardanoDocsParamGuide,
+	author = {Cardano Documentation},
+	title  = {Cardano protocol parameters reference guide},
+	year   = {2024--2026}
+}
+
+@misc{CardanoCourseProtocolParams,
+	author = {Cardano Course (community)},
+	title  = {Protocol parameters (cardano-cli query protocol-parameters --mainnet example)},
+	year   = {2024}
+}
+
+@misc{GovActionExUnitsMem2026,
+	author = {Intersect / Parameter Committee (ref. explorer de gobernanza)},
+	title  = {Governance action: Increase Transaction and Block Memory Units (Part 1 of 2)},
+	year   = {2026}
+}
+
+@misc{CardanoDevDocsTx,
+	author = {Cardano Developer Portal},
+	title  = {Transactions: deterministic validation, two-phase, CBOR implications},
+	year   = {2026}
+}
+
+@misc{CardanoDocsCollateral,
+	author = {Cardano Documentation},
+	title  = {About the collateral mechanism},
+	year   = {2024--2026}
+}
+
+@misc{CIP40,
+	author = {Cardano Foundation},
+	title  = {CIP-40: Collateral Output},
+	year   = {2022}
+}
+
+@misc{CIP0009,
+	author = {Cardano Foundation},
+	title  = {CIP-9: Protocol Parameters (Shelley Era)},
+	year   = {2021}
+}
+
+@misc{CIP1694,
+	author = {Cardano Foundation},
+	title  = {CIP-1694: On-chain governance},
+	year   = {2023}
+}
+
+@misc{CardanoConstitutionGuardrails,
+	author = {Intersect MBO (draft constitution repository)},
+	title  = {Protocol parameter guardrails (draft constitution)},
+	year   = {2024}
+}
+
+@misc{CIP0381,
+	author = {Cardano Foundation},
+	title  = {CIP-0381: Plutus support for Pairings over BLS12-381},
+	year   = {2022}
+}
+
+@misc{CIP0133,
+	author = {Cardano Foundation},
+	title  = {CIP-0133: Multi-Scalar Multiplication over BLS12-381},
+	year   = {2024}
+}
+
+@misc{CIP0109,
+	author = {Cardano Foundation},
+	title  = {CIP-0109: Modular Exponentiation Built-in for Plutus Core},
+	year   = {2023}
+}
+
+@misc{IOGPlutusV3,
+	author = {Input Output Global},
+	title  = {Unlocking more opportunities with Plutus V3},
+	year   = {2024}
+}
+
+@misc{IOGHalo2PlutusVerifier,
+	author = {Input Output Global},
+	title  = {Unlocking zero-knowledge proofs for Cardano: the Halo2 Plutus verifier},
+	year   = {2025}
+}
+
+@misc{AK381Repo,
+	author = {Modulo-P contributors},
+	title  = {ak-381: A SNARK verification library using bls12-381 (Aiken)},
+	year   = {2024--2026}
+}
+
+@misc{Risc0Recursion,
+	author = {RISC Zero},
+	title  = {Recursive Proving and STARK-to-SNARK wrapping documentation},
+	year   = {2025--2026}
+}
+
+@misc{SP1TestnetLaunch,
+	author = {Succinct Labs},
+	title  = {SP1 Testnet Launch (recursion + STARK-to-SNARK wrapper)},
+	year   = {2024}
+}
+
+@misc{PerasFAQ,
+	author = {Cardano Scaling / Peras team},
+	title  = {Ouroboros Peras FAQ},
+	year   = {2024--2026}
+}
+
+@misc{LeiosSite,
+	author = {Cardano Scaling / Leios team},
+	title  = {Ouroboros Leios (specification and design materials)},
+	year   = {2024--2026}
+}
+
+@misc{EryxProofOfInnocenceSurvey,
+	author = {Eryx contributors},
+	title  = {Technical Survey / Research notes on Groth16 verification cost on Cardano},
+	year   = {2024--2026},
+	note   = {Repositorio público con mediciones/argumentos de costo; usar como heurística, validar empíricamente en este proyecto.}
 }

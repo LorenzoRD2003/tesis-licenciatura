@@ -1,1 +1,114 @@
-% !TeX root = main.tex
+% !TeX root = tesis.tex
+
+\subsection{El protocolo \Groth}
+
+En esta sección presentamos formalmente el argumento de conocimiento subyacente al esquema \Groth en su versión interactiva. Sea $\Relation \subseteq \InstanceSpace \times \WitnessSpace$ una relación en $\NP$. Como en la Sección 2.5, suponemos que la relación ha sido aritmetizada como un \QAP de tamaño $m$ y dimensión $n$ sobre un cuerpo finito $\K = \Fp$, y todo se reduce a argumentar sucintamente una identidad polinomial. Vamos a ligar todos estos nombres de objetos antes de entrar a definir el protocolo propiamente dicho.
+
+En particular, existen $3n$ polinomios $\{A_i(x)\}_{i=1}^n$, $\{B_i(x)\}_{i=1}^n$, $\{C_i(x)\}_{i=1}^n$ en $\poly{Fp}_{< m}$ tales que, definiendo el vector extendido de asignación
+
+$$\AssignmentVector = (z_1, \ldots, z_n) = (x_1, \ldots, x_\ell, w_1, \ldots, w_{n-\ell}) \in \Fp^n$$
+
+donde $x_1 = 1$, $\InstanceSpace = \Fp^\ell$ con $x = (x_1, \ldots, x_\ell)$, $\WitnessSpace = \Fp^{n-\ell}$ con $w = (w_1, \ldots, w_{n-\ell})$, definiendo los polinomios agregados
+
+$$A(x) = \sum_{i=1}^n \AssignmentVector_i A_i(x), B(x) = \sum_{i=1}^n \AssignmentVector_i B_i(x), C(x) = \sum_{i=1}^n \AssignmentVector_i C_i(x),$$
+
+y para un polinomio objetivo $Z(x)$ construido sobre $r_1, \ldots, r_m \in \Fp$ se cumple que $(x, w) \in \Relation$ si y solo si existe un polinomio $H(x)$ tal que
+
+$$A(x) \cdot B(x) - C(x) = H(x) Z(x).$$
+
+Además, sean $\GOne, \GTwo, \GT$ grupos cíclicos con orden primo $p$, con un pairing bilineal no degenerado $e: \GOne \times \GTwo \to \GT$.
+
+\begin{definition}[Protocolo interactivo \Groth]
+	El \emph{protocolo interactivo \Groth} busca argumentar la existencia de un polinomio $H$ y consta de los siguientes algoritmos:
+	
+	\begin{itemize}
+		\item $\Setup$: Se eligen de forma uniforme $\tau, \alpha, \beta, \gamma, \delta \in \mathbb{F}^*_p$, que se usan para construir la \SRS, y luego son destruidos. La \SRS contiene:
+		\begin{itemize}[noitemsep]
+			\item Las potencias de $\tau$ necesarias para evaluar polinomios de hasta grado $m - 1$ en los grupos $\GOne, \GTwo$: $\{\tau^k G_1, \tau^k G_2\}_{k=0}^{m-1}$.
+			\item Los elementos $\alpha G_1, \beta G_2, \gamma G_2, \delta G_1, \delta G_2$.
+			\item Para $\ell + 1 \leq i \leq n$ (i.e., los índices correspondientes al witness), los elementos
+			$$\frac{\beta A_i(\tau) + \alpha B_i(\tau) + C_i(\tau)}{\delta} G_1.$$
+			Para los inputs públicos $1 \leq i \leq \ell$, no se incluyen estos elementos en el \SRS, pues pueden ser reconstruidos en la etapa de verificación a partir de $x$.
+			\item Los elementos $\left\{\frac{\tau^k Z(\tau)}{\delta}\right\}_{k=0}^{m-2}$.
+		\end{itemize}
+		\item $\Prove$: El prover $\Prover$, que conoce $x$ y $w$, calcula $A(\tau), B(\tau), C(\tau), H(\tau)$. Luego elige aleatoriamente $r, s \in \mathbb{F}^*_p$, y define:
+		\begin{enumerate}
+			\item $\pi_A = \left(\alpha + A(\tau) + r\delta\right) G_1$.
+			\item $\pi_B = \left(\beta + B(\tau) + s\delta\right) G_2$.
+			\item $\pi_C = \left(\sum_{i=\ell+1}^{n} \AssignmentVector_i \frac{\beta A_i(\tau) + \alpha B_i(\tau) + C_i(\tau)}{\delta}\right)G_1 + \left(\frac{H(\tau)Z(\tau)}{\delta} + rB(\tau) + sA(\tau) - rs\delta\right)G_1 $.
+		\end{enumerate}
+		La salida del algoritmo $\Prove$ es la tripla $\pi = (\pi_A, \pi_B, \pi_C) \in (\GOne, \GTwo, \GOne)$.
+		\item $\Verify$: El verifier $\Verifier$, que solamente conoce $x$, reconstruye la parte pública $A_{pub}(\tau) = \sum_{i=1}^{\ell} \AssignmentVector_i A_i(\tau)$. Luego, acepta si:
+		$$e(\pi_A, \pi_B) = e(\alpha G_1, \beta G_2) \cdot e(A_{pub}(\tau) G_1, \gamma G_2) \cdot e(\pi_C, \delta G_2).$$
+	\end{itemize}
+\end{definition}
+
+No está demás recordar que \Groth es un argumento de conocimiento, por lo que cumple la propiedad de solidez computacional: es decir que para todo argumento $\pi$ tal que $\Verify(x, \pi) = 1$, existe un extractor probabístico en tiempo polinomial con acceso al prover que devuelve un witness $w$ tal que $(x, w) = 1$.
+
+El paper original de Groth \cite{cryptoeprint:2016/260} describe el protocolo en términos de vectores y combinaciones lineales, no en términos de exponenciaciones de grupo. La formulación moderna que presentamos (y sobre la cual están basadas las implementaciones principales) interpreta cada elemento del \SRS $a \in \Fp$ como elementos de $\GOne$ mediante la aplicación $a \mapsto aG_1$, de modo que las combinaciones lineales se vuelven \MSM (multi-scalar multiplications) y el verifier pueda usar pairings bilineales.
+
+Observamos que si $(x, w) \in R$, entonces por la definición del \QAP se cumple $A(\tau)B(\tau) - C(\tau) = H(\tau)Z(\tau)$, lo cual, por el Lema de Schwartz-Zippel, argumenta que $A(x) \cdot B(x) - C(x) = H(x) Z(x)$ excepto por probabilidad negligible. Si expandimos la ecuación de verificación y utilizamos la bilinealidad de $e$, se observa que todos los términos dependientes de $r$ y $s$ se cancelan, y la igualdad se satisface completamente. Por lo tanto, el protocolo cumple la propiedad de completitud. La solidez se sostiene en $t$-BSDH (como \KZG) y en variantes del \ECDLP.
+
+A diferencia de los $\Sigma$-\textit{protocols} discutidos en la sección anterior, \Groth no expone un \textit{challenge} explícito del \textit{verifier}. En cambio, la randomización está embebida en la fase del \textit{trusted setup} mediante la tupla $(\tau, \alpha, \beta, \gamma, \delta)$. \Groth ya es \NIZK por diseño. En particular, no se enmarca en el \ROM, sino en el \AGM (Algebraic Group Model) \cite{Fuchsbauer2018}.
+
+Para finalizar esta subsección, vamos a observar que \Groth realmente está diseñado para verificar la identidad polinomial en el exponente (en $\GT$), pero separando la parte pública $1 \leq i \leq \ell$, de la parte privada $\ell + 1 \leq i \leq n$, y de la parte de aleatorización. En efecto:
+
+$$\begin{aligned}
+	\pi_C &= \frac{\beta A(\tau) + \alpha B(\tau) + C(\tau)}{\delta} G_1 - \frac{\beta A_{pub}(\tau) + \alpha B_{pub}(\tau) + C_{pub}(\tau)}{\delta} G_1 \\
+	&+ \frac{H(\tau)Z(\tau)}{\delta} G_1 + (rB(\tau) + sA(\tau) - rs\delta)G_1.
+\end{aligned}$$
+
+Así, vemos que todo lo que está dividido por $\delta$ corresponde a la parte algebraica del \QAP, mientras que los términos $rB(\tau) + sA(\tau) - rs\delta$ aparecen como una perturbación cuadrática simétrica en $r, s$.
+
+
+\subsection{\Groth como extensión natural de \KZG}
+
+Es instructivo interpretar \Groth como una evolución del esquema \KZG aplicado a la aritmetización mediante \QAP. Recordemos que en \KZG, el prover demuestra que conoce un polinomio $P(x)$ tal que $y = P(z)$. La verificación consiste en chequear, mediante un pairing bilineal, que $P(\tau) - y$ es divisible por $\tau - z$. En esencia, \KZG permite verificar una identidad polinomial en un punto oculto $\tau$.
+
+En el caso del \QAP, lo que queremos verificar es: $A(x) \cdot B(x) - C(x) = H(x) Z(x)$. En vez de argumentar divisibilidad por el polinomio $x - z$, lo hacemos por el polinomio $Z(x)$. Pero \KZG no sería suficiente para esto, por los siguientes tres motivos que \Groth soluciona.
+
+\begin{itemize}[itemsep=0.1cm]
+	\item En \KZG, el compromiso revela implícitamente la evaluación $P(\tau)$, sin soportar separación entre parte pública y privada. En cambio, en \Groth el \textit{input} puede ocultarse, y los \textit{public inputs} deben poder verificarse en forma separada. Es por esto que aparecen los parámetros $\alpha, \beta, \gamma, \delta$, que mezclan algebraicamente los polinomios de forma que $\Verifier$ pueda aislar la parte pública, y el \textit{witness} quede enmascarado.
+	\item En \KZG, necesitaríamos un compromiso para cada uno de $A(x), B(x), C(x), H(x)$, lo que conlleva varias pruebas de divisibilidad con correspondientes ecuaciones de pairing bilineal. \Groth comprime toda la verificación del \QAP en una única ecuación de emparejamiento.
+	\item Dijimos en la sección 2.7 que \KZG por sí solo no era \ZK. La aleatoriedad $r, s$ introducida por \Groth, así como los términos cruzados $(rB(\tau) + sA(\tau) - rs\delta)G_1$ garantizan que la distribución de la prueba sea independiente del witness, y por lo tanto es \ZK.
+\end{itemize}
+
+\subsection{Complejidad de \Groth}
+
+En la fase de $\Setup$ (que recordemos, en la práctica es una ceremonia en la que varias personas deben contribuir con aleatoriedad y al menos una debe comportarse de forma honesta), para computar la \SRS en su totalidad hay que computar:
+\begin{itemize}[noitemsep]
+	\item $\Theta(m)$ multiplicaciones escalares en $\GOne$.
+	\item $\Theta(m)$ multiplicaciones escalares en $\GTwo$ (en la práctica, $\GTwo$ suele tener el doble de bits que $\GOne$).
+	\item La \SRS tiene una cantidad lineal de elementos en $m$ y $\ell$. En general $l = \Omega(n)$, de modo que a medida que aumenta el tamaño del circuito, aumenta el tamaño del \textit{trusted setup} necesario. El \textit{trusted setup} de \Groth es una fase costosa, y no es universal, sino específica para cada circuito.
+\end{itemize}
+
+En la fase de generación de la prueba, el costo principal proviene de las \MSM necesarias para computar $\pi_A, \pi_B, \pi_C$. Recordemos que una \MSM es una operación del estilo $\sum s_i P_i$, donde los $s_i$ son escalares y los $P_i$ son puntos de curva, de modo que en \Groth las \MSM son aquellas operaciones donde multiplicamos un polinomio evaluado en $\tau$ por el generador correspondiente. Esto permite el uso de algoritmos especializados, principalmente el de Pippenger \cite{Pippenger1976}, usado en las bibliotecas estándar de sistemas \zkSNARK \cite{gnark, arkworks, bellman}. Cada una de ellas cuesta $\Theta(m)$ operaciones escalares en $\GOne$ o $\GTwo$ respectivamente. Por ejemplo:
+
+$$A(\tau) G_1 = \sum_{i=0}^{m - 1} a_i \tau^i G_1.$$
+
+\begin{itemize}[itemsep = 0.1 cm]
+	\item Una \MSM en $\GOne$ para calcular $A(\tau) G_1$ durante el cómputo de $\pi_A$.
+	\item Una \MSM en $\GTwo$ para calcular $B(\tau) G_2$ durante el cómputo de $\pi_B$.
+	\item Una \MSM en $\GOne$ durante el cómputo de $\pi_C$. Acá es donde se observa que los términos de la \SRS correspondientes al witness permiten alivianar el cómputo:
+	$$\begin{aligned}
+		\pi_C &= \sum_{i=1}^{n} \AssignmentVector_i \left(\frac{\beta A_i(\tau) + \alpha B_i(\tau) + C_i(\tau)}{\delta} G_1 \right) + \sum_{j=0}^{m-2} h_j \left(\frac{\tau^j T(\tau)}{\delta} G_1 \right) \\
+		&+ \sum_{i=1}^{n} (r\AssignmentVector_i) B_i(\tau) G_1 + \sum_{i=1}^{n} (s\AssignmentVector_i) A_i(\tau) G_1 - rs(\delta G_1).
+	\end{aligned},$$
+	y más aún, en la práctica se fusionan algebraicamente todas las contribuciones en un único vector de escalares de modo que se hace una \MSM.
+	\item En el cálculo de $H(x)$, se requiere una multiplicación polinomial y una división por $Z(x)$. Con una \\\FFT, esto cuesta $\BigTheta(n \log n)$ operaciones en $\Fp$.
+	\item La prueba generada $\pi = (\pi_A, \pi_B, \pi_C)$ tiene tamaño constante $\BigTheta(1)$ (tres elementos de grupo).
+\end{itemize}
+
+En la fase de verificación de la prueba, la complejidad temporal del algoritmo no depende del tamaño total del circuito, sino linealmente en el número de public inputs $\ell$:
+
+\begin{itemize}[itemsep=0.1 cm]
+	\item Reconstruir la combinación lineal correspondiente a los inputs públicos, lo que es una \MSM en $\GOne$ de tamaño $\ell$, y típicamente $\ell \ll m$.
+	\item Evaluar la ecuación de pairing bilineal, para lo cual se requieren evaluar tres pairings (pues $\pairing{\alpha G_1}{\beta G_2}$ es constante desde el $\Setup$) y algunas multiplicaciones en $\GT$.
+\end{itemize}
+
+\subsection{Aplicación de \Groth al proyecto}
+
+En contextos de blockchain, la métrica relevante no es únicamente la complejidad asintótica, sino el costo concreto en términos de operaciones criptográficas soportadas por la máquina virtual subyacente. En particular, las operaciones dominantes en la verificación de \Groth son los pairings bilineales. Si la plataforma expone precompilados o primitivas nativas eficientes para emparejamientos (como ocurre en ciertos entornos basados en curvas elípticas tipo \BN o \BLS), el costo de verificación es esencialmente constante y pequeño, lo que hace a \Groth especialmente adecuado para validación \textit{onchain}.
+
+Esta observación es particularmente relevante en el contexto de \Cardano, donde las capacidades criptográficas disponibles onchain determinan directamente qué construcciones \zkSNARK usar. En concreto, existe una implementación de pairings bilineales sobre la curva \BLS en la biblioteca estándar de \Plutus, así como un verificador \Groth hecho por ModuloP \cite{groth_validator_modulop}. Esto, en conjunto con la extrema sucintez del argumento \Groth, determina que sea el \zkSNARK a utilizar durante nuestro proyecto.
+

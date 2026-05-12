@@ -1,0 +1,185 @@
+% !TeX root = tesis.tex
+
+\section{Introducción a Cardano}
+
+Este capítulo introduce las capas de \Cardano que condicionarán y darán forma a cualquier diseño de \zkBridge desplegado sobre él: el modelo \eUTxO, la capa de ejecución de smart contracts (\Plutus/\UPLC y herramientas contemporáneas como Aiken), los límites de recursos a nivel de protocolo (tamaño de transacción/bloque y presupuestos de unidades de ejecución), y el protocolo de consenso (\Praos). El objetivo no es proponer aún un diseño de puente, sino establecer el espacio de diseño técnico y los límites estrictos. Para nuestro proyecto, \Cardano es una blockchain de interés porque:
+
+\begin{enumerate}[noitemsep]
+	\item Combina un libro contable de estilo \UTxO con scripts de validación expresivos (el modelo \eUTxO), lo que modifica los patrones típicos de diseño.
+	\item Fue construido en torno a la validación determinista de transacciones y a una contabilidad explícita de recursos, lo que hace que los costos en el peor caso y los modos de fallo sean más predecibles, pero también introduce límites estrictos.
+\end{enumerate}
+
+\Cardano es una blockchain donde los bloques son producidos por \emph{stake pools} en nombre de los delegadores, bajo la familia de protocolos de consenso \Ouroboros. Los \emph{stake pools} proporcionan alta disponibilidad y conectividad; los delegadores aportan stake y comparten recompensas, mientras que un \emph{stake pool operator} ejecuta la infraestructura que participa en la producción de bloques.
+
+A nivel de libro contable, \Cardano sigue un paradigma \UTxO (\emph{Unspent Transaction Output}, como \Bitcoin): las transacciones consumen salidas previamente no gastadas y crean nuevas salidas que podrán gastarse en el futuro. Cada \UTxO puede consumirse \emph{una sola vez y en su totalidad}. \Cardano extiende este modelo mediante \eUTxO, permitiendo que las salidas lleven datos y que las direcciones estén respaldadas por \textit{scripts}, lo que habilita contratos inteligentes expresivos sin adoptar un modelo global de estado completamente basado en cuentas (como el de \Ethereum).
+
+En \Cardano, la validación de transacciones es determinista. Intuitivamente: si una transacción está bien formada y hace referencia a un conjunto válido de entradas, su resultado de validación (éxito/fracaso) y sus comisiones pueden saberse de forma exacta antes de enviarla \Onchain. Esto es gracias a tener scripts puros que devuelven \True/\False, argumentos explícitos fijados dentro de la transacción, y presupuestos explícitos de recursos que limitan la ejecución de scripts.
+
+Para un \zkBridge, el determinismo es valioso porque los \Bridge operators pueden precomputar costos y determinar el éxito \Offchain. El determinismo también conlleva parámetros concretos del protocolo que limitan el cómputo y los datos permitidos por transacción/bloque, los cuales analizamos en las secciones siguientes.
+
+\section{El modelo e\UTxO}
+
+\subsection{De \UTxO a \eUTxO: validadores, datums, redeemers, contexto}
+
+En el modelo \UTxO tradicional, una salida es principalmente un par \emph{(dirección, valor)}. Gastar un output requiere proporcionar el witness necesario para desbloquear esa dirección (usualmente una firma). \Cardano generaliza esto en dos direcciones clave: las direcciones pueden incorporar lógica arbitraria (scripts), y los outputs pueden transportar datos específicos interpretables por los scripts.
+
+Esto es formalizado \cite{Chakravarty2020} como una extensión donde cada \textit{output} contiene un \textit{script} de validación (o su hash) y un \textit{datum}, y para poder gastarlo se proporciona un \textit{redeemer}. Los validadores reciben información adicional sobre la transacción en la que se gasta el \textit{output} (\emph{contexto de transacción}, por ejemplo, otros \textit{outputs} gastados en esa misma transacción). Se puede pensar a los \textit{scripts} de validación como contratos. Hay dos características necesarias para codificar máquinas de estados como \textit{scripts} de validación de \Cardano:
+
+\begin{itemize}[noitemsep]
+	\item \textbf{Transporte de estado:} las incluyen un datum $\delta$ para almacenar datos específicos del contrato (estado).
+	\item \textbf{Continuidad del contrato:} los validadores pueden inspeccionar una transacción para asegurar que el script continúa con la lógica de validación prevista.
+\end{itemize}
+
+Una forma compacta de expresar la idea central de validación en \eUTxO (como se presenta en el artículo) es: $\validator(\textsf{valor}, \datum, \redeemer, \txcontext) = \True$ donde $\validator$ es el validador, $\datum$ es el datum, $\redeemer$ es el redeemer, y $\txcontext$ es la transacción que gasta la salida (o un contexto derivado de ella).
+
+Esto es relevante para el diseño de \zkBridge porque típicamente necesita estado persistente en cadena (por ejemplo, el estado de un \LightClient o un commitment del mismo), e invariantes fuertes a través de actualizaciones (por ejemplo, protección contra repetición de transacciones, y correcta secuenciación de transiciones de estado). El modelo \eUTxO proporciona un mecanismo explícito y analizable para ambos, pero el estado debe representarse y actualizarse utilizando \UTxOs que se gastan y generan. Esto implica que no existe un estado global mutable compartido, sino una secuencia explícita de transiciones de estado.
+
+\subsection{Máquinas de estado en \eUTxO}
+
+En \cite{Chakravarty2020} se argumenta que el modelo soporta patrones de contrato expresivos, incluyendo máquinas de estado generales, mientras preserva las propiedades del modelo \UTxO y evita el estado global mutable compartido. Lo demuestra mediante una construcción formal (\emph{Constraint Emitting Machines}) y enfatiza en que los autores de contratos pueden imponer invariantes sobre cadenas completas de transacciones.
+
+Una conclusión práctica es que muchas aplicaciones en \Cardano modelan el estado de la aplicación como un pequeño conjunto de \UTxOs que modelan estado. Cada actualización consume un \UTxO de estado y produce uno nuevo que codifica el siguiente estado. Esto es directamente relevante para un \zkBridge, donde un modelado natural es que un \UTxO contiene el estado canónico del \Bridge (por ejemplo, el último commitment aceptado), mientras que cada actualización lo consume y crea un \UTxO de estado sucesor. La ventaja es la claridad: el propio ledger impone restricciones de uso único y de orden. Este patrón resulta particularmente adecuado para aplicaciones que requieren fuertes garantías de consistencia, como es el caso de los \Bridges.
+
+\subsection{Características de \eUTxO relevantes para aplicaciones complejas}
+
+Más allá del modelo conceptual, \Cardano ha evolucionado con características pragmáticas del \textit{ledger} diseñadas para reducir el tamaño de las transacciones y mejorar el rendimiento de aplicaciones intensivas en \textit{scripts}. El manual de \eUTxO \cite{eutxo_handbook_2022} y la documentación de \Cardano destacan (entre otras) las siguientes características existentes desde la era Vasil:
+
+\begin{itemize}[noitemsep]
+	\item \textbf{Reference Inputs (\CIP-31):} permiten inspeccionar \UTxOs sin gastarlos.
+	\item \textbf{Inline Datums (\CIP-32):} permiten adjuntar datums directamente (no solo por hash).
+	\item \textbf{Reference Scripts (\CIP-33):} permiten reutilizar scripts sin tener que volver a proporcionarlos en cada transacción.
+\end{itemize}
+
+\section{Smart Contracts en Cardano: Plutus y Aiken}
+\subsection{Plutus, Plutus Core y PlutusTx}
+
+La validación \Onchain de \Cardano ejecuta en última instancia \emph{Untyped Plutus Core (\UPLC)}, la representación de bajo nivel evaluada por el motor de \textit{smart contracts} del nodo. La creación de contratos a alto nivel no está limitada a un solo lenguaje, siempre que la cadena de herramientas compile a \UPLC.
+
+Históricamente, \Plutus en \Cardano se ha utilizado de forma ambigua: puede referirse a Plutus Core/\UPLC como formato de ejecución, a PlutusTx/Plinth como una vía de compilación basada en Haskell, o a la plataforma/herramientas más amplia de \Plutus alrededor de estos componentes.
+
+El manual de \eUTxO \cite{eutxo_handbook_2022} describe de manera similar a \Plutus como el lenguaje de \textit{scripting} de \Cardano y señala que los autores normalmente no escriben \Plutus directamente; en su lugar, un \textit{plugin} del compilador de Haskell genera el código \Onchain. Los \textit{scripts} de \Plutus son validadores puros, ejecutados durante la validación de transacciones, que devuelven \True/\False. Las transacciones llevan \textit{redeemers} y \UTxOs con estado en sus \textit{datum}, donde se permite una evaluación determinista y la predicción de comisiones para la futura ejecución \Onchain.
+
+\subsection{Aiken}
+
+Aiken \cite{aiken2026} es un lenguaje moderno, diseñado específicamente para escribir scripts validadores en \Cardano. Es un lenguaje funcional puro, pequeño, pensado para la robustez y la facilidad de uso, que enfatiza un tipado estático fuerte con inferencia de tipos, módulos y una experiencia moderna de herramientas. Es importante destacar que Aiken compila directamente a \UPLC (el formato \Onchain), sin requerir Haskell. Se destacan varias ventajas frente a \Plutus:
+
+\begin{itemize}[noitemsep]
+	\item \textbf{Menor barrera de entrada:} está diseñado como un lenguaje y toolchain inspirado en Rust (pese a ser un lenguaje funcional); que compila directamente a \UPLC.
+	\item \textbf{Herramientas y ciclos de retroalimentación:} Aiken integra compilación, tests, reportes de traza y de unidades de ejecución de los nodos de cardano, lo que proporciona herramientas útiles al desarrollador. Además, tiene soporte LSP.
+	\item \textbf{Simplicidad deliberada:} Aiken busca mantenerse pequeño y evita características avanzadas del sistema de tipos (por ejemplo, typeclasses). Al mismo tiempo, permite extender el sistema de tipos al desarrollador, y ofrece inferencia de tipos.
+\end{itemize}
+
+Para una base de código de \zkBridge, estas diferencias pueden impactar directamente en la rapidez con la que el equipo puede iterar sobre la lógica de verificación \Onchain, qué tan confiablemente se puede medir y optimizar el uso de recursos (unidades de ejecución) antes del despliegue, y qué tan mantenible y auditable permanece el código del validador a lo largo del tiempo. Las restricciones \Onchain no desaparecen, pero mejores herramientas pueden reducir sustancialmente el costo de trabajar dentro de esas limitaciones.
+
+\section{Límites del protocolo y su importancia en un \zkBridge}
+
+\subsection{Contabilización de recursos: unidades de ejecución, determinismo y validación en dos fases}
+
+\Cardano utiliza una contabilización explícita de recursos para scripts no nativos (fase 2), expresada en \emph{unidades de ejecución} (\ExUnits) que registran métricas como el uso de memoria y pasos abstractos de ejecución. Las transacciones especifican un presupuesto de unidades de ejecución, y el nodo que las ejecuta verifica que estos respeten los límites del protocolo. Este diseño contribuye al determinismo y \emph{garantiza} la terminación de los scripts.
+
+Para limitar vectores de DoS y trabajo no compensado en los nodos, \Cardano implementa un esquema de validación en dos fases y los \emph{collateral inputs}: la fase 1 verifica que la transacción esté bien formada y pueda pagar comisiones, mientras que la fase 2 evalúa los scripts. Si la fase 2 falla, collateral inputs (\UTxOs especiales referenciados por la transacción) se utilizan para compensar a la red por el trabajo realizado.
+
+Para un \zkBridge, esto tiene una consecuencia operativa: cualquier transacción que incluya una verificación de prueba pesada debe construirse con presupuestos correctos y collateral input suficiente, y debe mantenerse válida respecto al estado \Onchain.
+
+\subsection{Límites de tamaño y cómputo}
+
+Una transacción de actualización de un \zkBridge típicamente necesita incluir (directa o indirectamente) pruebas de conocimiento cero, entradas públicas y referencias al estado actual del \Bridge. Por lo tanto, tanto los límites de \emph{tamaño en bytes} como los de \ExUnits son restricciones de diseño de los validadores.
+
+La Tabla~\ref{tab:cardano-protocol-limits} resume parámetros del protocolo comúnmente citados que acotan el rendimiento y la complejidad. Los valores numéricos exactos pueden cambiar mediante actualizaciones del protocolo; el punto clave para el diseño es que estos son \emph{límites duros} impuestos por las reglas de consenso. Los valores pueden ser modificados mediante el mecanismo de gobernanza del protocolo.
+
+\begin{table}[t]
+	\centering
+	\footnotesize
+	\begin{tabular}{p{0.22\linewidth} p{0.46\linewidth} p{0.20\linewidth}}
+		\hline
+		\textbf{Parámetro} & \textbf{Significado} & \textbf{Valor} \\ 
+		\hline
+		\maxTxSize & Límite de una $\tx$ serializada (bytes) & 16,384 \\
+		\maxBlockBodySize & Límite de un block body serializado (bytes) & 90,112 \\
+		\maxBlockHeaderSize & Límite de un block header serializado (bytes) & 1,100 \\
+		\maxTxExUnits & Límite de \ExUnits por $\tx$ & \texttt{(1.65e7, 1e10)} \\
+		\maxBlockExUnits & Límite de \ExUnits por block & \texttt{(5e7, 4e10)} \\
+		\texttt{collateral}\newline\texttt{Percentage} & Colateral necesario como \% de comisiones & 150 \\
+		\texttt{maxCollateral}\newline\texttt{Inputs} & Límite de collateral inputs por $\tx$ & 3 \\
+		\hline
+	\end{tabular}
+	
+	\caption{Parámetros de protocolo que imponen límites de recursos relevantes a aplicaciones con validation scripts pesados.}
+	\label{tab:cardano-protocol-limits}
+\end{table}
+
+En particular, estos límites imponen restricciones directas sobre el tamaño máximo de pruebas verificables \Onchain y sobre la complejidad de los validadores.
+
+\begin{itemize}[noitemsep]
+	\item El tamaño de la transacción incluye al witness, los redeemers, los datums (especialmente inline datums), metadatos y reference scripts. Incluso si los argumentos producidos por \Groth son sucintos, la carga completa y actualización puede acercarse a \maxTxSize. Los reference scripts y reference inputs pueden reducir la sobrecarga de bytes repetida entre transacciones.
+	\item Cualquier verificación de prueba \Onchain debe encajar dentro de \maxTxExUnits. Además, el límite a nivel de bloque \maxBlockExUnits hace que sea más lento para los nodos que elijan la transacción pesada una vez que esta llegue a la mempool.
+\end{itemize}
+
+\subsection{Cómo los límites estrictos moldean el espacio de diseño}
+
+Aunque posponemos decisiones de diseño concretas hasta el Capítulo 5, es útil explicar las consecuencias típicas que estos límites imponen sobre un \zkBridge. El modelo \eUTxO representa naturalmente el estado como un \UTxO. Actualizar ese estado requiere consumirlo, lo que impone una forma de secuencialidad sobre las actualizaciones del estado canónico del \Bridge. Por lo tanto, el throughput está acotado tanto por la contención del \UTxO como por los límites de recursos por bloque.
+
+Además, la verificación ZK puede ser computacionalmente costosa dependiendo del sistema de prueba y de las primitivas criptográficas disponibles en la máquina virtual \Onchain. Si una verificación directa no entra en \maxTxExUnits, un \Bridge debe elegir al menos una de las siguientes alternativas:
+
+\begin{enumerate}[noitemsep]
+	\item Un sistema de pruebas más amigable para verificación. En nuestro caso, se considera \Groth debido a su verificación eficiente y tamaño de prueba constante.
+	\item Reducir el trabajo \Onchain usando proof recursion o proof aggregation.
+	\item Dividir la verificación en múltiples transacciones (y con ello transiciones de estado, lo que complica el análisis de seguridad).
+\end{enumerate}
+
+\section{Praos y el modelo operativo de proof-of-stake}
+\subsection{Proof of stake, stake pools y \SPOs}
+En \Cardano, la participación en el consenso se realiza a través de \emph{stake pools}. Un stake pool es un nodo servidor que mantiene el ledger y produce bloques, además de agregar el stake de los delegadores. El operador del pool ejecuta la infraestructura del nodo, mientras que los delegadores adoptan un rol pasivo delegando su stake. Las recompensas provienen de comisiones de transacción y expansión monetaria, y se distribuyen en cada época con una división explícita entre costos/margen del operador y los delegadores.
+
+El proceso de recompensas es estocástico porque la producción de bloques es probabilística: los pools son seleccionados para producir bloques con una probabilidad monótona creciente (de una forma definida por el protocolo) a su stake.
+
+\subsection{Estructura temporal: slots y épocas}
+\Praos \cite{cryptoeprint:2017/573} es un protocolo \textit{proof of stake} que divide el tiempo en \emph{slots} agrupados en \emph{épocas}. En cada \Slot, puede haber uno o más líderes elegibles, y muchos \Slot pueden estar vacíos (sin líder). Esto difiere de los esquemas deterministas de selección de líderes y es clave para las suposiciones de seguridad y red de \Praos.
+
+En el paper de \Praos, la elección de líderes se describe como una \emph{prueba local privada} utilizando una \VRF sobre el timestamp actual y un \Nonce específico de la época. Solo la parte elegida sabe que es líder hasta que produce un bloque que contiene la prueba.
+
+El coeficiente de slot activo de \Cardano (denotado $\ActiveSlotCoeff$) controla con qué frecuencia se espera que los slots contengan un bloque. En los parámetros públicos usuales, se apunta a producir un bloque cada aproximadamente veinte segundos.
+
+\subsection{Elección de líderes mediante \VRF}
+El paper de \Praos formaliza la probabilidad de elección de líder en términos de la fracción de stake $\alpha$ y el coeficiente de slot activo $\ActiveSlotCoeff$. Específicamente, la función de elección de líder es: $\LeaderProb_{\ActiveSlotCoeff}(\alpha) = 1 - (1 - \ActiveSlotCoeff)^{\alpha}$. Esta formulación garantiza (entre otras propiedades) \emph{agregación independiente}: dividir el stake entre muchas identidades no incrementa trivialmente la probabilidad de liderazgo más allá del stake combinado. Este mecanismo evita la necesidad de coordinación global para la elección de líderes.
+
+El mecanismo \VRF cumple dos roles clave:
+
+\begin{itemize}[noitemsep]
+	\item \textbf{Impredecibilidad:} los líderes no se conocen de antemano, reduciendo ataques dirigidos a futuros líderes de slots.
+	\item \textbf{Verificabilidad pública} una vez producido un bloque, otros nodos pueden verificar la prueba \VRF y aceptar la elegibilidad del líder.
+\end{itemize}
+
+\subsection{\KES y certificados operativos}
+
+\Praos está diseñado para resistir adversarios adaptativos de forma más robusta que variantes anteriores mediante el uso de \emph{Key Evolving Signatures (\KES)} y propiedades mejoradas de aleatoriedad/\VRF. El paper de \Praos desarrolla explícitamente las firmas evolutivas dentro de un marco componible y enfatiza que la seguridad hacia adelante ayuda a prevenir ataques de ``retrodatación'' en los que un adversario intenta reescribir la historia usando claves comprometidas.
+
+La práctica operativa de \Cardano refleja estas ideas mediante distintos tipos de claves y certificados:
+
+\begin{itemize}
+	\item \textbf{Claves frías (offline) del operador} utilizadas para emitir certificados.
+	\item \textbf{Claves \KES (hot)} utilizadas en la producción de bloques y rotadas periódicamente; la documentación señala la necesidad operativa de actualizarlas regularmente (por ejemplo, ``cada 90 días'').
+	\item \textbf{Claves \VRF} almacenadas en certificados operativos y utilizadas para demostrar la elegibilidad de liderazgo de slots en \Praos.
+\end{itemize}
+
+\subsection{\textit{Light clients} en Cardano}
+
+Una dificultad fundamental en el diseño de \Bridges sobre \Cardano es la obtención de una representación verificable del estado de la blockchain sin volver a ejecutar completamente el protocolo de consenso. Es decir, necesitamos usar \LightClients, tal como fue explicado en el capítulo anterior.
+
+Dentro del ecosistema de \Cardano, el protocolo \Mithril \cite{cryptoeprint:2021/916} propone una solución en esta dirección mediante el uso de firmas agregadas ponderadas por stake para certificar snapshots del estado de la blockchain. En lugar de requerir el procesamiento completo de la cadena o la verificación explícita de la lógica de consenso, \Mithril permite trabajar con certificados compactos que argumentan la validez de un estado acordado por una fracción significativa del stake de la red. Esto permite diseñar mecanismos de verificación más eficientes, tanto en términos de tamaño de datos como de costo computacional \Onchain.
+
+Esto permite diseñar mecanismos de verificación más eficientes, tanto en términos de tamaño de datos como de costo computacional \Onchain, lo cual resulta especialmente relevante en el contexto de las restricciones del modelo \eUTxO. El protocolo \Mithril será analizado en profundidad en el Capítulo 7.
+
+\section{Direcciones futuras}
+
+\subsection{Peras}
+
+\Peras se describe como una extensión de \Praos que reduce el horizonte de finalización introduciendo votaciones periódicas por parte de un comité de nodos productores de bloques para certificar bloques. Los bloques certificados reducen más rápidamente la probabilidad de \textit{rollback}, haciendo que la cadena sea efectivamente ``irreversible'' antes bajo los supuestos del protocolo. Esto se logra a partir de rondas de votación del orden de uno a dos minutos y destacan explícitamente a los \Bridges como uno de los principales casos de uso beneficiados.
+
+\subsection{Leios}
+
+\Leios se plantea como un rediseño sustancial orientado a incrementar el \textit{throughput} manteniendo fuertes propiedades de seguridad. Los materiales públicos sobre \Leios describen multiplicadores significativos de \textit{throughput} y discuten \textit{trade-offs} como un aumento en la latencia y en el uso de recursos; el resumen del paper de IOG enfatiza que las variantes actuales de \Ouroboros están limitadas no por los recursos de hardware en bruto, sino por dependencias de datos y comunicación del protocolo, lo que motiva un rediseño del algoritmo.
+
+\section{Conclusiones}
+
+En conjunto, el modelo \eUTxO, los límites estrictos de recursos y el protocolo de consenso de \Cardano definen un espacio de diseño altamente restringido pero bien estructurado. Estas características condicionan fuertemente las decisiones de diseño de cualquier \zkBridge, las cuales serán analizadas en el siguiente capítulo.

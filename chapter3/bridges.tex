@@ -1,0 +1,70 @@
+% !TeX root = tesis.tex
+
+\subsection{¿Qué es un \Bridge?}
+
+Las blockchains modernas se diseñan, en general, como sistemas autocontenidos: cada red mantiene su propio consenso, estado global y reglas de validación. Como consecuencia, una blockchain no puede verificar directamente el estado de otra sin algún mecanismo adicional. Esta limitación dificulta la \emph{interoperabilidad}, es decir, la capacidad de transferir información o activos entre redes distintas.
+
+Los \Bridges (puentes) constituyen mecanismos diseñados para resolver este problema \cite{Belchior2021}. En términos generales, un \Bridge permite que eventos ocurridos en una blockchain $\ChainA$ puedan ser reconocidos y utilizados en otra blockchain $\ChainB$. Esto habilita funcionalidades muy útiles para los usuarios, como:
+\begin{itemize}[noitemsep]
+	\item Realizar transferencias de activos entre blockchains.
+	\item Ejecutar aplicaciones descentralizadas que utilizan múltiples blockchains.
+	\item Sincronizar estados o mensajes entre sistemas distribuidos independientes.
+\end{itemize}
+
+Formalmente, es posible modelar un \Bridge como un protocolo que conecta dos blockchains $\ChainA$ y $\ChainB$ mediante dos funciones principales:
+\begin{itemize}[noitemsep]
+	\item Detectar que un evento $\event$ ocurrió en el estado de $\ChainA$.
+	\item Demostrar o argumentar en la blockchain $\ChainB$ que el evento $\event$ es válido según las reglas de $\ChainA$.
+\end{itemize}
+
+Observamos que un \Bridge es esencialmente \emph{unidireccional}: es decir, se tiene una blockchain origen $\ChainA$ donde ocurren eventos, hacia una blockchain destino $\ChainB$ donde se actúa de forma acorde a esos eventos. Un \Bridge no es agnóstico a los eventos; por el contrario, generalmente está diseñado para capturar una o más clases particulares de eventos.
+
+Si se provee un \Bridge unidireccional desde $\ChainA$ hacia $\ChainB$ y otro desde $\ChainB$ hacia $\ChainA$, podríamos decir que es un \textit{\Bridge bidireccional}.
+
+\subsection{Ejemplo de uso}
+
+El caso más común de interoperabilidad entre blockchains es la transferencia de activos. Supongamos que un usuario desea transferir un token desde una blockchain $\ChainA$ hacia una blockchain $\ChainB$. Una estrategia ampliamente utilizada es el modelo \emph{lock–mint}:
+
+\begin{enumerate}[noitemsep]
+	\item El usuario bloquea un activo $x$ en la blockchain $\ChainA$.
+	\item El \Bridge desde $\ChainA$ hacia $\ChainB$ detecta este evento.
+	\item En la blockchain $\ChainB$ se emite (mintea) un nuevo activo $x'$, que representa el activo original $x$ bloqueado en $\ChainA$.
+\end{enumerate}
+
+Si posteriormente el usuario desea regresar el activo a $\ChainA$, el proceso se invierte mediante el esquema \emph{burn–unlock} (esto sería un \Bridge de $\ChainB$ hacia $\ChainA$):
+
+\begin{enumerate}[noitemsep]
+	\item El usuario destruye (burn) el activo representado $x'$ en $\ChainB$.
+	\item El \Bridge desde $\ChainB$ hacia $\ChainA$ detecta este evento.
+	\item El activo original $x$ es desbloqueado en $\ChainA$.
+\end{enumerate}
+
+En este modelo, la seguridad del sistema depende de que el \Bridge pueda verificar correctamente eventos entre cadenas. Si un atacante logra falsificar una prueba de bloqueo o destrucción, podría crear activos sin respaldo, comprometiendo completamente el sistema y destruyendo todo su valor.
+
+\subsection{Modelos de seguridad de \Bridges}
+
+Existen múltiples formas de implementar el mecanismo de verificación entre blockchains. Estas implementaciones difieren principalmente en su modelo de confianza y en los supuestos criptográficos que utilizan.
+
+\subsubsection{Bridges basados en multisignature}
+
+Una de las implementaciones más simples consiste en delegar la verificación a un conjunto de operadores externos. En este modelo, un conjunto de entidades observa los eventos de una blockchain y firma colectivamente mensajes que certifican dichos eventos.
+
+Una herramienta fundamental en este contexto es el esquema de firma múltiple \emph{multisignature}. En un esquema $(t,n)$-multisignature, un mensaje es válido si al menos $t$ de los $n$ participantes producen una firma válida. Si $\sigma_i = \Sign_{sk_i}(m)$ denota la firma del $i$-ésimo participante sobre un mensaje $m$, entonces cualquier conjunto de la forma $\{\sigma_{i_1}, \ldots, \sigma_{i_t}\}$ permite verificar la autenticidad de $m$.
+
+En un \Bridge multisignature, los operadores firman un mensaje que afirma que un evento ocurrió en la cadena de origen. La cadena de destino verifica que el mensaje posee al menos $t$ firmas válidas. Este modelo es conceptualmente simple y eficiente, pero introduce un supuesto de confianza en los operadores. Si un subconjunto suficientemente grande es comprometido, el sistema puede ser atacado.
+
+\subsubsection{Bridges basados en \LightClients}
+
+Un enfoque más descentralizado consiste en que una blockchain verifique directamente el consenso de otra mediante un \emph{\LightClient}, idea que se remonta a la fundación de \Bitcoin \cite{nakamoto2009bitcoin}. En este modelo, $\ChainB$ mantiene una representación compacta del estado de $\ChainA$. Típicamente se verifican encabezados de bloques, reglas del protocolo de consenso, e inclusión de transacciones.
+
+Supongamos que las transacciones de un bloque se representan en forma compacta usando una raíz de Merkle $r$. Si se quiere probar que una transacción $\tx$ está incluida en un bloque de $\ChainA$ con encabezado $h$ y raíz $r$, se debería verificar que $h$ efectivamente pertenece a la cadena consensuada de $\ChainA$, y verificar una prueba de Merkle $\MerkleProof$ de la inclusión de $\tx$. La seguridad de este modelo depende entonces de la seguridad del consenso de la blockchain de origen.
+
+\subsubsection{Bridges basados en pruebas criptográficas}
+
+Otro enfoque es usar pruebas criptográficas sucintas, como \zkSNARK, para demostrar que un evento ocurrió en $\ChainA$ \cite{Xie2022}. En este modelo, un prover $\Prover$ genera una prueba o argumento que certifica que un bloque de $\ChainA$ es válido según sus reglas de consenso. Luego, se puede hacer un programa en $\ChainB$ que actúe como el verifier $\Verifier$ de la prueba generada.
+
+Se conoce popularmente a un \Bridge de esta clase como un \zkBridge.
+
+\subsubsection{Composability}
+
+En la práctica, los sistemas de interoperabilidad suelen combinar varios de los modelos anteriores. Por ejemplo, es posible construir un \Bridge donde un \LightClient mantiene el estado de la cadena remota, mientras que un conjunto de operadores confiables actúa como relayers que transmiten información entre redes. Del mismo modo, sistemas basados en pruebas criptográficas pueden requerir operadores que generen las pruebas o mantengan la infraestructura necesaria para producirlas. Por esta razón, los modelos de seguridad de \Bridges suelen ser \emph{componibles}.
