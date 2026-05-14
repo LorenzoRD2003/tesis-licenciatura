@@ -233,7 +233,7 @@
 \newcommand{\ChainB}{\mathcal{B}}
 \newcommand{\event}{e}
 \newcommand{\state}{s}
-\newcommand{\tx}{\mathsf{tx}}
+\newcommand{\tx}{\ensuremath{\mathsf{tx}}\xspace}
 \newcommand{\Nonce}{\ensuremath{\eta}\xspace}
 \newcommand{\Offchain}{off-chain\xspace}
 \newcommand{\Onchain}{on-chain\xspace}
@@ -251,6 +251,13 @@
 \newcommand{\BurnTx}{\ensuremath{\tx_{\Burn}}\xspace}
 \newcommand{\UnlockTx}{\ensuremath{\tx_{\Unlock}}\xspace}
 \newcommand{\UpdaterTx}{\ensuremath{\tx_{\Updater}}\xspace}
+\newcommand{\StakeDistTx}{\ensuremath{\tx_{\mathsf{sd}}}\xspace}
+\newcommand{\MintingValidator}{\texttt{minting\_validator}\xspace}
+\newcommand{\UnlockingValidator}{\texttt{unlocking\_validator}\xspace}
+\newcommand{\StakeDistributionMintValidator}{\texttt{stake\_distribution.mint}\xspace}
+\newcommand{\StakeDistributionSpendValidator}{\texttt{stake\_distribution.spend}\xspace}
+\newcommand{\TxsUpdaterMintingValidator}{\texttt{txs\_updater\_minting}\xspace}
+\newcommand{\TxsUpdaterUnlockingValidator}{\texttt{txs\_updater\_unlocking}\xspace}
 
 % Cardano ecosystem
 \newcommand{\Cardano}{\textsc{Cardano}\xspace}
@@ -273,6 +280,13 @@
 \newcommand{\LeaderProb}{\ensuremath{\phi}\xspace}
 \newcommand{\Certificate}{\ensuremath{\mathsf{cert}}\xspace}
 \newcommand{\Certificates}{\ensuremath{\mathcal{C}}\xspace}
+\newcommand{\GenesisCertificate}{\ensuremath{\mathsf{cert}_{\mathsf{gen}}}\xspace}
+\newcommand{\GenesisVerificationKey}{\ensuremath{\mathsf{vk}_{\mathsf{gen}}}\xspace}
+\newcommand{\StakeDistributionCertificate}{\ensuremath{\mathsf{cert}_{\mathsf{sd}}}\xspace}
+\newcommand{\StakeDistributionCertificateNew}{\ensuremath{\mathsf{cert}_{\mathsf{sd}}^*}\xspace}
+\newcommand{\StakeDistributionUTxO}{\ensuremath{o_{\mathsf{sd}}}\xspace}
+\newcommand{\TransactionSnapshotCertificate}{\ensuremath{\mathsf{cert}_{\mathsf{ts}}}\xspace}
+\newcommand{\TransactionSnapshotUTxO}{\ensuremath{ts_{\mathsf{sd}}}\xspace}
 \newcommand{\Snapshot}{\ensuremath{\mathsf{snapshot}}\xspace}
 \newcommand{\Snapshots}{\ensuremath{\mathcal{S}}\xspace}
 \newcommand{\TransactionSnapshot}{\ensuremath{\mathsf{TxSnapshot}}\xspace}
@@ -280,12 +294,16 @@
 \newcommand{\CIP}{\textsf{CIP}\xspace}
 \newcommand{\SPO}{\textsf{SPO}\xspace}
 \newcommand{\SPOs}{\textsf{SPOs}\xspace}
-\newcommand{\datum}{\delta}
-\newcommand{\redeemer}{\rho}
-\newcommand{\validator}{\nu}
-\newcommand{\txcontext}{\mathsf{tx}}
-\newcommand{\True}{\texttt{True}}
-\newcommand{\False}{\texttt{False}}
+\newcommand{\datum}{\ensuremath{\delta}\xspace}
+\newcommand{\redeemer}{\ensuremath{\rho}\xspace}
+\newcommand{\validator}{\ensuremath{\nu}\xspace}
+\newcommand{\txcontext}{\ensuremath{\mathsf{tx}}\xspace}
+\newcommand{\True}{\texttt{True}\xspace}
+\newcommand{\False}{\texttt{False}\xspace}
+\newcommand{\SpendValidatorSchema}{\ensuremath{\validator(\textsf{UtxoRef}, \datum, \redeemer, \txcontext) = \True}\xspace}
+\newcommand{\MintValidatorSchema}{\ensuremath{\validator_{\mathsf{mint}}(\textsf{PolicyId}, \redeemer, \txcontext) = \True}\xspace}
+\newcommand{\SpendValidatorNotation}[1]{\ensuremath{#1(\textsf{UtxoRef}, \datum, \redeemer, \txcontext) = \True}}
+\newcommand{\MintValidatorNotation}[1]{\ensuremath{#1(\textsf{PolicyId}, \redeemer, \txcontext) = \True}}
 
 % Resource limits
 \newcommand{\ExUnits}{\texttt{ExUnits}\xspace}

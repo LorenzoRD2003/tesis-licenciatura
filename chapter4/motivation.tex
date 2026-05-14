@@ -30,7 +30,9 @@ Esto es formalizado \cite{Chakravarty2020} como una extensión donde cada \texti
 	\item \textbf{Continuidad del contrato:} los validadores pueden inspeccionar una transacción para asegurar que el script continúa con la lógica de validación prevista.
 \end{itemize}
 
-Una forma compacta de expresar la idea central de validación en \eUTxO (como se presenta en el artículo) es: $\validator(\textsf{valor}, \datum, \redeemer, \txcontext) = \True$ donde $\validator$ es el validador, $\datum$ es el datum, $\redeemer$ es el redeemer, y $\txcontext$ es la transacción que gasta la salida (o un contexto derivado de ella).
+Una forma compacta de expresar la idea central de validación en \eUTxO para \textit{spending validators} (como se presenta en el artículo) es: \SpendValidatorSchema donde $\validator$ es el validador, $\datum$ es el datum, $\redeemer$ es el redeemer, y $\txcontext$ es la transacción que gasta la salida (o un contexto derivado de ella).
+
+En el caso de \textit{minting validators}, la interfaz local cambia porque el script no valida el gasto de un \UTxO concreto sino una política de acuñación. En ese caso, usaremos la notación \MintValidatorSchema donde el parámetro \textsf{policyId} identifica la política que autoriza la operación de \textit{minting}.
 
 Esto es relevante para el diseño de \zkBridge porque típicamente necesita estado persistente en cadena (por ejemplo, el estado de un \LightClient o un commitment del mismo), e invariantes fuertes a través de actualizaciones (por ejemplo, protección contra repetición de transacciones, y correcta secuenciación de transiciones de estado). El modelo \eUTxO proporciona un mecanismo explícito y analizable para ambos, pero el estado debe representarse y actualizarse utilizando \UTxOs que se gastan y generan. Esto implica que no existe un estado global mutable compartido, sino una secuencia explícita de transiciones de estado.
 
