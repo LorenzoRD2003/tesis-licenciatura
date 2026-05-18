@@ -1,0 +1,80 @@
+% !TeX root = ../tesis.tex
+
+\subsection{De la relación \texorpdfstring{\(\NP\)}{NP} a una aritmetización \textit{PLONKish}}
+
+Sea $\EvalDomain = \{\omega^0,\omega^1,\ldots,\omega^{n-1}\} \subseteq \Fq$ un subgrupo multiplicativo de orden $n$, y sea $\VanishingPoly(X) = \prod_{h \in \EvalDomain} (X - h) = X^n - 1 \in \poly{\Fq}$ su \textit{vanishing polynomial}. La aritmetización de \HaloTwo consiste en asociar a cada columna del \textit{layout} un polinomio de grado menor que $n$ interpolado sobre \EvalDomain. Notamos:
+\begin{itemize}[noitemsep]
+	\item $\AdvicePoly{1}(X), \ldots, \AdvicePoly{a}(X)$ a los polinomios de columnas \textit{advice},
+	\item $\FixedPoly{1}(X), \ldots, \FixedPoly{f}(X)$ a los polinomios de columnas \textit{fixed},
+	\item $\InstancePoly{1}(X), \ldots, \InstancePoly{u}(X)$ a los polinomios de columnas \textit{instance}.
+\end{itemize}
+
+Entonces, cada fila $0 \leq r < n$ impone identidades locales de la forma
+$$G_j \left(\AdvicePoly{1}(\omega^r), \ldots, \AdvicePoly{a}(\omega^r), \FixedPoly{1}(\omega^r), \ldots, \FixedPoly{f}(\omega^r), \InstancePoly{1}(\omega^r), \ldots, \InstancePoly{u}(\omega^r)\right) = 0,$$
+donde cada $G_j$ es un polinomio multivariado de bajo grado.
+
+Aplicado al circuito \STM, esto significa que los cuatro chequeos ya introducidos en $\STMRelation(\PublicInputs, \PrivateInputs) = 1$ deben reescribirse como igualdades locales sobre filas del \textit{layout}. En particular:
+\begin{itemize}[noitemsep]
+    \item los chequeos de Merkle Path se traducen a iteraciones de $\Hash$ entre filas consecutivas;
+    \item los chequeos de firma se traducen a restricciones sobre puntos de $\E(\Fq)$, escalares en $\Fr$ y desafíos recomputados;
+    \item la lógica de lotería en $\Fr$ se representa con elementos de $\Fq$;
+    \item la unicidad de índices se traduce a una cadena de desigualdades estrictas entre filas adyacentes.
+\end{itemize}
+
+Todas estas familias de restricciones se agregan luego en una única identidad global. Más precisamente, si notamos \ConstraintNumerator a la combinación aleatorizada de \textit{gates}, condiciones de borde, consistencia con \textit{public inputs}, permutaciones y \textit{lookups}, entonces el \textit{prover} debe exhibir un polinomio $\QuotientPoly \in \poly{\Fq}$ tal que $\ConstraintNumerator(X) = \QuotientPoly(X) \cdot \VanishingPoly(X)$.
+
+Se debe verificar que $\ConstraintNumerator(x) = 0$ para todo $x \in \EvalDomain$. Se utiliza \KZG como \PCS para los polinomios involucrados, de modo que esa identidad se pueda verificar mediante $\Open$ en pocos puntos aleatorios derivados con \FiatShamir.
+
+\subsection{Argumentos de permutación, \textit{lookups} y columnas auxiliares}
+
+\HaloTwo separa dos tipos de consistencia. La primera es la consistencia algebraica local, expresada por las \textit{gates}. La segunda es la consistencia de igualdad entre celdas ubicadas en distintas posiciones del \textit{layout}. Esta última no se impone copiando valores, sino mediante un argumento de permutación. Si dos celdas $c$ y $c'$ deben representar el mismo valor lógico, la configuración del circuito las inserta en una misma clase de equivalencia, y el protocolo prueba algebraicamente que la asignación de $\PrivateInputs$ respeta esa permutación.
+
+Formalmente, si $\sigma$ es la permutación inducida por todas las restricciones de igualdad, el protocolo incorpora un polinomio auxiliar (\textit{grand product polynomial}), que denotaremos por $\PermutationPoly \in \poly{\Fq}$, que certifica que las columnas habilitadas con \texttt{enable\_equality} son compatibles con $\sigma$. Este polinomio no suele escribirse a mano en la descripción de alto nivel del circuito, pero forma parte del costo real del \textit{prover}.
+
+Por otra parte, los \textit{lookups} resuelven el siguiente problema. Sea $T \subseteq \Fq^s$ una tabla fija. Un argumento de \textit{lookup} permite exigir que una tupla de $\Fq^s$ computada por el circuito pertenezca a $T$. La condición impuesta en una fila $r$ puede escribirse como $\LookupExpr(\omega^r) \in T$, donde \LookupExpr representa la tupla de expresiones consultadas. También aquí aparecen polinomios auxiliares adicionales, que podemos resumir informalmente como $\LookupPoly$, encargados de argumentar que el multiconjunto de valores consultados coincide con el multiconjunto codificado por la tabla.
+
+En el circuito \STM, los \textit{lookups} se usan para \textit{range checks}. La comparación de lotería $e_t \le \LotteryTarget_{i_t}$ se interpreta sobre una representación en $\Fq$, y no sobre $\Fr$. Como $\Fq$ no tiene un orden total compatible con $\Fr$, el circuito compara representantes canónicamente elegidos en \([0,q)\). Cada elemento $x \in \Fq$ se descompone como $x = \LowPart{x} + 2^{127}\HighPart{x}$, con $0 \le \LowPart{x} < 2^{127}$, y $0 \le \HighPart{x} < 2^{128}$.
+
+Estas cotas se fuerzan mediante \textit{lookups} sobre tablas de potencias de dos. Una vez validada la descomposición, la comparación entera se reduce a
+$$x < y \iff \left(\HighPart{x} < \HighPart{y} \right) \;\vee\; \left(\HighPart{x} = \HighPart{y} \wedge \LowPart{x} < \LowPart{y}\right).$$
+
+En consecuencia, las ``columnas auxiliares'' de \HaloTwo relevantes para esta sección son de dos tipos:
+\begin{enumerate}[label=\arabic*), noitemsep]
+    \item columnas físicas de tabla, que materializan los valores permitidos para los \textit{lookups};
+    \item polinomios auxiliares del protocolo, en particular \PermutationPoly, \LookupPoly y \QuotientPoly.
+\end{enumerate}
+El costo algebraico del circuito no queda determinado únicamente por las columnas explícitas, sino también por estas entidades adicionales que \HaloTwo introduce para probar consistencia global.
+
+\subsection{Uso de crates de \Midnight}
+
+La descripción anterior corresponde a \HaloTwo/\KZG en abstracto. En \Mithril, sin embargo, la aritmetización concreta no se escribe directamente contra una API mínima de columnas y \textit{gates}, sino a través de las crates \texttt{midnight\_proofs} y \texttt{midnight\_zk\_stdlib}. Este detalle importa matemáticamente porque fija una transformación intermedia
+$$\mathcal{C}_{\mathsf{Mid}}: \STMRelation \to \Circuit_{\mathsf{Halo2/KZG}},$$
+que no es neutra: determina el \textit{backend}, la forma de los chips disponibles, la reutilización de columnas y el grado mínimo del dominio necesario para sintetizar el circuito.
+
+En la implementación, la relación \STM se expresa como un objeto del tipo \texttt{Relation}, y luego se compila mediante $\texttt{MidnightCircuit::from\_relation(\&circuit)}$. Si denotamos por \MidnightSTMCircuit al circuito resultante, entonces su tamaño mínimo de dominio viene dado por un parámetro $\MinDomainK = \texttt{min\_k()}$, de modo que el dominio \EvalDomain efectivamente usado tiene cardinalidad $n = 2^{\MinDomainK}$.
+
+Aún si formulamos $\STMRelation$ sin hacer referencia a columnas concretas, la complejidad real del sistema queda determinada por la compilación que hace \Midnight de esa relación a un \textit{layout} \HaloTwo.
+
+La particularidad más importante de esa compilación es que los distintos gadgets no necesariamente aportan columnas disjuntas. Si denotamos por $\ArithCols, \EccCols, \PoseidonCols, \RangeCols$ a las necesidades de columnas de cada subchip principal, la arquitectura de \Midnight no toma en general la suma
+$$\ArithCols+\EccCols+\PoseidonCols+\RangeCols$$,
+sino un \textit{pool} de columnas común cuyo tamaño $\AdviceCols$ denota la cantidad de columnas \textit{advice} reservadas por la configuración, y cumple
+$$\AdviceCols \approx \max\{\ArithCols, \EccCols, \PoseidonCols, \RangeCols \},$$
+más algunos recursos adicionales de soporte. Esto justifica por qué no es correcto estimar el costo del \textit{prover} sumando ingenuamente columnas ``por gadget''.
+
+\subsection{Grado algebraico del circuito}
+
+Diremos que un circuito de \HaloTwo tiene \emph{grado algebraico} a lo sumo $d$ si toda restricción/\textit{gate} local $G(X_1, \ldots, X_m) \in \Fq[X_1, \ldots, X_m]$ puede escribirse mediante un polinomio multivariado de grado total a lo sumo $d$. \MidnightSTMCircuit tiene grado algebraico $5$.
+
+Esto es así porque la parte dominante del grado viene de \MidnightPoseidonHash. En efecto, la S-box de \MidnightPoseidonHash viene dada por $S(x) = x^5$. Por lo tanto, toda ronda que aplique esa S-box introduce naturalmente términos de quinto grado en las variables de estado del hash. Si denotamos por $\mathbf{s}^{(r)} = (s^{(r)}_1, \ldots, s^{(r)}_t)$ al estado de una ronda, la transición de una ronda completa adopta la forma
+$$\mathbf{s}^{(r+1)} = \mathbf{M} \cdot \left((s^{(r)}_1)^5, \ldots, (s^{(r)}_t)^5 \right) + \mathbf{c}^{(r)},$$
+donde $\mathbf{M}$ es una matriz $MDS$ y $\mathbf{c}^{(r)}$ es un vector de constantes de ronda.
+
+Como consecuencia, $\ConstraintNumerator$ hereda ese grado máximo local, junto con los términos adicionales de permutación y \textit{lookup}. En la práctica, esto obliga a fragmentar \QuotientPoly en varios \textit{chunks} cuando su grado excede el rango soportado por la \SRS. Por eso, ``el circuito \MidnightSTMCircuit es de grado 5'' debe leerse como una propiedad algebraica concreta del sistema de restricciones.
+
+\subsection{Costo estructural del \textit{prover}}
+
+Denotamos por \BaseCols al número de polinomios correspondientes a columnas visibles, y por $\AuxCols = \PermCols + \LookupCols + \QuotCols$ al número de polinomios auxiliares inducidos por permutación, \textit{lookups} y \textit{quotient}. Una cota heurística razonable para el costo del \textit{prover} es
+$$\ProverCost = \BigO\left((\BaseCols + \AuxCols) \, n \log n\right) +  \BigO\left(\CommitCols \cdot \MSM(n)\right),$$
+donde $\CommitCols$ es el número de compromisos \KZG efectivamente producidos. Esta fórmula no es un teorema, pero sí es un resumen razonable del costo: transformaciones tipo \FFT sobre dominios de tamaño $n$, construcción de polinomios auxiliares y \MSM grandes sobre la \SRS para \textit{batch commitments} en \KZG.
+
+El circuito \MidnightSTMCircuit parece estar dominado por aritmética de curva elíptica sobre \Jubjub, así como evaluaciones repetidas de \PoseidonHash.

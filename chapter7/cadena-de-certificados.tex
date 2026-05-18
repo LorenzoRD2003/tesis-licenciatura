@@ -1,0 +1,100 @@
+% !TeX root = ../tesis.tex
+
+Si el protocolo \STM de \Mithril solo produjera una evidencia agregada sobre un mensaje aislado $\ProtocolMsg$, todavía tendríamos un problema fundamental: cómo confiar en la \StakeDistribution con la que fue construida la \AVK que autentica al registro cerrado \AuthReg y con la que se verifica esa evidencia. La respuesta de \Mithril es la cadena de certificados (\CertificateChain), cuyo objetivo es certificar precisamente la evolución autentica de \AuthReg de una época a la siguiente y evitar ataques en los que un \MithrilAggregator deshonesto genere certificados formalmente bien construidos pero anclados en una vision falsa del sistema \cite{MithrilDocsCertChain,MithrilDocsThreatModel}. Para nuestro \zkBridge, la \CertificateChain otorga autenticidad al estado publicado \Onchain. De otro modo, la evidencia agregada de un certificado \TransactionSnapshotCertificate no basta.
+
+\paragraph{Advertencia de alcance.}
+La estructura de la \CertificateChain descrita en esta sección es común a las eras \Pythagoras y \Lagrange: en ambos casos, cada certificado enlaza con uno previo, fija la época actual y compromete la clave y los parámetros de la época siguiente. Lo que cambia entre eras no es la lógica de encadenamiento, sino el tipo criptográfico de la agregación. En \Pythagoras es una \textit{multisignature} basada en \BLS, mientras que en \Lagrange, es un argumento sucinto construido en \HaloTwo sobre firmas Schnorr individuales, su pertenencia a $J^*$ con $|J^*| = k$ respecto de la \AVK y del \ProtocolMsg asociados al certificado.
+
+\subsection{Estructura matemática de un certificado}
+
+Usamos $\GenesisCertificate$ para denotar el certificado génesis (que se verifica con \GenesisVerificationKey) y $\Certificate_{p,n}$ para denotar un certificado no génesis emitido en la época $n$ de \Cardano bajo un \textit{trigger} \(p\). Para distinguir el primer certificado de una época, lo notamos $\FirstCertificate_{n}$. En la semántica oficial de \Mithril, el \textit{trigger} $p$ se combina con la época $n$ para identificar una ronda de certificación \cite{MithrilDocsCertChain}.
+
+Podemos idealizar un certificado de \Mithril como una tupla
+$$\Certificate_{p,n} = \left(\CertHash_{p,n}, \PrevCertHash_{p,n}, n, \CertMetadata_{p,n}, \ProtocolMsg_{p,n}, \CertSignedMessage_{p,n}, \CertSigAVK_n, \CertSignature_{p,n} \right),$$
+donde $\CertHash_{p,n}$ es el hash del certificado (sin contar al mismo $\CertHash_{p,n}$), $\PrevCertHash_{p,n}$ es el hash del certificado predecesor en la \CertificateChain, $\CertMetadata_{p,n}$ resume metadatos de protocolo, $\ProtocolMsg_{p,n}$ es el mensaje de protocolo autenticado por $\Certificate_{p,n}$, $\CertSignedMessage_{p,n}$ es el mensaje firmado derivado de $\ProtocolMsg_{p,n}$, $\CertSigAVK_n$ es la clave de verificación agregada para la época $n$ (excepto si $\Certificate_{p,n} = \GenesisCertificate$), y $\CertSignature_{p,n}$ es la firma de $\Certificate_{p,n}$, que puede ser génesis o no según el caso.
+
+El código computa el hash del certificado como una concatenación hashada de todos sus campos estructurales, de modo que cualquier alteración en el certificado modifica $\CertHash_{p,n}$, y por lo tanto rompe la \CertificateChain. Esquemáticamente,
+$$\CertHash_{p,n} = \Hash\left(\PrevCertHash_{p,n} \concat n \concat H(\CertMetadata_{p,n}) \concat H(\ProtocolMsg_{p,n}) \concat \CertSignedMessage_{p,n} \concat \CertSigAVK_n \concat \CertSignature_{p,n} \right).$$
+
+Los metadatos $\CertMetadata_{p,n}$ incluyen la versión del protocolo, los parámetros $\ProtocolParams_n = (k_n,m_n,\phi_{f,n})_n$ de la época $n$, los tiempos de inicio y sellado, y la lista de participantes que contribuyeron a la agregación \cite{MithrilDocsCertChain}. El mensaje $\ProtocolMsg_{p,n}$ es un diccionario tipado de partes cuyo contenido depende de qué es lo que se está certificando. Entre esas partes aparecen de manera recurrente el número de época actual, la siguiente clave de verificación $\CertSigAVK_{n+1}$, los parámetros de protocolo siguientes $\ProtocolParams_{n+1}$ y el resumen del artefacto propiamente dicho, por ejemplo Merkle Root de transacciones o de \StakeDistribution.
+
+El certificado génesis $\GenesisCertificate$ ocupa un lugar especial. No depende de una agregación previa, sino de una firma bajo la clave pública $\GenesisVerificationKey$. En la práctica, $\GenesisCertificate$ es la raíz de autenticidad de toda la \CertificateChain, porque todo certificado posterior termina trazando su validez desde él \cite{MithrilDocsCertChain}.
+
+\subsection{Diseño matemático de la cadena}
+
+En la semántica implementada por Mithril, la \StakeDistribution asociada a una época $n$ sólo queda estabilizada al cierre de esa época, y los certificados emitidos incorporan $\AVK_{n+1}$ y los parámetros que habilitan su uso en la época $n + 1$ \cite{MithrilDocsCertChain}. Por eso la cadena de certificados debe garantizar que $\AVK_{n+1}$ y $\ProtocolParams_{n+1}$ con los que se verificará la época $n+1$ ya hayan sido firmados en un certificado anterior. En particular, $\FirstCertificate_{n+1}$ debe apoyarse en una certificación válida de la transición desde la época $n$.
+
+Entonces, la \CertificateChain debe garantizar que la información necesaria para usar $\AVK_n$ y $\ProtocolParams_n$ ya haya sido firmada en un certificado anterior. Por lo tanto
+$$\{\AVK_n,\ProtocolParams_n,n\} \subseteq \ProtocolMsg \left(\Pred\left(\FirstCertificate_{n}\right)\right),
+$$
+
+En cambio, para un certificado posterior $\Certificate_{p,n}$ dentro de la misma época, no es necesario reintroducir una nueva \AVK. Basta con que se mantenga la consistencia interna:
+$$
+\CertSigAVK(\Certificate_{p,n}) = \CertSigAVK(\Pred(\Certificate_{p,n})), \qquad \ProtocolParams(\Certificate_{p,n}) = \ProtocolParams(\Pred(\Certificate_{p,n})).
+$$
+Por eso la documentación afirma que, aunque puedan existir muchos certificados en una misma época, no hace falta encadenarlos linealmente: alcanza con preservar una senda válida con al menos un certificado por época y con la transición correcta entre épocas consecutivas \cite{MithrilDocsCertChain}.
+
+\begin{figure}[ht]
+  \centering
+  \begin{tikzpicture}[
+    scale=0.70,
+    transform shape,
+    font=\normalsize,
+    cert/.style={draw, rounded corners=4pt, thick, fill=blue!8, align=center, minimum width=3.0cm, minimum height=1.0cm},
+    gencert/.style={draw, rounded corners=4pt, thick, fill=orange!14, align=center, minimum width=3.0cm, minimum height=1.0cm},
+    note/.style={font=\normalsize, align=center},
+    arr/.style={thick}
+  ]
+    \node[gencert] (gen) at (0,0) {\(\GenesisCertificate\)};
+    \node[cert] (f1) at (4.2,0) {\(\FirstCertificate_{1}\)};
+    \node[cert] (c11) at (8.4,0.9) {\(\Certificate_{p_1,1}\)};
+    \node[cert] (c12) at (8.4,-0.9) {\(\Certificate_{p_2,1}\)};
+    \node[cert] (f2) at (12.6,0) {\(\FirstCertificate_{2}\)};
+    \node[cert] (c21) at (17.0,0.9) {\(\Certificate_{q_1,2}\)};
+    \node[cert] (c22) at (17.0,-0.9) {\(\Certificate_{q_2,2}\)};
+
+    \draw[arr] (gen) -- (f1);
+    \draw[arr] (f1) -- (f2);
+    \draw[arr] (f1) -- (c11);
+    \draw[arr] (f1) -- (c12);
+    \draw[arr] (f2) -- (c21);
+    \draw[arr] (f2) -- (c22);
+
+    \node[note] at (0,1) {\(\GenesisCertificate\) firma\\\(\AVK_1,\ProtocolParams_1,\Epoch=1\)};
+    \node[note] at (4.2,1) {\(\FirstCertificate_{1}\) habilita\\\(\AVK_2,\ProtocolParams_2\)};
+    \node[note] at (12.6,1) {\(\FirstCertificate_{2}\) habilita\\\(\AVK_3,\ProtocolParams_3\)};
+    \node[note] at (8.4,-2.1) {certificados distintos\\misma época, mismo ancestro};
+    \node[note] at (17.0,-2.1) {la \CertificateChain sigue por\\los \FirstCertificate};
+  \end{tikzpicture}
+  \caption{Estructura conceptual de una \CertificateChain por epocas.}
+  \label{fig:mithril-certificate-chain}
+\end{figure}
+
+\subsection{Verificación de la \CertificateChain}
+
+La validez de la $\CertificateChain$ hasta un certificado $\Certificate_{p,n}$ se apoya en la validez de sí mismo así como todos sus predecesores.
+$$\ChainVerify(\Certificate_{p,n}) = \CertVerify(\Certificate_{p,n}) \wedge \bigwedge_{i=1} ^{n} \FirstCertificate_{i} \wedge \CertVerify(\GenesisCertificate),$$
+donde en particular observamos que existe al menos un certificado válido por época desde $n$ hasta el génesis \cite{MithrilDocsCertChain}. Por recursividad, tenemos que
+$$\ChainVerify(\Certificate_{p,n}) = \CertVerify(\Certificate_{p,n}) \wedge \ChainVerify(\Pred(\Certificate_{p,n}))$$
+
+La verificación de un certificado individual se descompone en capas. Para el caso génesis, $\CertVerify(\GenesisCertificate)$ requiere
+$$\Verify_{\mathsf{gen}}(\GenesisVerificationKey,\GenesisCertificate.\CertSignedMessage,\CertSignature_{\mathsf{gen}})=1,$$
+así como los chequeos estándar de hash del certificado y de su \ProtocolMsg. Además, el número de época cargado por el certificado debe coincidir con la época declarada dentro de su \ProtocolMsg.
+
+Para un certificado no génesis \(\Certificate_{p,n}\), la condición se vuelve
+$$\CertVerify(\Certificate_{p,n}) = \HashOk \wedge \SigOk \wedge \EpochOk \wedge \PrevHashOk \wedge \AVKChainOk \wedge \PPChainOk.$$
+En esta descomposición:
+
+\begin{itemize}[noitemsep]
+	\item $\HashOk$ significa que el `hash` del certificado coincide con la recomputación de sus campos.
+	\item $\SigOk$ significa que la agregación del certificado es válida bajo la \AVK y los $\ProtocolParams$ con los que ese certificado declara haber sido firmado. En \Pythagoras, esto coincide con verificar la ruta \texttt{Concatenation}; en \Lagrange, debe leerse respecto de la ruta \texttt{Snark} y, cuando corresponda, de la \AVK SNARK adicional enlazada por la cadena.
+	\item $\EpochOk$ significa que la época declarada en el certificado coincide con la época dentro del mensaje firmado.
+	\item $\PrevHashOk$ significa que el $\PrevCertHash$ del certificado coincide con el hash de su predecesor.
+	\item $\AVKChainOk$ y $\PPChainOk$ se diferencian según el tipo de certificado: si $\Certificate_{p,n}$ es el primer certificado de su época, entonces su predecesor debe haber firmado la \AVK y los parámetros de la nueva época:
+	$$\AVK_n \in \ProtocolMsg(\Pred(\FirstCertificate_{n})), \qquad \ProtocolParams_n \in \ProtocolMsg(\Pred(\FirstCertificate_{n})),$$
+	mientras que en caso contrario se debe preservar la misma $\AVK$ y los mismos $\ProtocolParams$ de su predecesor.
+\end{itemize}
+
+\subsection{Relación con \texorpdfstring{\StakeDistTx}{tx\_sd}}
+
+La formulación anterior coincide directamente con el flujo descrito para nuestro $\zkBridge$ en el capítulo anterior. En la fase de \textit{bootstrap}, \StakeDistTx crea el \UTxO canonico de \StakeDistribution con un \GenesisCertificate. En las actualizaciones recurrentes, la misma transaccion consume el \UTxO que contiene el certificado padre y produce otro con el mismo NFT y un certificado nuevo, imponiendo invariantes que garantizan la \CertificateChain de \Mithril.

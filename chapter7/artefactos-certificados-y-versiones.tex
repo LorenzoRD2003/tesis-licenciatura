@@ -1,0 +1,116 @@
+% !TeX root = ../tesis.tex
+
+No todos los artefactos certificados por \Mithril cumplen el mismo rol dentro de esta tesis. Para el \zkBridge, la distinción relevante no pasa por volver a describir la mecánica \STM ni la \CertificateChain, ya desarrolladas en 7.2 y 7.3, sino por identificar qué certificados alimentan estado persistente y cuáles sólo acompañan verificaciones puntuales. En el prototipo desarrollado, esta separación aparece de forma explícita en los tipos firmados \MithrilStakeDistribution y \CardanoTransactions.
+
+\begin{itemize}[noitemsep]
+	\item Una entidad firmada \MithrilStakeDistribution certifica un comité autenticado de \Mithril $P'_n$ y parámetros $\ProtocolParams_n$ de una época n. Colabora en sostener la \CertificateChain y por lo tanto el estado persistente de la capa de actualización del \zkBridge.
+	\item Una entidad firmada \CardanoTransactions certifica una Merkle Root obtenida de conjunto de transacciones de \Cardano. Colabora en respaldar argumentos de pertenencia de \LockTx en \ChainA para autorizar \MintTx en \ChainB.
+\end{itemize}
+
+Desde el punto de vista del \zkBridge, la diferencia central entre \MithrilStakeDistribution y \CardanoTransactions es operacional. El primero fija el estado autenticado que la capa de actualización mantiene en \ChainB; mientas que el segundo respalda una prueba efímera de pertenencia sobre un compromiso global de transacciones. No conviene persistir esta segunda evidencia en el datum cuando lo que realmente debe sobrevivir entre transacciones es el certificado que autentica el comité y los parámetros con los que luego se valida un \TransactionSnapshotCertificate.
+
+La documentación oficial refuerza la asimetría del lado transaccional. Un certificado de \CardanoTransactions está diseñado para un conjunto masivo de transacciones de \Cardano y por eso firma un Merkle Root en lugar de transacciones aisladas \cite{MithrilDocsTransactions}.
+
+\subsection{\Pythagoras y el camino \textit{legacy}}
+
+La implementación actual del \zkBridge consume el único camino que hoy aparece integrado de punta a punta en el flujo real del \MithrilAggregator: \Pythagoras con agregación de tipo \texttt{Concatenation} \cite{MithrilDocsAggregator}. El operador del \zkBridge trabaja contra esa interfaz al ejecutar \texttt{tx prove} sobre respuestas reales de la API del \MithrilAggregator.
+
+En esta ruta \LegacyHashScheme, el mensaje efectivamente autenticado por el certificado es una Merkle Root $\TxSetRoot \in \Strings{256}$, la cual es la del \ProtocolMsg de las secciones anteriores \cite{MithrilSTMRepo}. El \TransactionSnapshot expuesto por la API del \MithrilAggregator agrega además un número de bloque certificado $\SnapshotBlockNumber$ y un identificador derivado
+$$\TransactionSnapshot = \left(\TransactionSnapshotHash, \TxSetRoot, \SnapshotBlockNumber\right), \qquad \TransactionSnapshotHash = \SHATwoFiveSix \left(\mathrm{hex}(\TxSetRoot) \concat \mathrm{be64}(\SnapshotBlockNumber) \right),$$
+pero el objeto firmado por \Mithril sigue siendo $\TxSetRoot$.
+
+Dado $u \in \N$, sea $R_u = [15u,15(u+1)) \subset \N$ el \textit{block range} canónico determinado por la fórmula
+$$\mathsf{start}(b) = \left\lfloor \frac{b}{15} \right\rfloor \cdot 15.$$
+Para un número de bloque $\SnapshotBlockNumber$, definimos el conjunto de rangos completos
+$$I(\SnapshotBlockNumber) = \left\{u \in \mathbb{N} : 15(u + 1) - 1 \leq \SnapshotBlockNumber \right\}$$
+y, para cada $u \in I(\SnapshotBlockNumber)$, la secuencia ordenada de transacciones $\TxRangeSet{u} = (\tx_{u,1},\ldots,\tx_{u,m_u})$, donde el orden está dado por número de bloque y luego por hash de la transacción. 
+
+Si $\lambda(\tx)$ denota la codificación en bytes del hash hexadecimal de $\tx$, entonces la raíz local del rango $R_u$ es $\TxRangeRoot{u}$ del Merkle Tree $\mathcal{T}_{\mathcal{L}, \BLAKETwoSTwoFiveSix}$ con $L = \{\lambda(\tx_{u,i})\}_{1\leq i\leq m_u}$.
+
+El segundo nivel vuelve a comprometer estas raíces por rango. Si
+$$\RangeKey(R_u) = \mathrm{ascii} \left(\texttt{15u - 15(u + 1)}\right)$$
+denota la clave serializada del rango, entonces la \textit{hoja maestra} asociada a $R_u$ es $\TxRangeLeaf{u} = \BLAKETwoSTwoFiveSix \left(\RangeKey(R_u)\concat \TxRangeRoot{u} \right)$.
+
+Ordenando los rangos por su cota inferior, la Merkle Root firmada por el certificado es $\TxSetRoot$ del árbol $\mathcal{T}_{\mathcal{L}, \BLAKETwoSTwoFiveSix}$ para $\mathcal{L} = \{\TxRangeLeaf{u_i}\}_{1\leq i \leq s}$, con $u_1 < \cdots < u_s$, $u_i \in I(\SnapshotBlockNumber)$ donde solamente intervienen los rangos no vacíos. Ésta es la formalización precisa de la intuición de ``Merkle forest'' usada en la documentación oficial: cada Merkle Tree de rango comprime las transacciones de $15$ bloques contiguos y el Merkle Tree maestro comprime las raíces de esos subárboles \cite{MithrilDocsTransactions,MithrilSTMRepo}.
+
+La prueba que devuelve el endpoint de transacciones refleja exactamente esta estructura. Para un subconjunto $Q \subseteq \bigcup_{u \in I(\SnapshotBlockNumber)} \TxRangeSet{u}$, tenemos
+$$\MerkleProof_Q = \left(\MasterProof, \left\{(u, \RangeProof)\right\}_{u \in \CertifiedRangeIndexSet} \right), \qquad \CertifiedRangeIndexSet = \{u: Q \cap \TxRangeSet{u} \neq \emptyset\},$$
+
+\begin{figure}[ht]
+  \centering
+  \begin{tikzpicture}[
+    scale=0.92,
+    transform shape,
+    every node/.style={font=\small, align=center},
+    active/.style={draw, rounded corners=4pt, thick, fill=blue!10, minimum width=1.2cm, minimum height=0.75cm},
+    sibling/.style={draw, rounded corners=4pt, dashed, fill=gray!10, minimum width=1.2cm, minimum height=0.72cm},
+    boxrange/.style={draw, rounded corners=6pt, dashed, thick, orange!80!black},
+    boxmaster/.style={draw, rounded corners=6pt, dashed, thick, teal!70!black},
+    arr/.style={thick},
+    note/.style={font=\footnotesize\itshape}
+  ]
+    \node[active] (root) at (0,0) {\(\TxSetRoot\)};
+
+    \node[active] (masterleft) at (-3.0,-1.7) {\(\mathsf{m}_L\)};
+    \node[sibling] (masterright) at (3.0,-1.7) {\(\mathsf{m}_R\)};
+
+    \node[sibling] (masterleafprev) at (-5,-3.5) {\(\TxRangeLeaf{u-1}\)};
+    \node[active] (masterleaf) at (-1,-3.5) {\(\TxRangeLeaf{u}\)};
+    \node[sibling] (masterleafnext) at (1,-3.5) {\(\TxRangeLeaf{u+1}\)};
+    \node[sibling] (mastersib) at (5,-3.5) {otras hojas\\maestras};
+
+    \node[active] (rangeroot) at (-1,-5.3) {\(\TxRangeRoot{u}\)};
+    \node[sibling] (rangekey) at (2,-5.3) {\(\RangeKey(R_u)\)};
+
+    \node[active] (rangeleft) at (-4,-7.1) {\(\mathsf{q}_L\)};
+    \node[sibling] (rangeright) at (2,-7.1) {\(\mathsf{q}_R\)};
+
+    \node[sibling] (txleafprev) at (-5.5,-8.9) {\(\lambda(\tx_{u,j-1})\)};
+    \node[active] (txleaf) at (-2.5,-8.9) {\(\lambda(\tx_{u,j})\)};
+    \node[sibling] (txleafnext) at (0.5,-8.9) {\(\lambda(\tx_{u,j+1})\)};
+    \node[sibling] (txsib) at (3.5,-8.9) {otras\\transacciones};
+
+    \draw[arr] (masterleft) -- (root);
+    \draw[arr] (masterright) -- (root);
+    \draw[arr] (masterleafprev) -- node[midway, fill=white, inner sep=1pt] {\(\cdots\)} (masterleft);
+    \draw[arr] (masterleaf) -- node[midway, fill=white, inner sep=1pt] {\(\cdots\)} (masterleft);
+    \draw[arr] (masterleafnext) -- node[midway, fill=white, inner sep=1pt] {\(\cdots\)} (masterright);
+    \draw[arr] (mastersib) -- node[midway, fill=white, inner sep=1pt] {\(\cdots\)} (masterright);
+    \draw[arr] (rangeroot) -- (masterleaf);
+    \draw[arr] (rangekey) -- (masterleaf);
+    \draw[arr] (rangeleft) -- (rangeroot);
+    \draw[arr] (rangeright) -- (rangeroot);
+    \draw[arr] (txleafprev) -- node[midway, fill=white, inner sep=1pt] {\(\cdots\)} (rangeleft);
+    \draw[arr] (txleaf) -- node[midway, fill=white, inner sep=1pt] {\(\cdots\)} (rangeleft);
+    \draw[arr] (txleafnext) -- node[midway, fill=white, inner sep=1pt] {\(\cdots\)} (rangeright);
+    \draw[arr] (txsib) -- node[midway, fill=white, inner sep=1pt] {\(\cdots\)} (rangeright);
+
+    \draw[boxrange] (-7.0,-9.6) rectangle (7,-4.75);
+    \node[note, text=orange!80!black] at (6,-5.15) {\(\RangeProof\)};
+
+    \draw[boxmaster] (-7.0,-4.15) rectangle (7.0,0.7);
+    \node[note, text=teal!70!black] at (6, 0.3) {\(\MasterProof\)};
+  \end{tikzpicture}
+  \caption{Estructura recursiva de una \MasterProof en \CardanoTransactions \textit{legacy} (simplificada)}
+  \label{fig:mithril-recursive-merkle-proofs}
+\end{figure}
+
+donde cada \RangeProof es una Merkle Proof en el árbol de $R_u$, mientras que $\MasterProof$ es una Merkle Proof de las hojas $\TxRangeLeaf{u}$ en el Merkle Tree maestro con raíz $\TxSetRoot$. En la implementación, este objeto aparece como \texttt{CardanoTransactionsSetProof}, cuyo campo \texttt{transactions\_proof} es un \texttt{MKMapProof<BlockRange>} que primero verifica las Merkle Proofs por rango, luego la Merkle Proof maestra y finalmente la pertenencia de cada hash al conjunto certificado \cite{MithrilSTMRepo}. En consecuencia,
+$$\Verify_{\mathsf{tx-set}}(Q, \MerkleProof_Q, \TxSetRoot) = 1$$
+si y sólo si todas las ramas locales y la rama maestra llegan a la misma raíz $\TxSetRoot$. Ésta es la identidad que debe ser verificada por el \zkBridge, en este caso de forma \Offchain con un circuito aritmético, previo a verificar el argumento sucinto de forma \Onchain.
+
+\subsection{\Lagrange como transición}
+
+\Lagrange no cambia el rol lógico del certificado dentro del \zkBridge. Lo que sí cambia es la representación matemática del mensaje firmado y de la evidencia que luego debe verificar el \zkBridge. El propio código de \Mithril deja visibles esas modificaciones aunque el \MithrilAggregator productivo todavía opere sobre el carril \Pythagoras. Pero como el \zkBridge está diseñado sobre \Lagrange, en el Capítulo 8 también debemos hacer un circuito que esté listo y funcione para cuando el \MithrilAggregator haga el cambio de era.
+
+\paragraph{El mensaje firmado deja de ser sólo un hash \LegacyHashScheme.}
+% TODO: mejorar esto
+En \Pythagoras, el certificado termina firmando el valor $ \LegacyDigest = \ProtocolMsg.\texttt{compute\_hash()}$ con esquema \LegacyHashScheme, es decir, un hash calculado sobre el diccionario dinámico de partes del mensaje. En la ruta \Lagrange, en cambio, \texttt{ProtocolMessage} pasa al esquema \RigidHashScheme y el repositorio ya fija una preimagen rígida, de longitud y segmentación controladas, de la forma:
+$$\RigidDigest = \SHATwoFiveSix \left(\texttt{digest} \concat d \concat \texttt{next\_aggregate\_verification\_key} \concat a \concat \texttt{next\_protocol\_parameters} \concat p \concat \texttt{current\_epoch} \concat e \right),$$
+donde: $d = \SHATwoFiveSix(\DynamicMsgParts)$ y \(\DynamicMsgParts\) es la proyección del mensaje que conserva las partes dinámicas (entre ellas, para \CardanoTransactions, la raíz del \Snapshot) pero excluye los segmentos rígidos reinyectados por separado. Matemáticamente, el cambio central es que el mensaje firmado pasa a ser una palabra estructurada sobre ranuras fijas, pensada para ser consumida por un \SNARK \cite{MithrilSTMRepo}.
+
+\paragraph{El conjunto de transacciones deja de representarse como un árbol de dos niveles.}
+% TODO: mejorar esto
+El circuito experimental \texttt{mithril\_lagrange\_tx\_membership\_experimental}\allowbreak\texttt{.circom} anticipa otra geometría. Todas las transacciones pasan a organizarse en un Merkle Tree plano, sin partición por rango de bloques, sin $\kappa(R_u)$, sin hojas maestras y sin recursión. Si enumeramos las transacciones certificadas como $\mathcal{T} = (\tx_0,\tx_1,\ldots,\tx_{N-1})$, la representación sugerida por ese circuito puede verse como la raíz $\LagrangeTxSetRoot$ del Merkle Tree $\mathcal{T}_{\mathcal{L}, \MidnightPoseidonHash}$, donde $L = \{\MidnightPoseidonHash(\lambda(\tx_i))\}_{0 \leq i < N}$ y $\MidnightPoseidonHash$ representa la variante \textit{Midnight Poseidon} planeada por \Mithril para el camino \FutureSnark. En el experimento actual esa función todavía está \textit{mockeada} con \texttt{Poseidon255}, por lo que la igualdad anterior debe leerse como el objetivo matemático, no como el resultado final implementado en el \zkBridge.
+
+El README del circuito aclara, sin embargo, que este camino todavía no está conectado al operador ni es compatible con \texttt{tx prove}, precisamente porque el formato del \textit{witness} todavía no coincide con la forma de prueba que entrega el \MithrilAggregator actual. Por eso, en el Capítulo 8 aparecerán dos circuitos: uno plenamente alineado con el camino \Pythagoras hoy soportado por el servicio, y otro de carácter experimental que adelanta cómo debería verse la ruta \Lagrange cuando esa interfaz deje de ser sólo inferible desde el código y pase a estar efectivamente desplegada.

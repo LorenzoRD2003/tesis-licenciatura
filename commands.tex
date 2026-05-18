@@ -33,6 +33,8 @@
 % Curvas usadas frecuentemente
 \newcommand{\BN}{\texttt{BN254}\xspace}
 \newcommand{\BLS}{\texttt{BLS12-381}\xspace}
+\newcommand{\Jubjub}{\texttt{Jubjub}\xspace}
+\newcommand{\BabyJubjub}{\texttt{BabyJubjub}\xspace}
 
 % Curvas Elipticas
 \newcommand{\E}{\mathcal{E}}
@@ -95,6 +97,7 @@
 \newcommand{\SHAOne}{\texttt{SHA-1}\xspace}
 \newcommand{\SHATwoFiveSix}{\texttt{SHA-256}\xspace}
 \newcommand{\BLAKETwo}{\texttt{BLAKE2}\xspace}
+\newcommand{\BLAKETwoSTwoFiveSix}{\texttt{BLAKE2S-256}\xspace}
 \newcommand{\BLAKEThree}{\texttt{BLAKE3}\xspace}
 \newcommand{\RIPEMD}{\texttt{RIPEMD-160}\xspace}
 \newcommand{\PoseidonHash}{\texttt{Poseidon}\xspace}
@@ -137,7 +140,7 @@
 \newcommand{\zkSTARK}{\textsf{zk\hbox{-}STARK}\xspace}
 \newcommand{\ProofSystem}{\ensuremath{\Pi}\xspace}
 \newcommand{\CRS}{\mathsf{crs}}
-\newcommand{\SRS}{\textsf{SRS}}
+\newcommand{\SRS}{\textsf{SRS}\xspace}
 \newcommand{\securityparam}{\lambda}
 \newcommand{\negl}{\mathrm{negl}}
 \newcommand{\RecursiveProof}{\ensuremath{\pi_{\mathsf{rec}}}\xspace}
@@ -172,6 +175,33 @@
 % Circuitos Aritmeticos
 \newcommand{\Circuit}{C}
 \newcommand{\Constraint}{\mathcal{C}}
+\newcommand{\EvalDomainSymbol}{\mathcal{H}}
+\newcommand{\EvalDomain}{\ensuremath{\EvalDomainSymbol}\xspace}
+\newcommand{\VanishingPoly}{\ensuremath{Z_{\EvalDomainSymbol}}\xspace}
+\newcommand{\AdvicePoly}[1]{\ensuremath{A_{#1}}}
+\newcommand{\FixedPoly}[1]{\ensuremath{F_{#1}}}
+\newcommand{\InstancePoly}[1]{\ensuremath{I_{#1}}}
+\newcommand{\ConstraintNumerator}{\ensuremath{N}\xspace}
+\newcommand{\QuotientPoly}{\ensuremath{Q}\xspace}
+\newcommand{\PermutationPoly}{\ensuremath{Z_{\mathsf{perm}}}\xspace}
+\newcommand{\LookupPoly}{\ensuremath{Z_{\mathsf{lookup}}}\xspace}
+\newcommand{\LookupExpr}{\ensuremath{L}\xspace}
+\newcommand{\LowPart}[1]{\ensuremath{{#1}_{\mathrm{lo}}}}
+\newcommand{\HighPart}[1]{\ensuremath{{#1}_{\mathrm{hi}}}}
+\newcommand{\MidnightSTMCircuit}{\ensuremath{\Circuit_{\mathsf{STM}}^{\mathsf{Mid}}}\xspace}
+\newcommand{\MinDomainK}{\ensuremath{k_{\min}}\xspace}
+\newcommand{\ArithCols}{\ensuremath{c_{\mathsf{arith}}}\xspace}
+\newcommand{\EccCols}{\ensuremath{c_{\mathsf{ecc}}}\xspace}
+\newcommand{\PoseidonCols}{\ensuremath{c_{\mathsf{poseidon}}}\xspace}
+\newcommand{\RangeCols}{\ensuremath{c_{\mathsf{range}}}\xspace}
+\newcommand{\AdviceCols}{\ensuremath{c_{\mathsf{adv}}}\xspace}
+\newcommand{\BaseCols}{\ensuremath{c_{\mathsf{base}}}\xspace}
+\newcommand{\AuxCols}{\ensuremath{c_{\mathsf{aux}}}\xspace}
+\newcommand{\PermCols}{\ensuremath{c_{\mathsf{perm}}}\xspace}
+\newcommand{\LookupCols}{\ensuremath{c_{\mathsf{lookup}}}\xspace}
+\newcommand{\QuotCols}{\ensuremath{c_{\mathsf{quot}}}\xspace}
+\newcommand{\CommitCols}{\ensuremath{c_{\mathsf{commit}}}\xspace}
+\newcommand{\ProverCost}{\ensuremath{T_{\mathsf{prover}}}\xspace}
 
 % Gates booleanas
 \newcommand{\AND}{\mathrm{AND}}
@@ -214,11 +244,13 @@
 \newcommand{\LightClient}{\textit{light client}}
 \newcommand{\LightClients}{\textit{light clients}}
 \newcommand{\LightClientProtocol}{\textit{light client protocol}}
+\newcommand{\HaloTwo}{\textsf{Halo2}\xspace}
 
 % Bridges
 \newcommand{\Bridge}{\textsf{Bridge}\xspace}
 \newcommand{\Bridges}{\textsf{Bridges}\xspace}
 \newcommand{\zkBridge}{\textsf{zkBridge}\xspace}
+\newcommand{\STM}{\textsf{STM}\xspace}
 \newcommand{\Header}{\ensuremath{h}\xspace}
 \newcommand{\BlockHeader}{\ensuremath{\mathsf{hdr}}\xspace}
 \newcommand{\Block}{\ensuremath{B}\xspace}
@@ -229,8 +261,8 @@
 % Blockchains
 \newcommand{\Bitcoin}{\textsc{Bitcoin}\xspace}
 \newcommand{\Ethereum}{\textsc{Ethereum}\xspace}
-\newcommand{\ChainA}{\mathcal{A}}
-\newcommand{\ChainB}{\mathcal{B}}
+\newcommand{\ChainA}{\ensuremath{\mathcal{A}}\xspace}
+\newcommand{\ChainB}{\ensuremath{\mathcal{B}}\xspace}
 \newcommand{\event}{e}
 \newcommand{\state}{s}
 \newcommand{\tx}{\ensuremath{\mathsf{tx}}\xspace}
@@ -272,14 +304,82 @@
 \newcommand{\Peras}{\textsc{Ouroboros Peras}\xspace}
 \newcommand{\Leios}{\textsc{Ouroboros Leios}\xspace}
 \newcommand{\Mithril}{\textsc{Mithril}\xspace}
+\newcommand{\Midnight}{\textsc{Midnight}\xspace}
+\newcommand{\Pythagoras}{\texttt{Pythagoras}\xspace}
+\newcommand{\Lagrange}{\texttt{Lagrange}\xspace}
+\newcommand{\FutureSnark}{\texttt{future\_snark}\xspace}
+\newcommand{\LegacyHashScheme}{\texttt{legacy}\xspace}
+\newcommand{\RigidHashScheme}{\texttt{rigid}\xspace}
+\newcommand{\MithrilStakeDistribution}{\texttt{MithrilStake}\allowbreak\texttt{Distribution}\xspace}
+\newcommand{\CardanoStakeDistribution}{\texttt{CardanoStake}\allowbreak\texttt{Distribution}\xspace}
+\newcommand{\CardanoTransactions}{\texttt{CardanoTransactions}\xspace}
+\newcommand{\MithrilStakeDistributionType}{\MithrilStakeDistribution}
+\newcommand{\CardanoStakeDistributionType}{\CardanoStakeDistribution}
+\newcommand{\CardanoTransactionsType}{\CardanoTransactions}
+\newcommand{\MithrilAggregator}{\textit{aggregator}\xspace}
 \newcommand{\Epoch}{\ensuremath{\mathsf{epoch}}\xspace}
 \newcommand{\Slot}{\ensuremath{\mathsf{slot}}\xspace}
 \newcommand{\Stake}{\ensuremath{\sigma}\xspace}
 \newcommand{\StakeDistribution}{\ensuremath{\mathsf{StakeDist}}\xspace}
+\newcommand{\AVK}{\ensuremath{\mathsf{AVK}}\xspace}
+\newcommand{\SnarkAVK}{\ensuremath{\AVK}\xspace}
+\newcommand{\SnarkRoot}{\ensuremath{\MerkleRoot{\MerkleTree{R}}}\xspace}
+\newcommand{\ProtocolMsg}{\ensuremath{\mathsf{msg}}\xspace}
+\newcommand{\RigidHash}{\ensuremath{\Hash}\xspace}
+\newcommand{\RigidDigest}{\ensuremath{\mu}\xspace}
+\newcommand{\ClosedReg}{\ensuremath{\mathsf{Reg}^{\mathsf{closed}}}\xspace}
+\newcommand{\AuthReg}{\ensuremath{\mathsf{Reg}^{\star}}\xspace}
+\newcommand{\SchnorrVK}{\ensuremath{\mathsf{vk}^{\mathsf{sch}}}\xspace}
+\newcommand{\SchnorrSK}{\ensuremath{\mathsf{sk}^{\mathsf{sch}}}\xspace}
+\newcommand{\LotteryTarget}{\ensuremath{\tau}\xspace}
+\newcommand{\LotteryIndexSet}{\ensuremath{J}\xspace}
+\newcommand{\CandidateIndexSet}{\ensuremath{J_{\mathsf{cand}}}\xspace}
+\newcommand{\SelectedIndexSet}{\ensuremath{J^{\star}}\xspace}
+\newcommand{\WonIndexSet}{\ensuremath{I}\xspace}
+\newcommand{\SnarkSeed}{\ensuremath{\mathsf{seed}}\xspace}
+\newcommand{\SnarkLeaf}[1]{\ensuremath{L_{#1}}}
+\newcommand{\SnarkLeafDigest}{\ensuremath{\Hash}\xspace}
+\newcommand{\SnarkWitness}{\ensuremath{w}\xspace}
+\newcommand{\SnarkAuthReg}{\ensuremath{\AuthReg_{\mathsf{snark}}}\xspace}
+\newcommand{\SnarkSignatureSet}{\ensuremath{\Sigma}\xspace}
+\newcommand{\SnarkValidSignatureSet}{\ensuremath{\Sigma_{\mathsf{val}}}\xspace}
+\newcommand{\SnarkSelectionMap}{\ensuremath{\widehat{\Sigma}}\xspace}
+\newcommand{\SchnorrSignature}{\ensuremath{\sigma^{\mathsf{sch}}}\xspace}
+\newcommand{\LeafHashOp}{\ensuremath{H_{\mathsf{leaf}}}\xspace}
+\newcommand{\LotteryPrefix}{\ensuremath{\lambda}\xspace}
+\newcommand{\LotteryWin}[3]{\ensuremath{\mathsf{Win}(#1,#2,#3)}}
+\newcommand{\STMRelation}{\ensuremath{\Relation_{\mathsf{STM\mbox{-}H2}}}\xspace}
+\newcommand{\STMLanguage}{\ensuremath{\Language_{\mathsf{STM\mbox{-}H2}}}\xspace}
+\newcommand{\UniqueSchnorrSignature}{\texttt{UniqueSchnorrSignature}\xspace}
+\newcommand{\StandardSchnorrSignature}{\texttt{StandardSchnorrSignature}\xspace}
+\newcommand{\CommitmentPoint}{\texttt{commitment\_point}\xspace}
+\newcommand{\ProtocolMessageComputeHash}{\texttt{ProtocolMessage::compute\_hash()}\xspace}
+\newcommand{\LotteryEval}{\texttt{LotteryEval}\xspace}
+\newcommand{\LotteryLost}{\texttt{LotteryLost}\xspace}
+\newcommand{\SigChallengeTag}{\ensuremath{\tau_{\mathsf{sig}}}\xspace}
+\newcommand{\LotteryTag}{\ensuremath{\tau_{\mathsf{lot}}}\xspace}
+\newcommand{\PoP}{\textit{PoP}\xspace}
 \newcommand{\ActiveSlotCoeff}{\ensuremath{f}\xspace}
 \newcommand{\LeaderProb}{\ensuremath{\phi}\xspace}
 \newcommand{\Certificate}{\ensuremath{\mathsf{cert}}\xspace}
 \newcommand{\Certificates}{\ensuremath{\mathcal{C}}\xspace}
+\newcommand{\FirstCertificate}{\ensuremath{\Certificate^{\mathsf{first}}}\xspace}
+\newcommand{\CertHash}{\ensuremath{h}\xspace}
+\newcommand{\PrevCertHash}{\ensuremath{h^{-}}\xspace}
+\newcommand{\CertMetadata}{\ensuremath{\mathsf{meta}}\xspace}
+\newcommand{\CertSignedMessage}{\ensuremath{\mathsf{sm}}\xspace}
+\newcommand{\CertSignature}{\ensuremath{\sigma}\xspace}
+\newcommand{\CertSigAVK}{\ensuremath{\AVK}\xspace}
+\newcommand{\ProtocolParams}{\ensuremath{\mathsf{PP}}\xspace}
+\newcommand{\Pred}{\ensuremath{\mathsf{pred}}\xspace}
+\newcommand{\ChainVerify}{\ensuremath{\mathrm{ChainVerify}}\xspace}
+\newcommand{\CertVerify}{\ensuremath{\mathrm{CertVerify}}\xspace}
+\newcommand{\HashOk}{\ensuremath{\mathrm{HashOk}}\xspace}
+\newcommand{\SigOk}{\ensuremath{\mathrm{SigOk}}\xspace}
+\newcommand{\EpochOk}{\ensuremath{\mathrm{EpochOk}}\xspace}
+\newcommand{\PrevHashOk}{\ensuremath{\mathrm{PrevHashOk}}\xspace}
+\newcommand{\AVKChainOk}{\ensuremath{\mathrm{AVKChainOk}}\xspace}
+\newcommand{\PPChainOk}{\ensuremath{\mathrm{PPChainOk}}\xspace}
 \newcommand{\GenesisCertificate}{\ensuremath{\mathsf{cert}_{\mathsf{gen}}}\xspace}
 \newcommand{\GenesisVerificationKey}{\ensuremath{\mathsf{vk}_{\mathsf{gen}}}\xspace}
 \newcommand{\StakeDistributionCertificate}{\ensuremath{\mathsf{cert}_{\mathsf{sd}}}\xspace}
@@ -290,7 +390,23 @@
 \newcommand{\Snapshot}{\ensuremath{\mathsf{snapshot}}\xspace}
 \newcommand{\Snapshots}{\ensuremath{\mathcal{S}}\xspace}
 \newcommand{\TransactionSnapshot}{\ensuremath{\mathsf{TxSnapshot}}\xspace}
+\newcommand{\TransactionSnapshotHash}{\ensuremath{\mathsf{hash}_{\mathsf{snap}}}\xspace}
+\newcommand{\SnapshotBlockNumber}{\ensuremath{b^\star}\xspace}
+\newcommand{\TxSetRoot}{\ensuremath{r_{\tx}}\xspace}
+\newcommand{\LegacyTxSetRoot}{\ensuremath{r_{\tx}^{\mathsf{legacy}}}\xspace}
+\newcommand{\LagrangeTxSetRoot}{\ensuremath{r_{\tx}^{\mathsf{Lag}}}\xspace}
+\newcommand{\TxRangeSet}[1]{\ensuremath{\mathcal{T}_{#1}}}
+\newcommand{\TxRangeRoot}[1]{\ensuremath{r_{#1}}}
+\newcommand{\TxRangeLeaf}[1]{\ensuremath{\rho_{#1}}}
+\newcommand{\RangeKey}{\ensuremath{\kappa}\xspace}
+\newcommand{\LegacyDigest}{\ensuremath{\mu_{\mathsf{legacy}}}\xspace}
+\newcommand{\DynamicMsgParts}{\ensuremath{\mathsf{parts}_{\mathsf{dyn}}}\xspace}
+\newcommand{\MasterProof}{\ensuremath{\pi_{\mathsf{master}}}\xspace}
+\newcommand{\RangeProof}{\ensuremath{\pi_u}\xspace}
+\newcommand{\CertifiedRangeIndexSet}{\ensuremath{U_Q}\xspace}
+\newcommand{\MidnightPoseidonHash}{\ensuremath{\PoseidonHash^\star}\xspace}
 \newcommand{\CertificateChain}{\ensuremath{\mathsf{CertChain}}\xspace}
+\newcommand{\ZkBridgeOperator}{\ensuremath{\texttt{zk-bridge-operator}}\xspace}
 \newcommand{\CIP}{\textsf{CIP}\xspace}
 \newcommand{\SPO}{\textsf{SPO}\xspace}
 \newcommand{\SPOs}{\textsf{SPOs}\xspace}

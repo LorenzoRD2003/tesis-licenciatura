@@ -22,7 +22,7 @@ La implementacion se organiza alrededor de un conjunto pequeno de modulos y vali
     \textbf{Validador} & \textbf{Rol} & \textbf{Responsabilidad principal} \\
     \midrule
     \StakeDistributionMintValidator & Bootstrap & Mintear una unica NFT de \StakeDistribution a partir de un certificado genesis y crear el \UTxO inicial de estado. \\
-    \StakeDistributionSpendValidator & Actualización & Consumir el \UTxO que contiene el certificado padre y recrearlo con el nuevo certificado publicado por \StakeDistTx. \\
+    \texttt{stake\_distribution.}\allowbreak\texttt{spend} & Actualización & Consumir el \UTxO que contiene el certificado padre y recrearlo con el nuevo certificado publicado por \StakeDistTx. \\
     \MintingValidator & Aplicación & Autorizar el \textit{minting} de tokens envueltos en $\ChainB$ demostrando que existe una $\LockTx$ válida en $\ChainA$ y que su evidencia no fue reutilizada. \\
     \TxsUpdaterMintingValidator & Anti-replay & Actualizar (en la misma transaccion que el minting) la raíz del \SMT de transacciones ya procesadas. \\
     \UnlockingValidator y \TxsUpdaterUnlockingValidator & Extensión & Extender el mismo patrón al camino $\BurnTx \rightarrow \UnlockTx$, reservado aquí como version bidireccional futura. \\
@@ -56,7 +56,10 @@ La Figura~\ref{fig:chapter6-transaction-flow} resume el flujo que implementa el 
 
 \begin{figure}[ht]
   \centering
+  \shorthandoff{>}
   \begin{tikzpicture}[
+    scale=0.84,
+    transform shape,
     font=\small,
     box/.style={draw, rounded corners=4pt, thick, align=center, minimum width=3.1cm, minimum height=0.95cm},
     statebox/.style={draw=orange!70!black, fill=orange!12, rounded corners=4pt, thick, align=center, minimum width=3.4cm, minimum height=1cm},
@@ -88,7 +91,8 @@ La Figura~\ref{fig:chapter6-transaction-flow} resume el flujo que implementa el 
     \draw[->, thick] (mint) -- ++(0,-1.2) node[lbl, below] {\UTxO al destinatario};
     \draw[->, thick] (mint.north west) -- node[lbl] {actualiza \SMT} (txset.south west);
   \end{tikzpicture}
-  \caption{Flujo transaccional de la primera etapa del \zkBridge para el camino $\LockTx \rightarrow \MintTx$.}
+  \shorthandon{>}
+  \caption{Flujo transaccional de la primera etapa del \zkBridge.}
   \label{fig:chapter6-transaction-flow}
 \end{figure}
 

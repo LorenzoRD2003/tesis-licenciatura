@@ -297,4 +297,25 @@ R.~Zero, ``Recursive proving and stark-to-snark wrapping documentation,''
 \bibitem{SP1TestnetLaunch}
 S.~Labs, ``Sp1 testnet launch (recursion + stark-to-snark wrapper),'' 2024.
 
+\bibitem{MithrilDocsClient}
+M.~Team, ``Mithril client and certificate chain verification (mithril
+  documentation),'' 2024--2026.
+
+\bibitem{MithrilDocsProtocol}
+M.~Team, ``Protocol phases (mithril documentation),'' 2024--2026.
+
+\bibitem{MithrilSTMRepo}
+I.~O. G. .~M. Team, ``mithril-stm crate readme and implementation notes,''
+  2024--2026.
+
+\bibitem{MithrilDocsThreatModel}
+M.~Team, ``Threat model analysis (mithril documentation),'' 2024--2026.
+
+\bibitem{MithrilDocsTransactions}
+M.~Team, ``Cardano transactions certification (mithril documentation),''
+  2024--2026.
+
+\bibitem{MithrilDocsAggregator}
+M.~Team, ``Mithril aggregator node and rest api documentation,'' 2024--2026.
+
 \end{thebibliography}

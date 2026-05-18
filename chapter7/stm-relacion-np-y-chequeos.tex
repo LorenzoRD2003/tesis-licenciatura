@@ -1,0 +1,31 @@
+% !TeX root = ../tesis.tex
+
+Retomando la sección 7.2, el \MithrilAggregator normaliza la evidencia como un \textit{witness} $\SnarkWitness = (w_1, \ldots, w_k) \in \WitnessSpace$. El circuito \HaloTwo de la era \Lagrange argumenta que existen $k$ participantes legítimos del comité autenticado por $\SnarkAVK$, cada uno con una firma Schnorr válida sobre $\RigidDigest$, un Merkle correcto e índice de lotería ganador. Los objetos
+$$\SnarkAuthReg = \left\{\SnarkLeaf{1},\ldots,\SnarkLeaf{n}\right\}, \qquad \SnarkAVK = (\SnarkRoot, S), \qquad \RigidDigest = \RigidHash(\ProtocolMsg),$$
+ya quedaron fijados en dicha sección.
+
+El circuito recibe como \textit{public inputs} los componentes de \ProtocolMsg codificados como elementos del cuerpo $\Fq$ en el que se aritmetiza el circuito, es decir, el cuerpo base de \Jubjub y el cuerpo escalar de \BLS. Entonces, $\PublicInputs = (x_1,\ldots,x_t) \in \Fq^t = \InstanceSpace$, y se determinan unívocamente tanto $\RigidDigest$ y $\SnarkRoot$. Cuando la implementación incluye puntos de curva, éstos aparecen codificados por sus coordenadas en $\E(\Fq)$, mientras que los escalares de respuesta y \textit{challenge} que intervienen en las verificaciones de firma Schnorr viven en $\Fr$, el cuerpo escalar de \Jubjub.
+
+Por otra parte, el \textit{witness} contiene exactamente una entrada por cada índice de $\SelectedIndexSet = \{j_1, \ldots, j_k\}$ con $j_1 < \cdots < j_k$. En particular, vimos que cada entrada tiene la forma $w_t = \left(\SnarkLeaf{i_t}, \MerklePath_{i_t}, \SchnorrSignature_{i_t}, j_t\right)$ con $1 \leq t \leq k$, y donde $\SchnorrSignature_{i_t} = (C_{i_t},r_{i_t},c_{i_t})$ es una \UniqueSchnorrSignature, $\MerklePath_{i_t}$ es el Merkle Path hasta $\SnarkRoot$, y $j_t \in \{0, \ldots, m - 1\}$ es el índice reclamado por el participante. Finalmente, $\PrivateInputs = (w_1, \ldots, w_k) \in \WitnessSpace$.
+
+Introducimos ahora la relación $\NP$ $\STMRelation \subseteq \InstanceSpace \times \WitnessSpace$. Decimos que $\STMRelation(\PublicInputs, \PrivateInputs) = 1$ si y sólo si se satisfacen simultáneamente las cuatro condiciones desarrolladas abajo. El lenguaje asociado a la relación es $\STMLanguage = \left\{\PublicInputs \in \InstanceSpace \mid \; \exists \PrivateInputs \in \WitnessSpace:  \STMRelation(\PublicInputs, \PrivateInputs) = 1 \right\}$. Semánticamente, esto significa:
+
+\begin{quote}
+	Existen exactamente $k$ participantes del comité autenticado por $\SnarkAVK$, cada uno con Merkle Path correcto, \UniqueSchnorrSignature válida sobre $\RigidDigest$ e índice de lotería de \Mithril ganador, tales que los $k$ índices son estrictamente crecientes.
+\end{quote}
+
+Esta formulación hace explícito que el circuito no prueba ``todo \Mithril'', sino sólo la consistencia de un conjunto de \(k\) testigos seleccionados respecto del comité autenticado, del mensaje público y del mecanismo de lotería.
+
+\paragraph{1. Correctitud del Merkle Tree.}
+Para cada $1 \leq t \leq k$, la hoja $\SnarkLeaf{i_t}$ debe pertenecer al Merkle Tree de raíz $\SnarkRoot$. En la notación del Capítulo 1, esta condición es la verificación de una Merkle Proof sobre el hash $\ell_t$ de $\SnarkLeaf{i_t}$. El circuito verifica $\Verify(\ell_t, \MerklePath_{i_t}, \SnarkRoot) = 1$.
+
+\paragraph{2. Correctitud de las \UniqueSchnorrSignature.}
+Para cada entrada $w_t \in \PrivateInputs$, el circuito debe verificar que $\SchnorrSignature_{i_t} = (C_{i_t},r_{i_t},c_{i_t})$ es una firma válida sobre $\RigidDigest$ bajo $\SchnorrVK_{i_t}$. Como $\RigidDigest$ es el mismo para cada $w_t$, el punto $H_t = \HashToCurve(\RigidDigest) \in \E(\Fq)$ es fijo. Se recomputan $R_{1,t}, R_{2, t} \in \E(\Fq)$ como:
+$$R_{1, t} = r_{i_t} \cdot H_t + c_{i_t} \cdot C_{i_t}, \qquad R_{2,t} = r_{i_t} \cdot G + c_{i_t} \cdot \SchnorrVK_{i_t},$$
+y se deriva el \textit{challenge} $c'_{i_t} = \Hash \left(\SigChallengeTag, H_t, \SchnorrVK_{i_t}, C_{i_t}, R_{1,t}, R_{2,t} \right) \in \Fr$. La condición de firma correcta es entonces $c_{i_t} = c'_{i_t}$.
+
+\paragraph{3. Correctitud de la lotería de \Mithril.}
+La elegibilidad del índice $j_t$ en $J^*$ se reduce a verificar que ese índice gana la lotería para su \UniqueSchnorrSignature y su umbral $\LotteryTarget_{i_t}$. Sea $\LotteryPrefix = \Hash(\LotteryTag, \RigidDigest)$ el prefijo público de lotería. Luego el circuito recomputa el valor unívoco (gracias a \UniqueSchnorrSignature) $e_t = \Hash(\LotteryPrefix, x(C_{i_t}), y(C_{i_t}), j_t) \in \Fr$. La condición de elegibilidad es $e_t \leq \LotteryTarget_{i_t}$, que es exactamente  $\LotteryWin{i_t}{j_t}{\ProtocolMsg} = 1$. El circuito no necesita recomputar el \textit{stake} original $s_{i_t}$ del participante.
+
+\paragraph{4. Unicidad y orden de índices.}
+Como $\PrivateInputs$ ya llega al circuito con exactamente $k$ índices seleccionados, se verifica su ordenamiento $j_1 < j_2 < \cdots < j_k$. Esto también garantiza $|\SelectedIndexSet| = k$ porque son índices distintos.

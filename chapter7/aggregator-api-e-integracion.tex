@@ -1,0 +1,40 @@
+% !TeX root = ../tesis.tex
+
+\Mithril fue presentado como protocolo y como estructura de certificados. Sin embargo, el \zkBridge no interactúa con una abstracción matemática, sino con un nodo concreto de la red: el \MithrilAggregator. Este componente, entre otras cosas, expone artefactos y pruebas a traves de una API \textsc{REST} \cite{MithrilDocsAggregator}. Para este desarrollo, es la interfaz practica entre el estado certificado de \Cardano y el \textit{relayer} \Offchain que prepara argumentos para el \zkBridge. La documentación oficial de \Mithril sobre \CardanoTransactions ayuda a interpretar mejor este flujo \cite{MithrilDocsTransactions}.
+
+\subsection{Endpoints relevantes}
+
+La implementación local del operador del \zkBridge (\ZkBridgeOperator) consume un subconjunto pequeño pero muy expresivo de la API del \textit{aggregator}. El \ZkBridgeOperator necesita descubrir entidades ya certificadas, verificar su coherencia y transformar la respuesta del \MithrilAggregator en entradas canonicas para sus circuitos. Los endpoints relevantes son los siguientes:
+
+\begin{table}[ht]
+  \centering
+  \small
+  \begin{tabular}{p{3.7cm}p{4.2cm}p{5cm}}
+    \toprule
+    \textbf{Endpoint} & \textbf{Respuesta principal} & \textbf{Uso en \ZkBridgeOperator} \\
+    \midrule
+    \path{GET/} & capacidades del \MithrilAggregator & detectar entidades firmadas soportadas y versionado \\
+    \path{GET/status} & estado actual & registrar contexto operativo del \MithrilAggregator \\
+    \path{GET/certificate/genesis} & \GenesisCertificate & ancla inicial para sincronizar la \CertificateChain \\
+    \path{GET/certificates} & certificados recientes & obtener certificados recientes \\
+    \path{GET/certificate/{hash}} & certificado individual & reconstruir la \CertificateChain y obtener mensajes concretos \\
+    \path{GET/artifact/cardano-transaction/{hash}} & detalle de un \Snapshot de transacciones & obtener el certificado de un \Snapshot \\
+    \path{GET/proof/cardano-transaction} & transacciones certificadas & obtener una Merkle Proof para un conjunto de transacciones concreto  \\
+    \bottomrule
+  \end{tabular}
+  \caption{Endpoints del \MithrilAggregator utilizados por el \ZkBridgeOperator}
+\end{table}
+
+\subsection{Flujo del \ZkBridgeOperator}
+
+Organizamos el \ZkBridgeOperator en dos comandos. El primero, \texttt{relayer sync-certificates}, descarga el \GenesisCertificate, consulta certificados recientes, filtra aquellos relacionados con \MithrilStakeDistribution y reconstruye hacia atrás la cadena necesaria para persistirla localmente (hasta el último estado sincronizado, potencialmente puede llegar a ser toda la cadena). Como salida, escribe metadatos y una colección local de certificados serializados por su hash, lo que es práctico para usar como caché verificable de los certificados con los que trabajan los circuitos del \zkBridge.
+
+El segundo comando, \texttt{tx prove <transaction-hash>}, es el que conecta la API de \Mithril con el \zkBridge. Este flujo consulta una Merkle Proof de pertenencia para la transacción indicada, descarga el certificado de \CardanoTransactions asociado, busca el \Snapshot correspondiente y luego ejecuta tres chequeos:
+
+\begin{enumerate}[noitemsep]
+	\item Verifica la Merkle Proof de la transacción con el cliente de \Mithril.
+	\item Verifica la \CertificateChain del certificado referenciado hasta el \GenesisCertificate (potencialmente, sino el certificado más reciente ya validado), es decir que hay una sucesión válida $\GenesisCertificate \rightsquigarrow \Certificate^{\mathsf{first}}_1 \rightsquigarrow \cdots \rightsquigarrow \Certificate_{p,n}$.
+	\item Reconstruye el mensaje esperado \ProtocolMsg a partir de las transacciones verificadas y comprueba que coincida con el de $\Certificate_{p,n}$. Es decir, que corresponda a una $r_\tx$ autenticada por alguna \AVK válida y encadenada en la \CertificateChain correcta.
+\end{enumerate}
+
+Finalmente, si los chequeos fueron exitosos, el \ZkBridgeOperator exporta \textit{inputs} válidos para los circuitos \texttt{snapshot\_membership} y \texttt{tx\_set\_update}, a desarrollar en el Capítulo 8.

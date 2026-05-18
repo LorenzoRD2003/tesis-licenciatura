@@ -26,6 +26,7 @@
 \hfuzz=20pt
 \hbadness=10000
 \vbadness=2000
+\raggedbottom
 
 \pgfplotsset{compat=1.18}
 \usetikzlibrary{calc}
@@ -54,9 +55,9 @@
 %%%% CARATULA
 
 \def\autor{Lorenzo Ruiz Díaz}
-\def\tituloTesis{Cardano \zkBridge \vspace{.2cm} \\ Interoperabilidad en \Cardano}
-\def\runtitulo{Desarrollo de un zkBridge en Cardano}
-\def\runtitle{Development of a zkBridge in Cardano}
+\def\tituloTesis{Un \zkBridge para \Cardano\\[0.25cm] utilizando pruebas de conocimiento cero}
+\def\runtitulo{Desarrollo de un \zkBridge en Cardano}
+\def\runtitle{Development of a \zkBridge in Cardano}
 \def\director{Matías López y Rosenfeld}
 \def\codirector{Bruno Weisz}
 \def\lugar{Buenos Aires, 2026}
@@ -186,11 +187,45 @@
 
 \chapter{Mithril}
 
+\section{Introducción y motivación}
+
+\input{chapter7/introduccion-y-motivacion}
+
+\section{Protocolo \STM y esquemas de firma}
+
+\input{chapter7/protocolo-stm-y-esquemas-de-firma}
+
+\section{Cadena de certificados}
+
+\input{chapter7/cadena-de-certificados}
+
+\section{Entidades, certificados y versiones}
+
+\input{chapter7/artefactos-certificados-y-versiones}
+
+\section{API del \MithrilAggregator e integración}
+
+\input{chapter7/aggregator-api-e-integracion}
+
+\section{Relación \texorpdfstring{\(\NP\)}{NP} del circuito \STM}
+
+\input{chapter7/stm-relacion-np-y-chequeos}
+
+\section{\HaloTwo y complejidad}
+
+\input{chapter7/stm-halo2-y-complejidad}
+
+\section{Puente a la implementación final}
+
+\input{chapter7/puente-a-la-implementacion-final}
+
 \chapter{Implementación parte 2}
 
 \input{chapter8/implementation-part-2}
 
 \chapter{Resultados}
+
+\input{chapter9/results}
 
 \chapter{Conclusiones}
 
