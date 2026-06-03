@@ -1,0 +1,167 @@
+% !TeX root = ../tesis.tex
+
+\section{Flujo final del \zkBridge}
+
+Esta sección se enfoca en describir el flujo operacional completo que efectivamente une las partes descritas en la secciones anteriores en un protocolo de transacciones. Cómo se ensamblan las transacciones, qué errores de tooling fue necesario corregir para que el flujo fuera reproducible, cómo hicimos \textit{testing}, etc.
+
+\subsection{El ecosistema \texorpdfstring{\TxThree/\Trix/\CShell/\Dolos}{Tx3/Trix/cshell/dolos}}
+
+La implementación final del \zkBridge se apoya en un pequeño ecosistema coordinado de herramientas, además de Aiken. Es el ecosistema \TxThree, \Trix, \CShell y \Dolos. Esta capa fija el protocolo transaccional concreto del \zkBridge, materializa plantillas de transacciones, resuelve \UTxOs, firma y envía transacciones, y mantiene un entorno local donde todo el protocolo se pueda ejecutar de forma determinista.
+
+\TxThree define una interfaz declarativa para protocolos de blockchains \UTxO, buscando volver explícita la información \Offchain que normalmente quedaría dispersa entre \textit{scripts}, \textit{SDKs} y conocimiento implícito del autor del protocolo \cite{Tx3DocsIntroduction}. El archivo \texttt{main.tx3} cumple exactamente ese rol: es la fuente de verdad del protocolo transaccional del \zkBridge.
+
+Sobre esa interfaz opera \Trix, la CLI principal del ecosistema \TxThree \cite{Tx3DocsTrix}. Para el \zkBridge, \Trix cumple tres funciones distintas. Primero, valida estáticamente la semántica y sintaxis con \texttt{trix check}. Segundo, compila \texttt{main.tx3} a representaciones intermedias consumibles por otras herramientas, en particular la \textit{Transaction Invocation Interface} (TII) y la \textit{Transaction Intermediate Representation} (TIR), que son un puente entre la descripción del protocolo y su materialización \cite{Tx3DocsIntroduction,Tx3DocsTrix}. Tercero, sirve como punto de entrada para inspección y depuración, por ejemplo con \texttt{trix build} y \texttt{trix inspect tir}, lo cual fue útil en la etapa de ajustes finales del \zkBridge.
+
+\CShell toma la interfaz ya compilada por \Trix y la usa para resolver, firmar y someter transacciones reales \cite{CShellDocsUsage}. \CShell es el componente que transforma una plantilla simbólica como \BridgeMintTxTemplate o \PhaseTwoVerifyTx en una transacción concreta, ya balanceada y lista para ser firmada o enviada \cite{CShellDocsUsage}.
+
+\Dolos provee el entorno local de datos y de \textit{devnet} sobre el que se apoyan \Trix y \CShell \cite{DolosDocsOverview}. \Dolos sincroniza estado, expone servicios y permite que el resto de herramientas resuelvan \UTxOs y observen confirmaciones en un nodo local \cite{DolosDocsOverview}. En nuestro prototipo, \Dolos fue la pieza necesaria para tener una reproducción completa del \zkBridge sin depender de un nodo remoto de \Cardano cada vez que se reejecutaba el flujo.
+
+La Tabla~\ref{tab:bridge-toolchain-versions} resume las versiones de las herramientas usadas durante el desarrollo del \zkBridge y que volvieron operable su lógica criptográfico. \TxThree no tiene una versión, mientras que las herramientas que lo interpretan y ejecutan sí.
+
+\begin{table}[t]
+  \centering
+  \small
+  \begin{tabular}{p{0.15\linewidth} p{0.10\linewidth} p{0.60\linewidth}}
+    \hline
+    \textbf{Componente} & \textbf{Versión} & \textbf{Rol en el flujo final} \\
+    \hline
+    Aiken & \texttt{v1.1.21} & compilación de validadores y ejecución de \texttt{aiken check} \\
+    \Trix & \texttt{0.22.0} & validación, build e inspección de \texttt{main.tx3} \\
+    \CShell & \texttt{0.14.0} & resolución, firma y envío de transacciones \\
+    \Dolos & \texttt{1.0.2} & nodo local de datos y entorno runtime del bridge \\
+    \hline
+  \end{tabular}
+  \caption{Versiones de la toolchain utilizada por el flujo final del \zkBridge.}
+  \label{tab:bridge-toolchain-versions}
+\end{table}
+
+\subsection{Bugs de tooling que fue necesario corregir}
+
+El flujo final del \zkBridge ejerce caminos de tooling bastante más agresivos que los que aparecen en un ejemplo aislado de \Plutus o de \TxThree. Hay que resolver secuencias largas de transacciones, evaluar \textit{builtins} \UPLC poco frecuentes, manipular \ReferenceScripts pesados, sostener un proceso local de \Dolos entre varios subflujos y preservar restricciones exactas sobre qué \UTxOs deben consumirse y cuáles deben quedar sólo como referencia. En esa etapa aparecieron errores reales que obligaron a trabajar con \textit{forks} de \Dolos y \UplcTurbo donde corregimos los errores.
+
+\begin{enumerate}[itemsep=0.1cm]
+  \item \texttt{IntegerToByteString} fallaba con \texttt{InvalidDigit} durante \PhaseOneSetupTx: este error provenía de una comparación defectuosa en \UplcTurbo, donde usaba como tipo un entero demasiado pequeño. El arreglo fue corregir la comparación con el tipo adecuado. En el \zkBridge impedía completar la primera mitad de la verificación \STM.
+
+  \item Durante \PhaseOneSetupTx hubo un \textit{overflow} en el decodificador FLAT de \UplcTurbo porque el método \texttt{big\_word()} usaba \texttt{u32} donde debíamos usar un \texttt{BigUint}.
+
+  \item Al reutilizar un mismo proceso para varios subflujos consecutivos, los \textit{worker threads} de Tokio agotaban el stack por defecto y \Dolos fallaba con \texttt{thread 'tokio-runtime-worker' has overflowed its stack}. El arreglo fue configurar un stack de \texttt{32 * 1024 * 1024}. Sin ese ajuste, el bridge volvía a caerse durante \PhaseOneSetupTx.
+
+  \item El cuarto bug afectaba los \textit{builtins} criptográficos \texttt{Bls12\_381\_G1\_ScalarMul} y \texttt{Bls12\_381\_G2\_ScalarMul} en \UplcTurbo. Las implementaciones reducían el escalar y luego lo forzaban incorrectamente a \texttt{i32}, produciendo un \texttt{OutOfBoundsError}. El arreglo fue serializar el escalar reducido como bytes \textit{big-endian} y pasarlo al formato correcto. Para el \zkBridge, esto era crítico porque el verificador \STM generado usa justamente operaciones de curva elíptica y pairings sobre \BLS.
+
+  \item El último bug rompía la selección de \UTxOs dentro del stack \TxThree, y dificultaba \textit{debuggear} el proyecto. La implementación de \texttt{tx3-resolver} en \Dolos aceptaba un \texttt{ref} explícito para una \textit{query} de un solo \textit{input}, pero si ese \UTxO dejaba de estar disponible podía convertirse silenciosamenete en otro candidato. Para el \zkBridge esto era inaceptable: una referencia explícita debe significar ``usar exactamente este \UTxO''. El arreglo fue forzar un fallo explícito falle cuando ese \UTxO ya no está disponible, en lugar de elegir otro arbitrariamente.
+\end{enumerate}
+
+\subsection{Estrategia de tests con \texttt{aiken check}}
+
+La estrategia de tests del repositorio está organizada alrededor de \texttt{aiken check}. En \Cardano, los tests verdaderamente útiles para validadores no solamente reproducen una propiedad lógica, sino que recorren el camino de traducción a \UPLC. Por eso, \texttt{aiken check} es central: valida semántica, produce trazas y reporta unidades de ejecución suficientemente cercanas a las reales como para guiar el diseño y detectar problemas antes de correr el flujo integrado \cite{aiken2026}. En el repositorio, esta estrategia adopta una forma cercana a una pirámide de validación. La ventaja de esta organización es que separa bien los tipos de falla.
+
+\begin{enumerate}[noitemsep]
+  \item En la base aparecen los tests de aceptación y rechazo de validadores. Su función principal es fijar las condiciones de aceptación del protocolo y también sus fallas esperadas. La convención adoptada es bastante clara: casos positivos escritos como \texttt{accepts\_*} o equivalentes, y casos negativos marcados con \texttt{fail}, de modo que un cambio semántico se vuelva visible enseguida.
+  \item Un segundo nivel lo forman los tests donde se comprueba que los \textit{wrappers} Aiken de \Groth acepten una prueba dada, así que el orden y el \textit{packing} de \textit{public inputs} coincidan exactamente con lo que esperan los circuitos \Groth.
+  \item Un tercer nivel lo ocupan los tests de \textit{fixture} E2E. Estos fijan valores exportados desde los JSON canónicos del flujo, y verifican que los \textit{redeemer} reales sigan alineados con las pruebas y con los hashes de helpers compartidos. Busca evitar \textit{drift} entre el lado \Offchain del bridge (con los \textit{scripts} para coordinar los flujos) y los tests de Aiken.
+  \item Finalmente, la capa más costosa la forman los \textit{runtime probes} con pruebas reales. Estos casos intentan recrear de la forma más fiel posible los argumentos criptográficos o estados intermedios que el flujo integrado realmente consumirá.
+\end{enumerate}
+
+Además, integramos \texttt{aiken check} al mismo mismo flujo principal del \zkBridge. En particular, \BridgeRunStrictCommand ejecuta primero un \textit{preflight} que valida la coherencia del estado actual del repositorio para poder llevar a cabo las mediciones y ejecutar validadores, y sólo después corre \texttt{aiken check}. Del mismo modo, si \texttt{aiken check} falla, tampoco vale la pena arrancar \Dolos ni construir la secuencia completa de transacciones.
+
+\subsection{El flujo principal del \zkBridge}
+
+El punto de entrada principal del \zkBridge es \BridgeRunStrictCommand. Consideramos a este comando como la implementación final de la prueba de concepto del \zkBridge en \Cardano. Podemos resumirlo en:
+
+\begin{enumerate}[noitemsep]
+  \item Validación de las versiones de herramientas en el repositorio: Aiken, \Trix, \CShell, \Dolos, \texttt{uv} y dependencias de Python.
+  \item Construcción los argumentos \STM del flujo, que se concentran en un JSON final.
+  \item Ejecución obligatoria del \textit{preflight}; muy útil para tener errores rápidos.
+  \item Ejecución de \texttt{aiken check}.
+  \item Ejecución del flujo completo de transacciones del \zkBridge con herramientas \TxThree.
+\end{enumerate}
+
+El \textit{preflight} es especialmente importante porque fija el contrato entre el material criptográfico \Offchain y el estado que luego verán los validadores \Onchain. Verifica, entre otras cosas, que el bundle \STM siga cumpliendo sus invariantes, que los snapshots de referencia no hayan quedado obsoletos y que fixtures como \texttt{bridge\_fixture.ak} y \texttt{cardano\_transactions.ak} continúen alineados con la \TxSetRoot y con los \textit{statement hashes} que usará el flujo real. Recién cuando todo eso pasa, el runner avanza hacia la parte transaccional propiamente dicha.
+
+Una vez dentro del runtime, el bridge se organiza en etapas bien diferenciadas. La primera es la publicación compartida de \PublishPhaseOneReferenceScriptTx, necesaria para reutilizar el script pesado de la fase 1 del verificador \STM. La segunda es la ejecución secuencial de corridas \PhaseOneSetupTx $\rightarrow$ \PhaseTwoVerifyTx, una por cada dominio de certificado \STM de \Mithril. Cada una de esas corridas termina produciendo un \ProofReceipt distinto.
+
+La tercera etapa es preparar el \StakeDistributionUTxO. La transacción \StakeDistributionGenesisTxTemplate consume el \UTxO del dominio \texttt{stake\_distribution\_genesis} y emite el primer \StakeDistributionUTxO. Luego \StakeDistributionStandardTxTemplate consume ese estado junto con la receipt del dominio \texttt{stake\_distribution\_standard}, verifica continuidad de certificado padre e hijo, y produce el \StakeDistributionUTxO vigente que el \zkBridge usará más tarde como \ReferenceInput para la \MintTx.
+
+En paralelo conceptual con esa cadena corre la cadena del actualizador de transacciones usadas. Primero \LockingTxsUpdaterSeedTxTemplate crea el ancla de unicidad para la política de mint del actualizador. Después aparecen dos publicaciones adicionales de \ReferenceScripts: \PublishMintingTxsUpdaterSpendReferenceScriptTx y \PublishBridgeMintingReferenceScriptTx. Ambas son necesarias para mantener el flujo por debajo de los límites de tamaño de transacción, ya que el mint final necesita reutilizar scripts pesados sin reenviarlos inline. Recién entonces \MintingTxsUpdaterSeedTxTemplate inicializa el \TxsUpdaterUTxO del bridge con la Merkle Root vacía del conjunto de locking transactions ya consumidas.
+
+La última etapa es \BridgeMintTxTemplate. Esta transacción consume el \UTxO del dominio \texttt{cardano\_transactions}, consume también el \TxsUpdaterUTxO y toma como \ReferenceInput el \StakeDistributionUTxO vigente. En su \textit{redeemer} viajan el certificado de \TransactionSnapshot, el argumento \Groth de pertenencia al \Snapshot y el argumento \Groth de actualización del conjunto de transacciones usadas por el \zkBridge.
+
+La Figura~\ref{fig:final-bridge-flow} resume la dependencia lógica del flujo final. El bundle \STM alimenta las tres corridas de fase 1/fase 2; esas corridas producen receipts separadas; dos receipts avanzan la cadena de \StakeDistribution; una receipt distinta habilita el mint; y el mint final consume además el estado del actualizador y los \ReferenceScripts publicados previamente.
+
+\begin{figure}[ht]
+  \centering
+  \begin{tikzpicture}[
+    scale=0.68,
+    transform shape,
+    every node/.style={font=\small, align=center},
+    tx/.style={draw, rounded corners=5pt, thick, fill=blue!8, minimum width=4.1cm, minimum height=0.8cm},
+    state/.style={draw, rounded corners=5pt, thick, fill=green!10, minimum width=3.2cm, minimum height=0.75cm},
+    receipt/.style={draw, circle, thick, fill=orange!15, minimum size=0.95cm},
+    artifact/.style={draw, rounded corners=5pt, thick, fill=gray!10, minimum width=5.5cm, minimum height=1cm},
+    box/.style={draw, rounded corners=8pt, dashed, thick},
+    refarr/.style={thick, dashed},
+    arr/.style={thick, ->},
+    note/.style={font=\footnotesize\itshape}
+  ]
+    \node[artifact] (bundle) at (0,8.2) {bundle \STM\\\texttt{bridge-compatible-mithril-stm-bundle.json}};
+    \node[tx] (publishphase1) at (0,6.6) {\PublishPhaseOneReferenceScriptTx};
+
+    \node[tx] (p12g) at (-5.0,4.7) {\PhaseOneSetupTx/\PhaseTwoVerifyTx\\\texttt{stake\_distribution\_genesis}};
+    \node[receipt] (rg) at (-5.0,3.1) {\scriptsize \(r_g\)};
+
+    \node[tx] (p12s) at (0,4.7) {\PhaseOneSetupTx/\PhaseTwoVerifyTx\\\texttt{stake\_distribution\_standard}};
+    \node[receipt] (rs) at (0,3.1) {\scriptsize \(r_s\)};
+
+    \node[tx] (p12t) at (5.0,4.7) {\PhaseOneSetupTx/\PhaseTwoVerifyTx\\\texttt{cardano\_transactions}};
+    \node[receipt] (rt) at (5.0,3.1) {\scriptsize \(r_t\)};
+
+    \node[tx] (sdg) at (-2.6,1.1) {\StakeDistributionGenesisTxTemplate};
+    \node[tx] (sds) at (-2.6,-0.5) {\StakeDistributionStandardTxTemplate};
+    \node[state] (sdstate) at (-2.6,-2.0) {\StakeDistributionUTxO};
+
+    \node[tx] (seed) at (2.8,1.1) {\LockingTxsUpdaterSeedTxTemplate};
+    \node[tx] (updater) at (2.8,-0.5) {\MintingTxsUpdaterSeedTxTemplate};
+    \node[state] (upstate) at (2.8,-2.0) {\TxsUpdaterUTxO};
+    \node[tx] (pubupd) at (8.0,1.1) {\PublishMintingTxsUpdaterSpendReferenceScriptTx};
+    \node[tx] (pubbridge) at (8.0,-0.5) {\PublishBridgeMintingReferenceScriptTx};
+
+    \node[tx] (bridge) at (0,-4.6) {\BridgeMintTxTemplate};
+
+    \draw[arr] (bundle) -- (publishphase1);
+    \draw[arr] (bundle) -- (p12g);
+    \draw[arr] (bundle) -- (p12s);
+    \draw[arr] (bundle) -- (p12t);
+    \draw[refarr] (publishphase1) -- (p12g);
+    \draw[refarr] (publishphase1) -- (p12s);
+    \draw[refarr] (publishphase1) -- (p12t);
+
+    \draw[arr] (p12g) -- (rg);
+    \draw[arr] (p12s) -- (rs);
+    \draw[arr] (p12t) -- (rt);
+
+    \draw[arr] (rg) -- (sdg);
+    \draw[arr] (sdg) -- (sds);
+    \draw[arr] (rs) -- (sds);
+    \draw[arr] (sds) -- (sdstate);
+
+    \draw[arr] (seed) -- (updater);
+    \draw[arr] (updater) -- (upstate);
+
+    \draw[arr] (rt) -- (bridge);
+    \draw[arr] (sdstate) -- node[midway, fill=white, inner sep=1pt] {\scriptsize \ReferenceInput} (bridge);
+    \draw[arr] (upstate) -- (bridge);
+    \draw[refarr] (pubupd) |- (bridge);
+    \draw[refarr] (pubbridge) |- (bridge);
+
+    \draw[box] (-7.0,2.4) rectangle (7.0,8.8);
+    \node[note] at (5.6,8.45) {verificación \STM};
+
+    \draw[box] (-4.9,-2.7) rectangle (-0.3,1.8);
+    \node[note] at (-1.2,1.5) {\StakeDistribution};
+
+    \draw[box] (0.3,-2.7) rectangle (9.6,1.8);
+    \node[note] at (7.1,1.5) {actualizador + scripts};
+  \end{tikzpicture}
+  \caption{Dependencias lógicas del flujo final del \zkBridge.}
+  \label{fig:final-bridge-flow}
+\end{figure}

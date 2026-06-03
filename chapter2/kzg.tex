@@ -65,6 +65,39 @@ Observamos que una \SRS para polinomios en el espacio $ \Fp[x]_{\leq d}$ requier
 
 Para \SNARK pequeños, suelen ser miles de elementos de la curva. Pero para sistemas grandes, pueden ser millones de elementos, lo que puede ocupar numerosos GB de almacenamiento, copiado en dispositivos de muchos desarrolladores. Como el proceso no es rápido y no pueden realizarlo dos desarrolladores al mismo tiempo, hay una complejidad social adicional. Por eso, es que hay alternativas para sistemas de pruebas que no requieren una fase de \textit{trusted setup}, o que el mismo es universal para cualquier circuito \cite{cryptoeprint:2019/953, BenSasson2017FastRI, cryptoeprint:2018/046}. Por otra parte, estos sistemas de pruebas alternativos tienen como contrapartida un mayor tamaño de prueba, al mismo tiempo que más tiempo de ejecución en sus algoritmos.
 
+\subsection{Aperturas múltiples y GWC19}
+
+El esquema \KZG presentado hasta ahora resuelve el problema de abrir \emph{un} polinomio en \emph{un} punto. Sin embargo, los sistemas de pruebas reales rara vez necesitan una sola evaluación aislada. En protocolos \PLONKish (que veremos en el Capítlo 7) por ejemplo, el verifier debe chequear simultáneamente evaluaciones de muchos polinomios. Verificar cada \Open por separado sería prohibitivo, porque implicaría una ecuación de pairing independiente por cada evaluación. El objetivo de \GWCNineteen, introducido en el paper de \PLONK \cite{cryptoeprint:2019/953}, es precisamente colapsar estos \Open en una verificación sucinta conservando la estructura algebraica de \KZG. El número total de polinomios consultados puede ser grande, pero si los puntos de evaluación distintos son pocos, el esquema logra mantener pruebas cortas y verificación sucinta. Esta es precisamente la situación que aparece en protocolos \PLONKish como \HaloTwo.
+
+La idea central es separar dos fuentes de redundancia: varios polinomios se abren en el mismo punto, y aún habiendo más de un punto de evaluación, el número de puntos distintos sigue siendo pequeño. \GWCNineteen explota estas observaciones mediante combinaciones lineales aleatorias. Para cada punto, combina todos los polinomios abiertos en él. Luego, agrega los distintos puntos en una sola ecuación de pairing. El costo del \textit{verifier} pasa a depender del número de puntos distintos consultados.
+
+\paragraph{Modelo algebraico de multi-apertura.}
+Sea $m \in \N$ el número de puntos de evaluación distintos, y sean $z_1, \ldots, z_m \in \Fp$ los puntos de evaluación. Para $1 \leq j \leq m$, en $z_j$ queremos abrir $t_j$ polinomios $P_{j,0}, P_{j,1}, \ldots, P_{j,t_j-1} \in \poly{\Fp}_{\leq d}$ con compromisos
+$$c_{j,i} := \Commit(P_{j,i}) = P_{j,i}(\tau)G_1 \in \GOne, \qquad 0 \leq i < t_j.$$
+El prover afirma conocer las evaluaciones $y_{j,i} := P_{j,i}(z_j) \in \Fp.$
+
+Si aplicáramos \KZG de manera independiente a cada par $(P_{j,i}, z_j)$, obtendríamos una prueba distinta por cada par de índices $(j, i)$. \GWCNineteen reemplaza ese esquema. Para ello, el \textit{verifier} toma un \textit{challenge} aleatorio $v \in \Fp$ y define para cada $j$ las combinaciones lineales agregadas
+$$F_j(X) := \sum_{i=0}^{t_j-1} v^i P_{j,i}(X) \in \poly{\Fp}_{\leq d}, \qquad \alpha_j := \sum_{i=0}^{t_j-1} v^i y_{j,i} \in \Fp.$$
+Por construcción, si todas las aperturas son correctas, entonces $F_j(z_j) = \alpha_j$. Como este compromiso es lineal, el verifier puede reconstruir el compromiso agregado a $F_j$ usando la misma combinación lineal, sin necesidad de conocerlo:
+$$C_j := \sum_{i=0}^{t_j-1} v^i c_{j,i} = \sum_{i=0}^{t_j-1} v^i P_{j,i}(\tau)G_1 = F_j(\tau)G_1 \in \GOne.$$
+
+Por lo tanto, todas las aperturas en $z_j$ quedan reducidas a la afirmación $F_j(z_j) = \alpha_j$, que es una apertura \KZG, y el \textit{prover} puede definir el polinomio cociente $W_j(X) := \frac{F_j(X) - \alpha_j}{X - z_j}$
+y enviar como argumento de apertura el compromiso $\pi_j := \Commit(W_j) = W_j(\tau)G_1 \in \GOne$, reduciendo el problema a $m$ aperturas \KZG ordinarias.
+$$\pairing{C_j - \alpha_j G_1}{G_2} = \pairing{\pi_j}{(\tau - z_j)G_2}, \qquad 1 \leq j \leq m.$$
+
+Usando la bilinealidad del pairing, esta ecuación puede reescribirse como
+$$\pairing{\pi_j}{\tau G_2} = \pairing{z_j\pi_j + C_j - \alpha_j G_1}{G_2}.$$
+La segunda etapa de \GWCNineteen agrega estas $m$ ecuaciones de pairing en una sola. Para ello, el \textit{verifier} toma un segundo \textit{challenge} aleatorio $u \in \Fp$ y combina linealmente todas las instancias con potencias de $u$. Definimos
+$$\Pi := \sum_{j=1}^{m} u^{j-1}\pi_j \in \GOne, \qquad E := \sum_{j=1}^{m} u^{j-1}\left(z_j\pi_j + C_j - \alpha_j G_1\right) \in \GOne.$$
+Entonces, por bilinealidad,
+$$\pairing{\Pi}{\tau G_2} = \prod_{j=1}^{m} \pairing{\pi_j}{\tau G_2}^{u^{j-1}} = \prod_{j=1}^{m} \pairing{z_j\pi_j + C_j - \alpha_j G_1}{G_2}^{u^{j-1}} = \pairing{E}{G_2}. $$
+En consecuencia, el \textit{verifier} sólo necesita chequear la ecuación final $\pairing{\Pi}{\tau G_2} = \pairing{E}{G_2}$.
+
+\paragraph{Completitud e intuición de solidez.}
+La completitud de \GWCNineteen es una consecuencia directa de la completitud de \KZG y de la linealidad de las combinaciones introducidas. Si todas las afirmaciones $P_{j,i}(z_j) = y_{j,i}$ son correctas, entonces para cada $j$ el polinomio $F_j(X) - \alpha_j$ es divisible por $X - z_j$, de modo que $W_j(X)$ está bien definido y satisface la ecuación \KZG ordinaria. Multiplicar esas ecuaciones por potencias de $u$ y reagruparlas no altera su validez, porque el pairing es bilineal en ambos argumentos.
+
+La intuición de solidez también sigue la estructura de \KZG. En primer lugar, para un punto fijo $z_j$, si el \textit{prover} mintiera alguna de las evaluaciones $y_{j,i}$, entonces la igualdad $F_j(z_j) = \alpha_j$ dejaría de ser cierta salvo cancelaciones fortuitas en la combinación lineal inducida por $v$, pero esto tiene probabilidad negligible porque $v$. En segundo lugar, aún si el \textit{prover} intentara mezclar comportamientos distintos entre varios puntos, la agregación posterior con $u$ obliga a que todas las ecuaciones parciales sean simultáneamente consistentes, de modo que falsificar la ecuación final implicaría fabricar una identidad de divisibilidad agregada en el exponente sin conocer $\tau$, lo cual sigue estando fuera del alcance computacional bajo los supuestos de seguridad de \KZG.
+
 \subsection{Lo que tenemos hasta ahora}
 
 En la sección de \QAP mostramos que la verificación de un circuito aritmético puede reducirse a comprobar una identidad polinomial de la forma
@@ -72,12 +105,12 @@ $$A(r)B(r) - C(r) = H(r)Z(r),$$
 para un punto aleatorio $r \in \Fp$. Conceptualmente, esto transforma la verificación de muchas restricciones en una única verificación algebraica. Sin embargo, ese enfoque presentaba un obstáculo fundamental: el verifier debía conocer explícitamente los polinomios (o al menos sus evaluaciones). Esto es incompatible con los objetivos criptográficos del sistema. Queremos que el witness permanezca oculto, la prueba sea sucinta y no interactiva, y que el verifier no necesite reconstruir objetos grandes.
 
 
-Los compromisos polinomiales, y en particular \KZG, nos permiten reemplazar las evaluaciones explícitas de los polinomios en $r$ por argumentos criptográficos de evaluación. En lugar de enviar $A(r), B(r), C(r), H(r)$, envía compromisos a los polinomios junto con argumentos de evaluación de tamaño constante (ya que son elementos de $\GOne$), y la verificación se hace en el grupo objetivo del pairing bilineal $e$. Esta reducción es extremadamente poderosa: la complejidad del verifier deja de depender del tamaño del circuito y pasa a depender únicamente del número de ecuaciones de pairing, que es constante. Del mismo modo, se están verificando identidades polinomiales sin necesidad de conocer los polinomios.
+Los compromisos polinomiales, y en particular \KZG, nos permiten reemplazar las evaluaciones explícitas de los polinomios en $r$ por argumentos criptográficos de evaluación. En lugar de enviar $A(r), B(r), C(r), H(r)$, envía compromisos a los polinomios junto con argumentos de evaluación de tamaño constante (ya que son elementos de $\GOne$), y la verificación se hace en el grupo objetivo $\GT$ del pairing bilineal $e$. Esta reducción es extremadamente poderosa: la complejidad del verifier deja de depender del tamaño del circuito y pasa a depender únicamente del número de ecuaciones de pairing, que es constante. Del mismo modo, se están verificando identidades polinomiales sin necesidad de conocer los polinomios.
 
 No obstante, todavía faltan componentes esenciales para obtener un \zkSNARK completo:
 \begin{itemize}[itemsep=0.1 cm]
-	\item No interactividad: El esquema \KZG \PCS asume desafíos enviados por el verifier (en concreto, el punto $z \in \Fp$). Para eliminar esta interacción, necesitaremos la transformación de \FiatShamir, que veremos en la siguiente sección.
-	\item Conocimiento cero a nivel de protocolo: \KZG no garantiza conocimiento cero por sí mismo. El ocultamiento va a aparecer al combinar compromisos, aleatoriedad y demás estructura del protocolo. En particular, vamos a ver cómo los compromisos a $A, B, C, H$ se ensamblan en una prueba coherente en la última sección del capítulo.
+	\item No interactividad: \KZG asume desafíos enviados por el verifier (en concreto, el punto $z \in \Fp$). Para eliminar esta interacción, necesitaremos la transformación de \FiatShamir, que veremos en la siguiente sección.
+	\item Conocimiento cero: \KZG no garantiza conocimiento cero por sí mismo. El ocultamiento va a aparecer al combinar compromisos, aleatoriedad y demás estructura del protocolo. En particular, vamos a ver cómo los compromisos a $A, B, C, H$ se ensamblan en una prueba coherente en la última sección del capítulo.
 \end{itemize}
 
 En las siguientes secciones formalizaremos estos pasos finales. Primero, eliminaremos la interacción mediante la transformación de \FiatShamir \cite{Fiat}. Luego, presentaremos \Groth \cite{cryptoeprint:2016/260} como una instanciación concreta donde todas las piezas desarrolladas en el capítulo se combinan en un sistema de \zkSNARK funcional, y que utilizamos en nuestro proyecto.

@@ -1,0 +1,124 @@
+% !TeX root = ../tesis.tex
+
+%TODO: mejorar la explicacion en esta seccion
+
+\section{El circuito de pertenencia a una \texorpdfstring{\TransactionSnapshot}{TransactionSnapshot}}
+
+Este circuito resuelve cómo convencer a la cadena destino \ChainB de que la \LockTx de \ChainA efectivamente pertenece al \TransactionSnapshot de \Cardano autenticado por un certificado de \Mithril. Es decir, argumenta la pertenencia respecto de la Merkle Root de \CardanoTransactions que un \TransactionSnapshotCertificate expone en su \ProtocolMsg. Esto importa porque el \MintingValidator no solamente valida un \TransactionSnapshotCertificate contra el \ProofReceipt que dejó la fase 2 del verificador \STM, sino que además consume un argumento \Groth generado por \TxSnapshotMembershipCircuit para verificar que el \TxId de la \LockTx pertenece al snapshot autenticado por \TransactionSnapshotCertificate.
+
+\subsection{Modelo matemático del \TransactionSnapshot \Pythagoras de \Mithril}
+
+En la implementación actualmente compatible con el \MithrilAggregator, la entidad \CardanoTransactions se autentica mediante el esquema \LegacyHashScheme de la era \Pythagoras. Como dijimos en la sección 7.4, la prueba tiene estructura de dos niveles: un \emph{sub-tree} que agrupa un rango contiguo de transacciones de \Cardano, y un \emph{master tree} cuyas hojas son un compromiso de cada \textit{sub-tree} junto con el rango que representa.
+
+Fijamos la función de hash $\BLAKETwoSTwoFiveSix: \Strings{\star} \to \Strings{256}$, y para cada longitud de bytes $\ell \in \N$ escribimos $\Bytes{\ell} = \Strings{8\ell}$. Si $\TxId \in \Bytes{32}$ es el hash canónico de una transacción de \Cardano, la hoja en el \textit{sub-tree} es su codificación hexadecimal ASCII en minúsculas $\mathsf{hex}_{\mathsf{lc}}(\TxId) \in \Bytes{64}$, que luego se hashea con \BLAKETwoSTwoFiveSix a \Bytes{32}.
+
+Sea ahora $\SnapshotSubRoot \in \Bytes{32}$ la raíz del \textit{sub-tree} que contiene a \TxId. La hoja correspondiente del \textit{master tree} se construye como:
+$$\MasterLeaf = \BLAKETwoSTwoFiveSix(\alpha \concat \SnapshotSubRoot), \qquad \alpha \in \Bytes{L},\; 0 \leq L \leq 32,$$
+donde $\alpha$ es la cadena \RangeAscii de longitud variable $L$ que identifica el rango de bloques del \textit{sub-tree}.
+
+El argumento completo de pertenencia queda descompuesto en:
+\begin{enumerate}[noitemsep]
+  \item \SubPrefix: pasos inferiores del sub-tree.
+  \item \SubUpper: continuación del camino hasta \SnapshotSubRoot, ya con hermanos en \Bytes{32};
+  \item \MasterPrefix: pasos iniciales por encima de \MasterLeaf;
+  \item \MasterUpper: continuación final hasta la raíz certificada del snapshot.
+\end{enumerate}
+
+\subsection{\textit{Public inputs} y \textit{witness} del circuito}
+
+Para este circuito, tenemos $\PublicInputs = (\TxId,\SnapshotSubRoot,\TxSetRoot) \in \InstanceSpace$, donde $\TxId \in \Bytes{32}$ es el identificador de transacción de \Cardano cuya pertenencia queremos demostrar, $\SnapshotSubRoot \in \Bytes{32}$ es la Merkle Root del \textit{sub-tree} que contiene a \TxId, y $\TxSetRoot \in \Bytes{32}$ es la Merkle Root certificada de por el \TransactionSnapshotCertificate de \Mithril.
+
+Por otra parte, el \textit{witness} está dado por $\PrivateInputs = (\SubPrefixWitness, \SubUpperWitness, \alpha, \MasterPrefixWitness, \MasterUpperWitness) \in \WitnessSpace,$ donde:
+\begin{itemize}[noitemsep]
+  \item $\alpha$ es la cadena ASCII de longitud variable \RangeAscii;
+  \item $\SubPrefixWitness$ es la secuencia activa de pasos del \SubPrefix;
+  \item $\SubUpperWitness$ es la secuencia activa de siblings de $32$ bytes del \SubUpper;
+  \item $\MasterPrefixWitness$ es la secuencia activa del \MasterPrefix;
+  \item $\MasterUpperWitness$ es la secuencia activa del \MasterUpper.
+\end{itemize}
+En la instancia \texttt{mithril\_legacy\_tx\_membership\allowbreak.circom}, compilada hoy como
+$\MithrilLegacyTxMembershipCircuit(10,32,32,1,32),$ se expone a través de estos \textit{inputs}:
+\begin{enumerate}[noitemsep]
+  \item \texttt{cardano\_tx\_hash\_b[32]},
+  \item \texttt{range\_ascii\_b[32]} y \texttt{range\_ascii\_len} (porque $L$ es variable),
+  \item todas las familias \texttt{sub\_prefix\_*}, \texttt{sub\_upper\_*}, \texttt{master\_prefix\_*}, y \texttt{master\_upper\_*},
+  \item \texttt{expected\_root\_b[32]}, que usamos para imponer la igualdad byte a byte con \TxSetRoot (porque tenemos que separarlo en dos partes al no entrar en un elemento de $\Fr$). No aporta información nueva, pero es conveniente.
+\end{enumerate}
+
+\TxId, \SnapshotSubRoot y \TxSetRoot pasan al verificador \Groth \Onchain como seis enteros, porque necesitamos dos elementos de $\Fr$ por cada ítem de $\PublicInputs$. Partimos cada elemento de $\Bytes{32}$ en dos mitades de $\Bytes{16}$, y cada mitad se interpreta como un entero \textit{big-endian} de $128$ bits.
+$$\left(\begin{aligned}
+  &\CardanoTxHashHi, \CardanoTxHashLo,\\
+  &\SubRootHi, \SubRootLo,\\
+  &\MasterRootHi, \MasterRootLo
+\end{aligned}\right).$$
+
+\subsection{La relación \texorpdfstring{\(\NP\)}{NP} de \TxSnapshotMembershipCircuit}
+
+Tenemos $\InstanceSpace = \Bytes{32}^3$ y $\WitnessSpace = \left\{(\SubPrefixWitness, \SubUpperWitness, \alpha, \MasterPrefixWitness, \MasterUpperWitness)\right\}$ compatibles con los formatos ya descritos. Formalmente, cada paso activo del \SubPrefix o del \MasterPrefix es una tripla $\psi = (k, s, b)$ con $k,b \in \{0,1\}$, donde $k$ indica si el hermano $s$ se interpreta como bytes o como hash, y $b$ indica si ese hermano se ubica a la izquierda del nodo actual. Para compactar la notación, escribimos
+$$\MergeOp(x,s,b) = \begin{cases}
+  \BLAKETwoSTwoFiveSix(x \concat s), & \text{si } b = 0,\\
+  \BLAKETwoSTwoFiveSix(s \concat x), & \text{si } b = 1.
+\end{cases}$$
+Si $\psi=(k,s,b)$ es un paso tipado activo, definimos además $\StepOp(x,\psi)=\MergeOp(x,s_\phi,b_\phi)$.
+
+Tomemos $\PublicInputs = (\TxId,\SnapshotSubRoot,\TxSetRoot) \in \InstanceSpace$, $\PrivateInputs = (\SubPrefixWitness, \SubUpperWitness, \alpha, \MasterPrefixWitness, \MasterUpperWitness) \in \WitnessSpace$.
+Escribimos:
+
+$$\SubPrefixWitness = (\psi^{\SubTag}_0,\ldots,\psi^{\SubTag}_{a-1}), \qquad \SubUpperWitness = \bigl((h^{\SubTag}_0,b^{\SubTag}_0),\ldots,(h^{\SubTag}_{u-1},b^{\SubTag}_{u-1})\bigr),$$
+$$\MasterPrefixWitness = (\psi^{\MstTag}_0,\ldots,\psi^{\MstTag}_{c-1}), \qquad \MasterUpperWitness = \bigl((h^{\MstTag}_0,b^{\MstTag}_0),\ldots,(h^{\MstTag}_{v-1},b^{\MstTag}_{v-1})\bigr).$$
+La relación \TxSnapshotMembershipRelation se define recursivamente en cuatro etapas.
+
+\begin{enumerate}[itemsep=0.1cm]
+	\item Derivación de la hoja del \textit{sub-tree}: fijamos $x_0 = \mathsf{hex}_{\mathsf{lc}}(\TxId) \in \Bytes{64},$ y luego $x_1 = \StepOp(x_0,\psi^{\SubTag}_0)$, $x_{i+1} = \StepOp(x_i,\psi^{\SubTag}_i)$ para $1 \leq i < a$.
+	Al terminar esta primera fase, $x_a \in \Bytes{32}$ es el digest obtenido al consumir todos los pasos activos del \SubPrefix.
+	\item Reconstrucción de \SnapshotSubRoot: definimos $y_0 = x_a$, $y_{j+1} = \MergeOp(y_j,h^{\SubTag}_j,b^{\SubTag}_j)$ para $0 \leq j < u$. La primera condición es $y_u = \SnapshotSubRoot$.
+	\item Construcción de \MasterLeaf: con la cadena ASCII del rango y la \SnapshotSubRoot recién reconstruida, definimos $z_0 = \BLAKETwoSTwoFiveSix(\alpha \concat \SnapshotSubRoot)$.
+	\item Reconstrucción de \TxSetRoot: hacemos los pasos del \MasterPrefix y del \MasterUpper: $z_1 = \StepOp(z_0,\psi^{\MstTag}_0)$, $z_{i+1} = \StepOp(z_i,\psi^{\MstTag}_i)$ para $1 \leq i < c$, y luego $t_0 = z_c$, $t_{j+1} = \MergeOp(t_j,h^{\MstTag}_j,b^{\MstTag}_j)$ para $0 \leq j < v$. La segunda condición es $t_v = \TxSetRoot$.
+\end{enumerate}
+
+Decimos que $\TxSnapshotMembershipRelation(\PublicInputs, \PrivateInputs) = 1$ si y sólo si $y_u = \SnapshotSubRoot$ y $t_v = \TxSetRoot$. El lenguaje asociado es: $\TxSnapshotMembershipLanguage = \left\{\PublicInputs \in \InstanceSpace \;\middle|\; \exists \PrivateInputs \in \WitnessSpace: \TxSnapshotMembershipRelation(\PublicInputs, \PrivateInputs) = 1\right\}$.
+\begin{quote}
+  Existen una descomposición válida del Merkle Path de la transacción de \ChainA identificada como \TxId, una cadena ASCII de rango y un Merkle Path en el \textit{master tree} tales que la transacción pertenece al \textit{sub-tree} de raíz \SnapshotSubRoot y ese mismo \textit{sub-tree}, comprometido como \MasterLeaf, pertenece al \textit{master tree} de raíz \TxSetRoot autenticado por \Mithril en un \TransactionSnapshotCertificate.
+\end{quote}
+
+\subsection{Familias de restricciones del circuito}
+
+La relación anterior es implementada en \Circom para ser convertida a un circuito aritmético y luego a un \QAP. En conjunto, estas restricciones prueban pertenencia, y además descartan \textit{witness} inválidos, incoherencias de longitud y usos incompatibles.
+
+\begin{enumerate}[noitemsep]
+	\item Un chequeo de rango $0 \leq b < 256$ para todos los arreglos de bytes mediante componentes \texttt{AssertByte}/\texttt{AssertBytes}.
+	\item La derivación determinista de la hoja en ASCII, para que el \textit{prover} no pueda sustituir la transacción real por una alternativa.
+	\item Garantizar que los \textit{flags} \texttt{enabled} sean contiguos. Con esto, no se puede ``saltar'' un nivel intermedio y reactivar luego otro más alto.
+	\item En cada paso tipado, un bit \texttt{kind} determina si el hermano relevante es una cadena de bytes o un hash. Se garantiza además que el slot inactivo quede anulado.
+	\item Cuando un paso está deshabilitado, el circuito impone que tanto sus selectores como sus datos sean cero y que la salida propague exactamente el valor de entrada.
+	\item \texttt{TypedPrefixFirstStep}, \texttt{TypedPrefixHashedStep} y \texttt{MerkleUpperPathBlake2s} son componentes que implementan la reconstrucción desde \(\mathsf{hex}_{\mathsf{lc}}(\TxId)\) hasta \SnapshotSubRoot.
+	\item El componente \texttt{MasterLeafHash} selecciona la longitud efectiva \texttt{range\_ascii\_len}, obliga a cero todos los bytes fuera de esa longitud y luego computa $\BLAKETwoSTwoFiveSix(\alpha \concat \SnapshotSubRoot)$. De esta forma, dos witnesses con el mismo prefijo activo no pueden diferir sólo en bytes ``de relleno'' fuera de la longitud declarada.
+	\item Se recompone la \TxSetRoot a partir de la hoja $\BLAKETwoSTwoFiveSix(\alpha \concat \SnapshotSubRoot)$.
+	\item Se impone byte a byte $\texttt{master\_root\_b} = \texttt{expected\_root\_b}$.
+	\item Los tres hashes $(\TxId, \SnapshotSubRoot, \TxSetRoot) \in \Bytes{32}^3$ se empaquetan en seis enteros públicos de \Bytes{16}.
+\end{enumerate}
+
+\subsection{Vínculo exacto con \MintingValidator}
+
+La utilidad del circuito en el protocolo aparece al mirar la interfaz del \MintingValidator, cuyas condiciones de aceptación fueron formalizadas en el Capítulo 6 y forman parte de las condiciones necesarias de \MintTx. El mapeo entre la matemática del argumento \Groth y la validación \Onchain es el siguiente:
+\begin{enumerate}[noitemsep]
+	\item El validador construye un \texttt{ReducedMithril\allowbreak Certificate} a partir de los campos planos del \textit{redeemer}.
+	\item Inspecciona los inputs de la transacción para recuperar el \texttt{statement\_hash} persistido en el \ProofReceipt de fase 2 y, con eso, ejecuta la verificación del certificado contra el certificado padre autenticado por el \StakeDistributionUTxO de referencia.
+	\item Recién después de ese chequeo corre la verificación de \TxSnapshotMembershipCircuit, que en el código del repositorio aparece como \texttt{snapshot\_membership.proof\_verifies(proof, locking\_tx\_hash, sub\_root, snapshot\_root)}.
+	\item Los \textit{public inputs} \Onchain del argumento \Groth vienen, en ese mismo orden, dados por el hash canónico de la transacción de \Cardano, la raíz pública del sub-tree \SnapshotSubRoot y el \texttt{CardanoTransactionsMerkleRoot} del certificado reducido, o sea \TxSetRoot.
+\end{enumerate}
+
+\subsection{Transición experimental a \Lagrange}
+
+Junto con el circuito \textit{legacy} integrado hoy al operador, el repositorio mantiene un experimento separado: \texttt{mithril\_lagrange\_tx\_membership\_experimental\allowbreak.circom}. Ese archivo adelanta la geometría esperada para la era \Lagrange: un único Merkle Tree plano de transacciones, un \texttt{leaf\_index}, un vector de siblings y una función de hash \MidnightPoseidonHash de \Midnight. En su forma actual, el circuito experimental recibe:
+\begin{enumerate}[noitemsep]
+  \item \texttt{cardano\_tx\_hash[32]};
+  \item \texttt{leaf\_index};
+  \item \texttt{siblings[MAX\_DEPTH][2]};
+  \item \texttt{expected\_root[2]}.
+\end{enumerate}
+Y expone exactamente las mismas seis salidas públicas que el circuito \textit{legacy}.
+
+Si notamos $\widetilde{H}_{\mathsf{Mid}}$ a la función hash \emph{mockeada} que hoy reemplaza provisionalmente a \MidnightPoseidonHash, la relación $\NP$ tentativa de ese circuito puede enunciarse así: existen un índice $j$ y un camino de hermanos tales que el digest hoja $\widetilde{\ell} = \widetilde{H}_{\mathsf{Mid}}(\TxId)$ reconstruye, mediante el Merkle Path determinado por por los bits de $j$, una Merkle Root igual a $\LagrangeTxSetRoot$.
+
+Este carril debe leerse hoy como trabajo futuro y no como una alternativa lista para usar, ya que la función hash todavía no es la variante definitiva de \MidnightPoseidonHash que \Mithril planea usar en producción, y el contrato de \textit{witness} del circuito experimental todavía no coincide con la forma de prueba que hoy entrega la API real del \MithrilAggregator, que se encuentra en la era \Pythagoras.

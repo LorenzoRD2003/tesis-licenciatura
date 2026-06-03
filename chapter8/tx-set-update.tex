@@ -1,0 +1,76 @@
+% !TeX root = ../tesis.tex
+
+\section{El circuito \TxSetUpdateCircuit}
+
+En el Capítulo 6 introdujimos el problema \textit{anti-replay} del camino $\LockTx \rightarrow \MintTx$: aun si el \zkBridge dispone de una prueba correcta de que cierta \LockTx ocurrió en \Cardano y pertenece a un \TransactionSnapshot autenticado por \Mithril, todavía falta evitar que esa misma evidencia se reutilice para mintear dos veces. La función del circuito \TxSetUpdateCircuit es precisamente cerrar esa brecha. No prueba pertenencia de una transacción en un snapshot certificado por \Mithril; esa es la responsabilidad del circuito \texttt{snapshot\_membership}. Lo que prueba aquí es que el \SMT local del bridge, que resume el conjunto de transacciones ya consumidas por el protocolo, fue actualizado correctamente al pasar de un estado donde la transacción reclamada estaba ausente a otro donde esa misma transacción figura como presente.
+
+Esta distinción es importante porque el circuito se verifica \Onchain en un lugar muy preciso del flujo. El argumento \Groth asociado a \TxSetUpdateCircuit es consumido por \TxsUpdaterMintingValidator, mientras que el argumento de pertenencia en el snapshot certificado es consumido por \MintingValidator. Ambos scripts deben validarse dentro de la misma \MintTx. Por eso conviene separar con cuidado tres niveles que en el código aparecen superpuestos: el \emph{statement} semántico del circuito, su interfaz aritmética compilada para \Groth y la manera en que el validador Aiken recupera de la transacción los datos necesarios para invocar al verificador.
+
+\subsection{Modelo matemático del \SMT}
+
+Fijamos un \SMT $\MerkleTree{T}$ de altura $H = 256$, cuyas hojas están indexadas por elementos de $\Bytes{32}$, o equivalentemente de $\Strings{256}$. El circuito trabaja sobre el cuerpo escalar $\Fr$ de \BLS, de modo que cada nodo interno del árbol es un elemento de $\Fr$. Las hojas usan como codificación $\EmptyNode = 0 \in \Fr$ para ausencia de la transacción y $1 \in \Fr$ si está presente.
+
+El hash interno del árbol es \PoseidonHash sobre $\Fr$. En la implementación concreta del repositorio, esta instancia corresponde a la variante conocida como \texttt{Poseidon255} sobre \BLS, pero para la formalización de la relación basta verla como una función determinista $\PoseidonTwo: \Fr \times \Fr \longrightarrow \Fr$, de modo que cada nodo interno se obtiene aplicando \PoseidonTwo a su hijo izquierdo y su hijo derecho, en ese orden.
+
+La posición de una transacción dentro del \SMT viene determinada por el identificador canónico de la transacción en \Cardano. Si notamos $\TxId \in \Bytes{32}$ y escribimos sus bits en orden \textit{big-endian} como $\TxId = (b_0,\ldots,b_{255})$ con $b_d \in \{0,1\},$ entonces el bit $b_d$ fija la dirección tomada en la profundidad $d$. En la implementación \Circom, esto está codificado en el arreglo \MtPathIndexesArray.
+
+Sea ahora $\SiblingVec = (h_0,\ldots,h_{255}) \in \Fr^{256}$ el vector de hermanos del camino asociado a \TxId, escrito también en orden de raíz hacia hoja. El mismo vector \SiblingVec sirve simultáneamente para probar ausencia antes de la actualización y presencia después de ella, porque la única diferencia entrxe ambos estados es el valor de la hoja terminal. Ningún nodo hermano fuera de ese camino se modifica.
+
+\subsection{\textit{Public inputs} y \textit{witness} del circuito}
+
+Los \textit{public inputs} del circuito están dados por la tripla $\PublicInputs = (\TxId, \RootIn, \RootOut)$, donde $\TxId \in \Bytes{32}$ es el identificador de la transacción, $\RootIn \in \Fr$ es la raíz del conjunto antes de procesarla y $\RootOut \in \Fr$ es la raíz después de marcarla como usada. El \textit{witness} es simplemente $\PrivateInputs = \SiblingVec = (h_0,\ldots,h_{255}) \in \Fr^{256}$.
+
+La instancia \Circom es más detallada porque debe hacer explícita la codificación binaria del \textit{statement}. Recibe:
+\begin{enumerate}[noitemsep]
+  \item \TxIdBytes{32}, que representa \TxId como $32$ bytes, el cual sirve para imponer chequeos de rango byte a byte, obtener la descomposición binaria de \TxId y empaquetar luego el digest en el formato esperado por el verificador \Groth;
+  \item \MtRootIn y \MtRootOut, que copian las raíces como elementos de $\Fr$;
+  \item \MtPathIndexes{256}, que explicita el vector de bits del camino, de modo que el circuito fuerza cada una de sus entradas a coincidir con el bit \textit{big-endian} correspondiente de \TxIdBytesArray;
+  \item \MtPathValues{256}, que contiene el vector \SiblingVec.
+\end{enumerate}
+
+Las salidas públicas efectivas del circuito, que luego pasan a ser los \textit{public inputs} del verificador \Groth \Onchain, son: $\left(\TxIdHi, \TxIdLo, \MtRootIn, \MtRootOut\right) \in \Fr^4$. Las dos raíces se exponen directamente como un único elemento del cuerpo cada una, mientras que \TxId se divide en dos mitades de $16$ bytes (porque $2^{256} > |\Fr|$) y cada mitad se interpreta como un entero \textit{big-endian} de $128$ bits:
+$$\TxId_{\mathrm{hi}} = \sum_{i=0}^{15} \TxId[i]\cdot 256^{15-i}, \qquad \TxId_{\mathrm{lo}} = \sum_{i=16}^{31} \TxId[i]\cdot 256^{31-i}.$$
+En el validador de Aiken, usamos estaa convención para reconstruir \TxIdHi y \TxIdLo a partir del \textit{redeemer}.
+
+\subsection{La relación \texorpdfstring{\(\NP\)}{NP} de \TxSetUpdateCircuit}
+
+Tenemos $\InstanceSpace = \Bytes{32} \times \Fr \times \Fr$, $\WitnessSpace = \Fr^{256}$,y consideramos la relación
+$\TxSetUpdateRelation \subseteq \InstanceSpace \times \WitnessSpace$. Consideramos $\PublicInputs = (\TxId, \RootIn, \RootOut) \in \InstanceSpace$ y $\PrivateInputs = (h_0,\ldots,h_{255}) \in \WitnessSpace$. Sea además $(b_0,\ldots,b_{255})$ la expansión \textit{big-endian} de \TxId.
+
+Definimos dos secuencias de acumuladores, una para la reconstrucción con hoja vacía y otra para la reconstrucción con hoja presente. Para $u \in \{0,1\}$, definimos recursivamente $a_{256}^{(u)} = u$, y para cada $d = 255,254,\ldots,0$:
+$$a_d^{(u)} =
+	\begin{cases}
+ 		\PoseidonTwo\bigl(a_{d+1}^{(u)}, h_d\bigr), & \text{si } b_d = 0,\\[4pt]
+ 		\PoseidonTwo\bigl(h_d, a_{d+1}^{(u)}\bigr), & \text{si } b_d = 1.
+	\end{cases}$$
+La recurrencia recorre el camino en sentido desde la hoja hacia la raíz. El valor $a_0^{(u)}$ es entonces la raíz reconstruida cuando se fija la hoja terminal igual a $u$. Por lo tanto, decimos que $\TxSetUpdateRelation(\PublicInputs, \PrivateInputs) = 1$ si y sólo si se satisfacen simultáneamente las condiciones $a_0^{(0)} = \RootIn$ y $a_0^{(1)} = \RootOut$. Es decir, la relación \TxSetUpdateRelation afirma:
+
+\begin{quote}
+El camino del \SMT determinado por los bits de \TxId cumple que, usando los mismos $256$ hashes hermanos sobre ese camino, la hoja vacía $0$ reconstruye la raíz anterior \RootIn y la hoja presente $1$ reconstruye la nueva raíz \RootOut.
+\end{quote}
+
+Como ambos chequeos utilizan los mismos vectores, la nueva raíz \RootOut no puede corresponder a una mutación arbitraria del árbol: debe ser el resultado de insertar exactamente la transacción \TxId en el conjunto representado por \RootIn, sin modificar ninguna otra hoja. El lenguaje asociado a $\TxSetUpdateRelation$ es
+$$\TxSetUpdateLanguage = \left\{(\TxId, \RootIn, \RootOut) \in \InstanceSpace \;\middle|\; \exists \; \SiblingVec \in \WitnessSpace: \TxSetUpdateRelation(\PublicInputs,\PrivateInputs)=1 \right\}.$$
+
+\subsection{Familias de restricciones del circuito}
+
+La relación anterior es implementada en \Circom para ser convertida a un circuito aritmético y luego a un \QAP.
+
+\begin{enumerate}[noitemsep]
+	\item Un chequeo de rango de cada byte en \TxIdBytesArray: para cada $0 \leq j < 32$, el circuito instancia un componente \texttt{AssertByte} y exige $0 \leq \TxIdBytes{j} < 256$.
+	\item La descomposición de cada byte \TxIdBytes{j} en bits mediante un componente \texttt{ToBits(8)}. Luego, forzamos cada entrada de \MtPathIndexesArray a ser booleana usando \texttt{AssertBit}, e imponemos la igualdad $\MtPathIndexes{d} = b_d$, para cada $0 \leq d < 256$. Esto impide sustituir el camino de otra clave por uno compatible con el mismo \SiblingVec.
+	\item El componente \texttt{SparseMerkleRoot(256)} llamado \texttt{inPath} recibe la hoja $0$, el vector \MtPathIndexes{256} y el vector \MtPathValues{256}, y restringe $\texttt{inPath.root} = \MtRootIn$, lo que equivale a $a_0^{(0)} = \RootIn$.
+	\item El componente \texttt{SparseMerkleRoot(256)} llamado \texttt{inPath} recibe la hoja $0$, el vector \MtPathIndexes{256} y el vector \MtPathValues{256}, y restringe $\texttt{inPath.root} = \MtRootOut$, lo que equivale a $a_0^{(0)} = \RootOut$.
+	\item Dos componentes \texttt{Pack16Bytes} empaquetan la mitad alta y la mitad baja de \TxIdBytes{32} en los enteros públicos \TxIdHi y \TxIdLo. Las dos raíces se copian además a \texttt{mt\_root\_in\_out} y \texttt{mt\_root\_out\_out}. Son exactamente los cuatro \textit{public inputs} contra los cuales verifica el validador \Onchain.
+\end{enumerate}
+
+\subsection{Vínculo con \TxsUpdaterMintingValidator}
+
+La utilidad del circuito en el protocolo aparece al mirar la interfaz del \TxsUpdaterMintingValidator, cuyas condiciones de aceptación fueron formalizadas en el Capítulo 6 y forma parte de las condiciones necesarias de \MintTx. El mapeo entre la matemática del argumento \Groth y la validación \Onchain es el siguiente:
+
+\begin{enumerate}[noitemsep]
+  \item El \UTxO \TxsUpdaterUTxO de entrada contiene la raíz anterior \RootIn en su \textit{datum};
+  \item El \UTxO $\TxsUpdaterUTxO^*$ de salida contiene la nueva raíz \RootOut en su \textit{datum};
+  \item el campo \texttt{redeemer.tx\_id} trae los \textit{public inputs} \TxIdHi y \TxIdLo;
+  \item los tres campos del argumento \Groth $\pi = (\pi_A, \pi_B, \pi_C)$ vienen como campos del \textit{redeemer}: \texttt{piA}, \texttt{piB}, \texttt{piC}.
+\end{enumerate}

@@ -80,6 +80,7 @@
 
 % Strings
 \newcommand{\Strings}[1]{\{0,1\}^{#1}}
+\newcommand{\Bytes}[1]{\ensuremath{\mathcal{B}_{#1}}\xspace}
 
 % Funciones de hash
 \newcommand{\Hash}{\mathcal{H}}
@@ -97,10 +98,23 @@
 \newcommand{\SHAOne}{\texttt{SHA-1}\xspace}
 \newcommand{\SHATwoFiveSix}{\texttt{SHA-256}\xspace}
 \newcommand{\BLAKETwo}{\texttt{BLAKE2}\xspace}
+\newcommand{\BLAKETwoBTwoFiveSix}{\texttt{BLAKE2B-256}\xspace}
 \newcommand{\BLAKETwoSTwoFiveSix}{\texttt{BLAKE2S-256}\xspace}
 \newcommand{\BLAKEThree}{\texttt{BLAKE3}\xspace}
 \newcommand{\RIPEMD}{\texttt{RIPEMD-160}\xspace}
 \newcommand{\PoseidonHash}{\texttt{Poseidon}\xspace}
+\newcommand{\PoseidonTwo}{\ensuremath{\PoseidonHash_{\mathsf{2}}}\xspace}
+\newcommand{\Circom}{\texttt{circom}\xspace}
+\newcommand{\TxIdHi}{\texttt{tx\_id\_hi}\xspace}
+\newcommand{\TxIdLo}{\texttt{tx\_id\_lo}\xspace}
+\newcommand{\MtRootIn}{\texttt{mt\_root\_in}\xspace}
+\newcommand{\MtRootOut}{\texttt{mt\_root\_out}\xspace}
+\newcommand{\MtPathValuesArray}{\texttt{mt\_path\_values}\xspace}
+\newcommand{\MtPathIndexesArray}{\texttt{mt\_path\_indexes}\xspace}
+\newcommand{\TxIdBytesArray}{\texttt{tx\_id\_b}\xspace}
+\newcommand{\MtPathValues}[1]{\texttt{mt\_path\_values[#1]}}
+\newcommand{\MtPathIndexes}[1]{\texttt{mt\_path\_indexes[#1]}}
+\newcommand{\TxIdBytes}[1]{\texttt{tx\_id\_b[#1]}}
 
 % Merkle Trees
 \newcommand{\MerkleTree}[1]{\mathcal{#1}}
@@ -113,15 +127,19 @@
 \newcommand{\SMT}{\textsf{SMT}\xspace}
 \newcommand{\defaultHash}[1]{z_{#1}} % Default Hashes
 \newcommand{\EmptyNode}{\bot} % Bottom / empty leaf
+\newcommand{\TxId}{\ensuremath{\mathsf{txid}}\xspace}
+\newcommand{\SiblingVec}{\ensuremath{\mathsf{sib}}\xspace}
+\newcommand{\RootIn}{\ensuremath{r_{\mathrm{in}}}\xspace}
+\newcommand{\RootOut}{\ensuremath{r_{\mathrm{out}}}\xspace}
 
 % Algoritmos
-\newcommand{\Commit}{\mathsf{Commit}}
-\newcommand{\Open}{\mathsf{Open}}
-\newcommand{\Prove}{\mathsf{Prove}}
-\newcommand{\Setup}{\mathsf{Setup}}
-\newcommand{\Sign}{\mathsf{Sign}}
-\newcommand{\Update}{\mathsf{Update}}
-\newcommand{\Verify}{\mathsf{Verify}}
+\newcommand{\Commit}{\ensuremath{\mathsf{Commit}}\xspace}
+\newcommand{\Open}{\ensuremath{\mathsf{Open}}\xspace}
+\newcommand{\Prove}{\ensuremath{\mathsf{Prove}}\xspace}
+\newcommand{\Setup}{\ensuremath{\mathsf{Setup}}\xspace}
+\newcommand{\Sign}{\ensuremath{\mathsf{Sign}}\xspace}
+\newcommand{\Update}{\ensuremath{\mathsf{Update}}\xspace}
+\newcommand{\Verify}{\ensuremath{\mathsf{Verify}}\xspace}
 
 % Zero-knowledge
 \newcommand{\ZeroKnowledge}{\textit{zero-knowledge}\xspace}
@@ -232,11 +250,14 @@
 \newcommand{\PCS}{\textsf{PCS}\xspace} % Polynomial Commitment Scheme
 \newcommand{\VCS}{\textsf{VCS}\xspace} % Vector Commitment Scheme
 \newcommand{\KZG}{\textsf{KZG}\xspace}
+\newcommand{\GWCNineteen}{\textsf{GWC19}\xspace}
 \newcommand{\AGM}{\textsf{AGM}\xspace}
 \newcommand{\MPC}{MPC}
 \newcommand{\SigmaProtocol}{\textit{$\Sigma$-protocol}\xspace}
 \newcommand{\FiatShamir}{Fiat--Shamir\xspace}
 \newcommand{\Groth}{\textsf{Groth16}\xspace}
+\newcommand{\PLONK}{\textsf{PLONK}\xspace}
+\newcommand{\PLONKish}{\textit{PLONKish}\xspace}
 \newcommand{\MSM}{\textsf{MSM}\xspace}
 \newcommand{\FFT}{\textsf{FFT}\xspace}
 \newcommand{\VRF}{\textsf{VRF}\xspace}
@@ -245,6 +266,16 @@
 \newcommand{\LightClients}{\textit{light clients}}
 \newcommand{\LightClientProtocol}{\textit{light client protocol}}
 \newcommand{\HaloTwo}{\textsf{Halo2}\xspace}
+\newcommand{\transcript}{\textit{transcript}\xspace}
+\newcommand{\HaloTwoMultiOpen}{\textsf{Halo2 Multi-Open}\xspace}
+\newcommand{\PlutusHaloTwoVerifierGen}{\texttt{plutus-halo2-verifier-gen}\xspace}
+\newcommand{\TxThree}{\texttt{Tx3}\xspace}
+\newcommand{\Trix}{\texttt{trix}\xspace}
+\newcommand{\CShell}{\texttt{cshell}\xspace}
+\newcommand{\Dolos}{\texttt{dolos}\xspace}
+\newcommand{\UplcTurbo}{\texttt{uplc-turbo}\xspace}
+\newcommand{\BridgeRunStrictCommand}{\texttt{./scripts/bridge.sh run --strict}\xspace}
+\newcommand{\fork}{\textit{fork}\xspace}
 
 % Bridges
 \newcommand{\Bridge}{\textsf{Bridge}\xspace}
@@ -350,6 +381,34 @@
 \newcommand{\LotteryWin}[3]{\ensuremath{\mathsf{Win}(#1,#2,#3)}}
 \newcommand{\STMRelation}{\ensuremath{\Relation_{\mathsf{STM\mbox{-}H2}}}\xspace}
 \newcommand{\STMLanguage}{\ensuremath{\Language_{\mathsf{STM\mbox{-}H2}}}\xspace}
+\newcommand{\TxSetUpdateCircuit}{\texttt{tx\_set\_update}\xspace}
+\newcommand{\TxSetUpdateRelation}{\ensuremath{\Relation_{\mathsf{tx\mbox{-}set\mbox{-}update}}}\xspace}
+\newcommand{\TxSetUpdateLanguage}{\ensuremath{\Language_{\mathsf{tx\mbox{-}set\mbox{-}update}}}\xspace}
+\newcommand{\TxSnapshotMembershipCircuit}{\texttt{snapshot\_membership}\xspace}
+\newcommand{\TxSnapshotMembershipRelation}{\ensuremath{\Relation_{\mathsf{tx\mbox{-}snapshot\mbox{-}membership}}}\xspace}
+\newcommand{\TxSnapshotMembershipLanguage}{\ensuremath{\Language_{\mathsf{tx\mbox{-}snapshot\mbox{-}membership}}}\xspace}
+\newcommand{\SubTag}{\ensuremath{\mathsf{sub}}\xspace}
+\newcommand{\MstTag}{\ensuremath{\mathsf{mst}}\xspace}
+\newcommand{\SnapshotSubRoot}{\ensuremath{r_{\SubTag}}\xspace}
+\newcommand{\SubPrefix}{\texttt{sub\_prefix}\xspace}
+\newcommand{\SubUpper}{\texttt{sub\_upper}\xspace}
+\newcommand{\MasterPrefix}{\texttt{master\_prefix}\xspace}
+\newcommand{\MasterUpper}{\texttt{master\_upper}\xspace}
+\newcommand{\SubPrefixWitness}{\ensuremath{\Psi_{\SubTag}^{\mathsf{pre}}}\xspace}
+\newcommand{\SubUpperWitness}{\ensuremath{\Psi_{\SubTag}^{\mathsf{up}}}\xspace}
+\newcommand{\MasterPrefixWitness}{\ensuremath{\Psi_{\MstTag}^{\mathsf{pre}}}\xspace}
+\newcommand{\MasterUpperWitness}{\ensuremath{\Psi_{\MstTag}^{\mathsf{up}}}\xspace}
+\newcommand{\MithrilLegacyTxMembershipCircuit}{\texttt{MithrilLegacyTxMembership}\xspace}
+\newcommand{\CardanoTxHashHi}{\texttt{cardano\_tx\_hash\_hi}\xspace}
+\newcommand{\CardanoTxHashLo}{\texttt{cardano\_tx\_hash\_lo}\xspace}
+\newcommand{\SubRootHi}{\texttt{sub\_root\_hi}\xspace}
+\newcommand{\SubRootLo}{\texttt{sub\_root\_lo}\xspace}
+\newcommand{\MasterRootHi}{\texttt{master\_root\_hi}\xspace}
+\newcommand{\MasterRootLo}{\texttt{master\_root\_lo}\xspace}
+\newcommand{\MasterLeaf}{\ensuremath{\mathsf{leaf}_{\mathsf{master}}}\xspace}
+\newcommand{\RangeAscii}{\texttt{range\_ascii}\xspace}
+\newcommand{\MergeOp}{\ensuremath{\mathsf{Merge}}\xspace}
+\newcommand{\StepOp}{\ensuremath{\mathsf{Step}}\xspace}
 \newcommand{\UniqueSchnorrSignature}{\texttt{UniqueSchnorrSignature}\xspace}
 \newcommand{\StandardSchnorrSignature}{\texttt{StandardSchnorrSignature}\xspace}
 \newcommand{\CommitmentPoint}{\texttt{commitment\_point}\xspace}
@@ -387,6 +446,7 @@
 \newcommand{\StakeDistributionUTxO}{\ensuremath{o_{\mathsf{sd}}}\xspace}
 \newcommand{\TransactionSnapshotCertificate}{\ensuremath{\mathsf{cert}_{\mathsf{ts}}}\xspace}
 \newcommand{\TransactionSnapshotUTxO}{\ensuremath{ts_{\mathsf{sd}}}\xspace}
+\newcommand{\TxsUpdaterUTxO}{\ensuremath{o_{\mathsf{txs\_set}}}\xspace}
 \newcommand{\Snapshot}{\ensuremath{\mathsf{snapshot}}\xspace}
 \newcommand{\Snapshots}{\ensuremath{\mathcal{S}}\xspace}
 \newcommand{\TransactionSnapshot}{\ensuremath{\mathsf{TxSnapshot}}\xspace}
@@ -408,6 +468,22 @@
 \newcommand{\CertificateChain}{\ensuremath{\mathsf{CertChain}}\xspace}
 \newcommand{\ZkBridgeOperator}{\ensuremath{\texttt{zk-bridge-operator}}\xspace}
 \newcommand{\CIP}{\textsf{CIP}\xspace}
+\newcommand{\ReferenceInput}{\textit{reference input}\xspace}
+\newcommand{\ReferenceScript}{\textit{reference script}\xspace}
+\newcommand{\ReferenceScripts}{\textit{reference scripts}\xspace}
+\newcommand{\ProofReceipt}{\texttt{proof\_receipt}\xspace}
+\newcommand{\PhaseOneState}{\texttt{Phase1State}\xspace}
+\newcommand{\ReducedRedeemer}{\texttt{ReducedRedeemer}\xspace}
+\newcommand{\PublishPhaseOneReferenceScriptTx}{\texttt{publish\_phase1\_reference\_script}\xspace}
+\newcommand{\PublishMintingTxsUpdaterSpendReferenceScriptTx}{\texttt{publish\_minting\_txs\_updater\_spend\_reference\_script}\xspace}
+\newcommand{\PublishBridgeMintingReferenceScriptTx}{\texttt{publish\_bridge\_minting\_reference\_script}\xspace}
+\newcommand{\PhaseOneSetupTx}{\texttt{phase1\_setup}\xspace}
+\newcommand{\PhaseTwoVerifyTx}{\texttt{phase2\_verify}\xspace}
+\newcommand{\StakeDistributionGenesisTxTemplate}{\texttt{stake\_distribution\_genesis\_tx}\xspace}
+\newcommand{\StakeDistributionStandardTxTemplate}{\texttt{stake\_distribution\_standard\_tx}\xspace}
+\newcommand{\LockingTxsUpdaterSeedTxTemplate}{\texttt{locking\_txs\_updater\_seed\_tx}\xspace}
+\newcommand{\MintingTxsUpdaterSeedTxTemplate}{\texttt{minting\_txs\_updater\_seed\_tx}\xspace}
+\newcommand{\BridgeMintTxTemplate}{\texttt{bridge\_mint\_tx}\xspace}
 \newcommand{\SPO}{\textsf{SPO}\xspace}
 \newcommand{\SPOs}{\textsf{SPOs}\xspace}
 \newcommand{\datum}{\ensuremath{\delta}\xspace}
@@ -423,10 +499,10 @@
 
 % Resource limits
 \newcommand{\ExUnits}{\texttt{ExUnits}\xspace}
-\newcommand{\maxTxSize}{\texttt{maxTxSize}}
-\newcommand{\maxBlockBodySize}{\texttt{maxBlockBodySize}}
-\newcommand{\maxBlockHeaderSize}{\texttt{maxBlockHeaderSize}}
-\newcommand{\maxTxExUnits}{\texttt{maxTxExUnits}}
-\newcommand{\maxBlockExUnits}{\texttt{maxBlockExUnits}}
-\newcommand{\collateralPercentage}{\texttt{collateralPercentage}}
-\newcommand{\maxCollateralInputs}{\texttt{maxCollateralInputs}}
+\newcommand{\maxTxSize}{\texttt{maxTxSize}\xspace}
+\newcommand{\maxBlockBodySize}{\texttt{maxBlockBodySize}\xspace}
+\newcommand{\maxBlockHeaderSize}{\texttt{maxBlockHeaderSize}\xspace}
+\newcommand{\maxTxExUnits}{\texttt{maxTxExUnits}\xspace}
+\newcommand{\maxBlockExUnits}{\texttt{maxBlockExUnits}\xspace}
+\newcommand{\collateralPercentage}{\texttt{collateralPercentage}\xspace}
+\newcommand{\maxCollateralInputs}{\texttt{maxCollateralInputs}\xspace}

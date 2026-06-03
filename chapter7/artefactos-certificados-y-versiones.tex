@@ -15,7 +15,7 @@ La documentación oficial refuerza la asimetría del lado transaccional. Un cert
 
 La implementación actual del \zkBridge consume el único camino que hoy aparece integrado de punta a punta en el flujo real del \MithrilAggregator: \Pythagoras con agregación de tipo \texttt{Concatenation} \cite{MithrilDocsAggregator}. El operador del \zkBridge trabaja contra esa interfaz al ejecutar \texttt{tx prove} sobre respuestas reales de la API del \MithrilAggregator.
 
-En esta ruta \LegacyHashScheme, el mensaje efectivamente autenticado por el certificado es una Merkle Root $\TxSetRoot \in \Strings{256}$, la cual es la del \ProtocolMsg de las secciones anteriores \cite{MithrilSTMRepo}. El \TransactionSnapshot expuesto por la API del \MithrilAggregator agrega además un número de bloque certificado $\SnapshotBlockNumber$ y un identificador derivado
+En esta ruta \LegacyHashScheme, el mensaje efectivamente autenticado por el certificado es una Merkle Root $\TxSetRoot \in \Bytes{32}$, la cual es la del \ProtocolMsg de las secciones anteriores \cite{MithrilSTMRepo}. El \TransactionSnapshot expuesto por la API del \MithrilAggregator agrega además un número de bloque certificado $\SnapshotBlockNumber$ y un identificador derivado
 $$\TransactionSnapshot = \left(\TransactionSnapshotHash, \TxSetRoot, \SnapshotBlockNumber\right), \qquad \TransactionSnapshotHash = \SHATwoFiveSix \left(\mathrm{hex}(\TxSetRoot) \concat \mathrm{be64}(\SnapshotBlockNumber) \right),$$
 pero el objeto firmado por \Mithril sigue siendo $\TxSetRoot$.
 
@@ -25,7 +25,7 @@ Para un número de bloque $\SnapshotBlockNumber$, definimos el conjunto de rango
 $$I(\SnapshotBlockNumber) = \left\{u \in \mathbb{N} : 15(u + 1) - 1 \leq \SnapshotBlockNumber \right\}$$
 y, para cada $u \in I(\SnapshotBlockNumber)$, la secuencia ordenada de transacciones $\TxRangeSet{u} = (\tx_{u,1},\ldots,\tx_{u,m_u})$, donde el orden está dado por número de bloque y luego por hash de la transacción. 
 
-Si $\lambda(\tx)$ denota la codificación en bytes del hash hexadecimal de $\tx$, entonces la raíz local del rango $R_u$ es $\TxRangeRoot{u}$ del Merkle Tree $\mathcal{T}_{\mathcal{L}, \BLAKETwoSTwoFiveSix}$ con $L = \{\lambda(\tx_{u,i})\}_{1\leq i\leq m_u}$.
+Si $\lambda(\tx) \in \Bytes{64}$ denota la codificación ASCII hexadecimal del hash de $\tx$, entonces la raíz local del rango $R_u$ es $\TxRangeRoot{u}$ del Merkle Tree $\mathcal{T}_{\mathcal{L}, \BLAKETwoSTwoFiveSix}$ con $L = \{\lambda(\tx_{u,i})\}_{1\leq i\leq m_u}$.
 
 El segundo nivel vuelve a comprometer estas raíces por rango. Si
 $$\RangeKey(R_u) = \mathrm{ascii} \left(\texttt{15u - 15(u + 1)}\right)$$

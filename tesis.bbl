@@ -318,4 +318,42 @@ M.~Team, ``Cardano transactions certification (mithril documentation),''
 \bibitem{MithrilDocsAggregator}
 M.~Team, ``Mithril aggregator node and rest api documentation,'' 2024--2026.
 
+\bibitem{PlutusHalo2VerifierGenRepo}
+I.~O. Global, ``plutus-halo2-verifier-gen,'' 2025--2026.
+\newblock Repositorio GitHub del generador de verificadores Halo2 para \Plutus
+  y Aiken.
+
+\bibitem{IOGHalo2PlutusVerifier}
+I.~O. Global, ``Unlocking zero-knowledge proofs for cardano: the halo2 plutus
+  verifier,'' 2025.
+
+\bibitem{CIP0033}
+C.~Foundation, ``Cip-0033: Reference scripts,'' 2021.
+
+\bibitem{CIP0133}
+C.~Foundation, ``Cip-0133: Multi-scalar multiplication over bls12-381,'' 2024.
+
+\bibitem{PlutusMSMBenchRepo}
+I.~O. Global, ``plutus-msm-bench,'' 2024--2026.
+\newblock Repositorio GitHub de benchmarks preliminares de MSM asociado al
+  esfuerzo de implementación de \CIP-133.
+
+\bibitem{CIP0031}
+C.~Foundation, ``Cip-0031: Reference inputs,'' 2021.
+
+\bibitem{Tx3DocsIntroduction}
+{TxPipe}, ``{Tx3} introduction.'' \url{https://docs.txpipe.io/tx3}, 2026.
+
+\bibitem{Tx3DocsTrix}
+{TxPipe}, ``{Trix} documentation.''
+  \url{https://docs.txpipe.io/tx3/tooling/trix}, 2026.
+
+\bibitem{CShellDocsUsage}
+{TxPipe}, ``{CShell} usage guide.'' \url{https://docs.txpipe.io/cshell/usage},
+  2026.
+
+\bibitem{DolosDocsOverview}
+{TxPipe}, ``{Dolos} quickstart and operation modes.''
+  \url{https://docs.txpipe.io/dolos}, 2026.
+
 \end{thebibliography}
