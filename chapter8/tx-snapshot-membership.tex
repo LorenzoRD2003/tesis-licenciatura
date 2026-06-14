@@ -6,9 +6,9 @@
 
 Este circuito resuelve cómo convencer a la cadena destino \ChainB de que la \LockTx de \ChainA efectivamente pertenece al \TransactionSnapshot de \Cardano autenticado por un certificado de \Mithril. Es decir, argumenta la pertenencia respecto de la Merkle Root de \CardanoTransactions que un \TransactionSnapshotCertificate expone en su \ProtocolMsg. Esto importa porque el \MintingValidator no solamente valida un \TransactionSnapshotCertificate contra el \ProofReceipt que dejó la fase 2 del verificador \STM, sino que además consume un argumento \Groth generado por \TxSnapshotMembershipCircuit para verificar que el \TxId de la \LockTx pertenece al snapshot autenticado por \TransactionSnapshotCertificate.
 
-\subsection{Modelo matemático del \TransactionSnapshot \Pythagoras de \Mithril}
+\subsection{Modelo matemático del \texorpdfstring{\TransactionSnapshot}{TransactionSnapshot} Pythagoras de Mithril}
 
-En la implementación actualmente compatible con el \MithrilAggregator, la entidad \CardanoTransactions se autentica mediante el esquema \LegacyHashScheme de la era \Pythagoras. Como dijimos en la sección 7.4, la prueba tiene estructura de dos niveles: un \emph{sub-tree} que agrupa un rango contiguo de transacciones de \Cardano, y un \emph{master tree} cuyas hojas son un compromiso de cada \textit{sub-tree} junto con el rango que representa.
+En la implementación actualmente compatible con el \MithrilAggregator, la entidad \CardanoTransactions se autentica mediante el esquema \LegacyHashScheme de la era \Pythagoras. Como acabamos de describir, la prueba tiene estructura de dos niveles: un \emph{sub-tree} que agrupa un rango contiguo de transacciones de \Cardano, y un \emph{master tree} cuyas hojas son un compromiso de cada \textit{sub-tree} junto con el rango que representa.
 
 Fijamos la función de hash $\BLAKETwoSTwoFiveSix: \Strings{\star} \to \Strings{256}$, y para cada longitud de bytes $\ell \in \N$ escribimos $\Bytes{\ell} = \Strings{8\ell}$. Si $\TxId \in \Bytes{32}$ es el hash canónico de una transacción de \Cardano, la hoja en el \textit{sub-tree} es su codificación hexadecimal ASCII en minúsculas $\mathsf{hex}_{\mathsf{lc}}(\TxId) \in \Bytes{64}$, que luego se hashea con \BLAKETwoSTwoFiveSix a \Bytes{32}.
 
@@ -100,7 +100,7 @@ La relación anterior es implementada en \Circom para ser convertida a un circui
 
 \subsection{Vínculo exacto con \MintingValidator}
 
-La utilidad del circuito en el protocolo aparece al mirar la interfaz del \MintingValidator, cuyas condiciones de aceptación fueron formalizadas en el Capítulo 6 y forman parte de las condiciones necesarias de \MintTx. El mapeo entre la matemática del argumento \Groth y la validación \Onchain es el siguiente:
+La utilidad del circuito en el protocolo aparece al mirar la interfaz del \MintingValidator, cuyas condiciones de aceptación fueron formalizadas en la primera etapa de implementación y forman parte de las condiciones necesarias de \MintTx. El mapeo entre la matemática del argumento \Groth y la validación \Onchain es el siguiente:
 \begin{enumerate}[noitemsep]
 	\item El validador construye un \texttt{ReducedMithril\allowbreak Certificate} a partir de los campos planos del \textit{redeemer}.
 	\item Inspecciona los inputs de la transacción para recuperar el \texttt{statement\_hash} persistido en el \ProofReceipt de fase 2 y, con eso, ejecuta la verificación del certificado contra el certificado padre autenticado por el \StakeDistributionUTxO de referencia.

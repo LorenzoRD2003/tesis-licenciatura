@@ -2,7 +2,7 @@
 
 \section{El circuito \TxSetUpdateCircuit}
 
-En el Capítulo 6 introdujimos el problema \textit{anti-replay} del camino $\LockTx \rightarrow \MintTx$: aun si el \zkBridge dispone de una prueba correcta de que cierta \LockTx ocurrió en \Cardano y pertenece a un \TransactionSnapshot autenticado por \Mithril, todavía falta evitar que esa misma evidencia se reutilice para mintear dos veces. La función del circuito \TxSetUpdateCircuit es precisamente cerrar esa brecha. No prueba pertenencia de una transacción en un snapshot certificado por \Mithril; esa es la responsabilidad del circuito \texttt{snapshot\_membership}. Lo que prueba aquí es que el \SMT local del bridge, que resume el conjunto de transacciones ya consumidas por el protocolo, fue actualizado correctamente al pasar de un estado donde la transacción reclamada estaba ausente a otro donde esa misma transacción figura como presente.
+En la primera etapa de implementación introdujimos el problema \textit{anti-replay} del camino $\LockTx \rightarrow \MintTx$: aun si el \zkBridge dispone de una prueba correcta de que cierta \LockTx ocurrió en \Cardano y pertenece a un \TransactionSnapshot autenticado por \Mithril, todavía falta evitar que esa misma evidencia se reutilice para mintear dos veces. La función del circuito \TxSetUpdateCircuit es precisamente cerrar esa brecha. No prueba pertenencia de una transacción en un snapshot certificado por \Mithril; esa es la responsabilidad del circuito \texttt{snapshot\_membership}. Lo que prueba aquí es que el \SMT local del bridge, que resume el conjunto de transacciones ya consumidas por el protocolo, fue actualizado correctamente al pasar de un estado donde la transacción reclamada estaba ausente a otro donde esa misma transacción figura como presente.
 
 Esta distinción es importante porque el circuito se verifica \Onchain en un lugar muy preciso del flujo. El argumento \Groth asociado a \TxSetUpdateCircuit es consumido por \TxsUpdaterMintingValidator, mientras que el argumento de pertenencia en el snapshot certificado es consumido por \MintingValidator. Ambos scripts deben validarse dentro de la misma \MintTx. Por eso conviene separar con cuidado tres niveles que en el código aparecen superpuestos: el \emph{statement} semántico del circuito, su interfaz aritmética compilada para \Groth y la manera en que el validador Aiken recupera de la transacción los datos necesarios para invocar al verificador.
 
@@ -66,7 +66,7 @@ La relación anterior es implementada en \Circom para ser convertida a un circui
 
 \subsection{Vínculo con \TxsUpdaterMintingValidator}
 
-La utilidad del circuito en el protocolo aparece al mirar la interfaz del \TxsUpdaterMintingValidator, cuyas condiciones de aceptación fueron formalizadas en el Capítulo 6 y forma parte de las condiciones necesarias de \MintTx. El mapeo entre la matemática del argumento \Groth y la validación \Onchain es el siguiente:
+La utilidad del circuito en el protocolo aparece al mirar \TxsUpdaterMintingValidator. Sus condiciones de aceptación fueron formalizadas en la primera etapa de implementación y forman parte de las condiciones necesarias de \MintTx. El mapeo entre la matemática del argumento \Groth y la validación \Onchain es el siguiente:
 
 \begin{enumerate}[noitemsep]
   \item El \UTxO \TxsUpdaterUTxO de entrada contiene la raíz anterior \RootIn en su \textit{datum};

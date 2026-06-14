@@ -1,6 +1,6 @@
 % !TeX root = ../tesis.tex
 
-No todos los artefactos certificados por \Mithril cumplen el mismo rol dentro de esta tesis. Para el \zkBridge, la distinción relevante no pasa por volver a describir la mecánica \STM ni la \CertificateChain, ya desarrolladas en 7.2 y 7.3, sino por identificar qué certificados alimentan estado persistente y cuáles sólo acompañan verificaciones puntuales. En el prototipo desarrollado, esta separación aparece de forma explícita en los tipos firmados \MithrilStakeDistribution y \CardanoTransactions.
+No todos los artefactos certificados por \Mithril cumplen el mismo rol dentro de esta tesis. Para el \zkBridge, la distinción relevante no pasa por volver a describir la mecánica \STM ni la \CertificateChain, ya desarrolladas en las secciones anteriores, sino por identificar qué certificados alimentan estado persistente y cuáles sólo acompañan verificaciones puntuales. En el prototipo desarrollado, esta separación aparece de forma explícita en los tipos firmados \MithrilStakeDistribution y \CardanoTransactions.
 
 \begin{itemize}[noitemsep]
 	\item Una entidad firmada \MithrilStakeDistribution certifica un comité autenticado de \Mithril $P'_n$ y parámetros $\ProtocolParams_n$ de una época n. Colabora en sostener la \CertificateChain y por lo tanto el estado persistente de la capa de actualización del \zkBridge.
@@ -101,16 +101,22 @@ si y sólo si todas las ramas locales y la rama maestra llegan a la misma raíz 
 
 \subsection{\Lagrange como transición}
 
-\Lagrange no cambia el rol lógico del certificado dentro del \zkBridge. Lo que sí cambia es la representación matemática del mensaje firmado y de la evidencia que luego debe verificar el \zkBridge. El propio código de \Mithril deja visibles esas modificaciones aunque el \MithrilAggregator productivo todavía opere sobre el carril \Pythagoras. Pero como el \zkBridge está diseñado sobre \Lagrange, en el Capítulo 8 también debemos hacer un circuito que esté listo y funcione para cuando el \MithrilAggregator haga el cambio de era.
+\Lagrange no cambia el rol lógico del certificado dentro del \zkBridge. Lo que sí cambia es la representación matemática del mensaje firmado y de la evidencia que luego debe verificar el \zkBridge. El propio código de \Mithril deja visibles esas modificaciones aunque el \MithrilAggregator productivo todavía opere sobre el carril \Pythagoras. Pero como el \zkBridge está diseñado sobre \Lagrange, en el capítulo siguiente también debemos hacer un circuito que esté listo y funcione para cuando el \MithrilAggregator haga el cambio de era.
 
 \paragraph{El mensaje firmado deja de ser sólo un hash \LegacyHashScheme.}
 % TODO: mejorar esto
 En \Pythagoras, el certificado termina firmando el valor $ \LegacyDigest = \ProtocolMsg.\texttt{compute\_hash()}$ con esquema \LegacyHashScheme, es decir, un hash calculado sobre el diccionario dinámico de partes del mensaje. En la ruta \Lagrange, en cambio, \texttt{ProtocolMessage} pasa al esquema \RigidHashScheme y el repositorio ya fija una preimagen rígida, de longitud y segmentación controladas, de la forma:
-$$\RigidDigest = \SHATwoFiveSix \left(\texttt{digest} \concat d \concat \texttt{next\_aggregate\_verification\_key} \concat a \concat \texttt{next\_protocol\_parameters} \concat p \concat \texttt{current\_epoch} \concat e \right),$$
+$$
+\begin{aligned}
+\RigidDigest = \SHATwoFiveSix \bigl(&\texttt{digest} \concat d \concat \texttt{next\_aggregate\_verification\_key} \\
+&\concat a \concat \texttt{next\_protocol\_parameters} \concat p \\
+&\concat \texttt{current\_epoch} \concat e \bigr),
+\end{aligned}
+$$
 donde: $d = \SHATwoFiveSix(\DynamicMsgParts)$ y \(\DynamicMsgParts\) es la proyección del mensaje que conserva las partes dinámicas (entre ellas, para \CardanoTransactions, la raíz del \Snapshot) pero excluye los segmentos rígidos reinyectados por separado. Matemáticamente, el cambio central es que el mensaje firmado pasa a ser una palabra estructurada sobre ranuras fijas, pensada para ser consumida por un \SNARK \cite{MithrilSTMRepo}.
 
 \paragraph{El conjunto de transacciones deja de representarse como un árbol de dos niveles.}
 % TODO: mejorar esto
 El circuito experimental \texttt{mithril\_lagrange\_tx\_membership\_experimental}\allowbreak\texttt{.circom} anticipa otra geometría. Todas las transacciones pasan a organizarse en un Merkle Tree plano, sin partición por rango de bloques, sin $\kappa(R_u)$, sin hojas maestras y sin recursión. Si enumeramos las transacciones certificadas como $\mathcal{T} = (\tx_0,\tx_1,\ldots,\tx_{N-1})$, la representación sugerida por ese circuito puede verse como la raíz $\LagrangeTxSetRoot$ del Merkle Tree $\mathcal{T}_{\mathcal{L}, \MidnightPoseidonHash}$, donde $L = \{\MidnightPoseidonHash(\lambda(\tx_i))\}_{0 \leq i < N}$ y $\MidnightPoseidonHash$ representa la variante \textit{Midnight Poseidon} planeada por \Mithril para el camino \FutureSnark. En el experimento actual esa función todavía está \textit{mockeada} con \texttt{Poseidon255}, por lo que la igualdad anterior debe leerse como el objetivo matemático, no como el resultado final implementado en el \zkBridge.
 
-El README del circuito aclara, sin embargo, que este camino todavía no está conectado al operador ni es compatible con \texttt{tx prove}, precisamente porque el formato del \textit{witness} todavía no coincide con la forma de prueba que entrega el \MithrilAggregator actual. Por eso, en el Capítulo 8 aparecerán dos circuitos: uno plenamente alineado con el camino \Pythagoras hoy soportado por el servicio, y otro de carácter experimental que adelanta cómo debería verse la ruta \Lagrange cuando esa interfaz deje de ser sólo inferible desde el código y pase a estar efectivamente desplegada.
+El README del circuito aclara, sin embargo, que este camino todavía no está conectado al operador ni es compatible con \texttt{tx prove}, precisamente porque el formato del \textit{witness} todavía no coincide con la forma de prueba que entrega el \MithrilAggregator actual. Por eso, en el capítulo siguiente aparecerán dos circuitos: uno plenamente alineado con el camino \Pythagoras hoy soportado por el servicio, y otro de carácter experimental que adelanta cómo debería verse la ruta \Lagrange cuando esa interfaz deje de ser sólo inferible desde el código y pase a estar efectivamente desplegada.

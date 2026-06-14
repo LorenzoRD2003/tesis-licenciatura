@@ -62,14 +62,14 @@ La idea de esta subsección es observar que un esquema de compromiso vectorial e
 
 Para simplificar la exposición, omitimos explícitamente el espacio de aleatoriedad $\RandomnessSpace$. Esta omisión no afecta la construcción que utilizaremos (Merkle Trees), la cual es determinística, y la seguridad no se basa en la aleatoriedad, sino en la resistencia a colisiones de una función de hash criptográfica $\Hash$ (en el \ROM) \cite{katz}.
 
-Por otra parte, decidimos incluir el espacio de pruebas $\ProofSpace$, así como separar los algoritmos $\Open$ y $\Verify$, para poder ver la relación que hay entre ellos y lo que aprendimos en el capítulo anterior más detalladamente.
+Por otra parte, decidimos incluir el espacio de pruebas $\ProofSpace$, así como separar los algoritmos $\Open$ y $\Verify$, para poder ver con más detalle la relación entre ambos y las primitivas ya introducidas.
 
 Podemos definir un \VCS a partir de los Merkle Trees de la siguiente forma: dado un vector $\mathbf{v} \in \K^n$, el compromiso se define como $c := \MerkleRoot{\MerkleTree{T}}$, donde $\MerkleTree{T}$ es el Merkle Tree de hojas son $h_i = \Hash(v_i)$, y la apertura de la $i$-ésima posición se corresponde exactamente con una Merkle Proof. Bajo esta interpretación:
 
 \begin{itemize}[itemsep=0.1cm]
 	\item $\Commit(\mathbf{v}) := \MerkleRoot{\MerkleTree{T}}$.
 	\item $\Open(c,i, \mathbf{v}_i)$ devuelve la Merkle Proof $\pi$ asociada a $\ell_i$.
-	\item $\Verify(c, i, \mathbf{v}_i, \pi)$ se corresponde con verificar la Merkle Proof (con el algoritmo $\Verify$ del Merkle Tree definido en el capítulo 1).
+	\item $\Verify(c, i, \mathbf{v}_i, \pi)$ se corresponde con verificar la Merkle Proof (con el algoritmo $\Verify$ del Merkle Tree ya introducido).
 \end{itemize}
 
 La propiedad de binding se deduce de que la resistencia a colisiones de $\Hash$ (no es computacionalmente posible abrir una posición del vector de dos maneras distintas y llegar a la misma raíz). Por otra parte, los Merkle Trees no garantizan hiding en el sentido tradicional de los esquemas de compromiso, ya que el compromiso es determinístico, pero utilizaremos que en el \ROM un hash puede interpretarse como una forma de ocultamiento computacional.
@@ -99,7 +99,7 @@ sin necesidad de revelar completamente $P$. Esta noción es el \emph{argumento d
 
 Formalmente, el concepto de un argumento de evaluación es el objeto $\pi \in \Pi$ generado por el algoritmo $\Open$.
 
-Ahora, vamos a conectar estas ideas con las primitivas criptográficas que aprendimos en el capítulo 1. Desde una perspectiva puramente algebraica, $P(z) = y$ equivale a que el polinomio $Q(x) = P(x) - y$ tiene a $z$ como raíz, es decir que existe un polinomio $H \in \poly{\K}$ tal que $P(x) - y = (x - z)H(x)$. El problema se reduce entonces a argumentar esta afirmación.
+Ahora, vamos a conectar estas ideas con las primitivas criptográficas ya introducidas. Desde una perspectiva puramente algebraica, $P(z) = y$ equivale a que el polinomio $Q(x) = P(x) - y$ tiene a $z$ como raíz, es decir que existe un polinomio $H \in \poly{\K}$ tal que $P(x) - y = (x - z)H(x)$. El problema se reduce entonces a argumentar esta afirmación.
 
 El Lema de Schwartz–Zippel establece que dos polinomios distintos de grado acotado $d$ coinciden en un punto aleatorio con probabilidad despreciable, a lo sumo $\frac{d}{|\K|}$. Por lo tanto, si el verifier pudiera evaluar ambos lados de la identidad en un punto aleatorio $r$. Es decir, si pudiera evaluar la identidad
 $$P(r) - y \overset{?}{=} (r - z)H(r).$$

@@ -1,6 +1,6 @@
 % !TeX root = ../tesis.tex
 
-Retomando la sección 7.2, el \MithrilAggregator normaliza la evidencia como un \textit{witness} $\SnarkWitness = (w_1, \ldots, w_k) \in \WitnessSpace$. El circuito \HaloTwo de la era \Lagrange argumenta que existen $k$ participantes legítimos del comité autenticado por $\SnarkAVK$, cada uno con una firma Schnorr válida sobre $\RigidDigest$, un Merkle correcto e índice de lotería ganador. Los objetos
+Retomando la sección anterior, el \MithrilAggregator normaliza la evidencia como un \textit{witness} $\SnarkWitness = (w_1, \ldots, w_k) \in \WitnessSpace$. El circuito \HaloTwo de la era \Lagrange argumenta que existen $k$ participantes legítimos del comité autenticado por $\SnarkAVK$, cada uno con una firma Schnorr válida sobre $\RigidDigest$, un Merkle correcto e índice de lotería ganador. Los objetos
 $$\SnarkAuthReg = \left\{\SnarkLeaf{1},\ldots,\SnarkLeaf{n}\right\}, \qquad \SnarkAVK = (\SnarkRoot, S), \qquad \RigidDigest = \RigidHash(\ProtocolMsg),$$
 ya quedaron fijados en dicha sección.
 
@@ -17,7 +17,7 @@ Introducimos ahora la relación $\NP$ $\STMRelation \subseteq \InstanceSpace \ti
 Esta formulación hace explícito que el circuito no prueba ``todo \Mithril'', sino sólo la consistencia de un conjunto de \(k\) testigos seleccionados respecto del comité autenticado, del mensaje público y del mecanismo de lotería.
 
 \paragraph{1. Correctitud del Merkle Tree.}
-Para cada $1 \leq t \leq k$, la hoja $\SnarkLeaf{i_t}$ debe pertenecer al Merkle Tree de raíz $\SnarkRoot$. En la notación del Capítulo 1, esta condición es la verificación de una Merkle Proof sobre el hash $\ell_t$ de $\SnarkLeaf{i_t}$. El circuito verifica $\Verify(\ell_t, \MerklePath_{i_t}, \SnarkRoot) = 1$.
+Para cada $1 \leq t \leq k$, la hoja $\SnarkLeaf{i_t}$ debe pertenecer al Merkle Tree de raíz $\SnarkRoot$. Esta condición es la verificación de una Merkle Proof sobre el hash $\ell_t$ de $\SnarkLeaf{i_t}$. El circuito verifica $\Verify(\ell_t, \MerklePath_{i_t}, \SnarkRoot) = 1$.
 
 \paragraph{2. Correctitud de las \UniqueSchnorrSignature.}
 Para cada entrada $w_t \in \PrivateInputs$, el circuito debe verificar que $\SchnorrSignature_{i_t} = (C_{i_t},r_{i_t},c_{i_t})$ es una firma válida sobre $\RigidDigest$ bajo $\SchnorrVK_{i_t}$. Como $\RigidDigest$ es el mismo para cada $w_t$, el punto $H_t = \HashToCurve(\RigidDigest) \in \E(\Fq)$ es fijo. Se recomputan $R_{1,t}, R_{2, t} \in \E(\Fq)$ como:

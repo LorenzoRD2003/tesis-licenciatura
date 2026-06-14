@@ -45,7 +45,7 @@ En consecuencia, las ``columnas auxiliares'' de \HaloTwo relevantes para esta se
 \end{enumerate}
 El costo algebraico del circuito no queda determinado únicamente por las columnas explícitas, sino también por estas entidades adicionales que \HaloTwo introduce para probar consistencia global.
 
-\subsection{Uso de crates de \Midnight}
+\subsection{Uso de crates de \texorpdfstring{\textnormal{\Midnight}}{Midnight}}
 
 La descripción anterior corresponde a \HaloTwo/\KZG en abstracto. En \Mithril, sin embargo, la aritmetización concreta no se escribe directamente contra una API mínima de columnas y \textit{gates}, sino a través de las crates \texttt{midnight\_proofs} y \texttt{midnight\_zk\_stdlib}. Este detalle importa matemáticamente porque fija una transformación intermedia
 $$\mathcal{C}_{\mathsf{Mid}}: \STMRelation \to \Circuit_{\mathsf{Halo2/KZG}},$$

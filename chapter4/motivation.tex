@@ -119,7 +119,7 @@ En particular, estos límites imponen restricciones directas sobre el tamaño m�
 
 \subsection{Cómo los límites estrictos moldean el espacio de diseño}
 
-Aunque posponemos decisiones de diseño concretas hasta el Capítulo 5, es útil explicar las consecuencias típicas que estos límites imponen sobre un \zkBridge. El modelo \eUTxO representa naturalmente el estado como un \UTxO. Actualizar ese estado requiere consumirlo, lo que impone una forma de secuencialidad sobre las actualizaciones del estado canónico del \Bridge. Por lo tanto, el throughput está acotado tanto por la contención del \UTxO como por los límites de recursos por bloque.
+Aunque posponemos la discusión detallada de las decisiones de diseño para el capítulo siguiente, es útil explicar las consecuencias típicas que estos límites imponen sobre un \zkBridge. El modelo \eUTxO representa naturalmente el estado como un \UTxO. Actualizar ese estado requiere consumirlo, lo que impone una forma de secuencialidad sobre las actualizaciones del estado canónico del \Bridge. Por lo tanto, el throughput está acotado tanto por la contención del \UTxO como por los límites de recursos por bloque.
 
 Además, la verificación ZK puede ser computacionalmente costosa dependiendo del sistema de prueba y de las primitivas criptográficas disponibles en la máquina virtual \Onchain. Si una verificación directa no entra en \maxTxExUnits, un \Bridge debe elegir al menos una de las siguientes alternativas:
 
@@ -170,7 +170,7 @@ Una dificultad fundamental en el diseño de \Bridges sobre \Cardano es la obtenc
 
 Dentro del ecosistema de \Cardano, el protocolo \Mithril \cite{cryptoeprint:2021/916} propone una solución en esta dirección mediante el uso de firmas agregadas ponderadas por stake para certificar snapshots del estado de la blockchain. En lugar de requerir el procesamiento completo de la cadena o la verificación explícita de la lógica de consenso, \Mithril permite trabajar con certificados compactos que argumentan la validez de un estado acordado por una fracción significativa del stake de la red. Esto permite diseñar mecanismos de verificación más eficientes, tanto en términos de tamaño de datos como de costo computacional \Onchain.
 
-Esto permite diseñar mecanismos de verificación más eficientes, tanto en términos de tamaño de datos como de costo computacional \Onchain, lo cual resulta especialmente relevante en el contexto de las restricciones del modelo \eUTxO. El protocolo \Mithril será analizado en profundidad en el Capítulo 7.
+Esto permite diseñar mecanismos de verificación más eficientes, tanto en términos de tamaño de datos como de costo computacional \Onchain, lo cual resulta especialmente relevante en el contexto de las restricciones del modelo \eUTxO. El protocolo \Mithril será analizado en profundidad más adelante.
 
 \section{Direcciones futuras}
 

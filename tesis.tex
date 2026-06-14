@@ -85,82 +85,11 @@
 
 %%%% ACA VA EL CONTENIDO DE LA TESIS
 
-\chapter{Primitivas Criptográficas}
-\section{Cuerpos Finitos}
+\chapter{Introducción}
 
-\input{chapter1/cuerpos-finitos}
-
-\section{Problema del logaritmo discreto (\DLP)}
-
-\input{chapter1/dlp}
-
-\section{Polinomios}
-
-\input{chapter1/polinomios}
-
-\section{Curvas Elípticas}
-
-\input{chapter1/curvas-elipticas}
-
-\section{Pairings bilineales}
-
-\input{chapter1/pairings}
-
-\section{Hashes}
-
-\input{chapter1/hashes}
-
-\section{Merkle Trees}
-
-\input{chapter1/merkle_tree}
-
-\section{Sparse Merkle Trees (\SMT)}
-
-\input{chapter1/sparse-merkle-tree}
-
-
-%% ...
-\chapter{Aritmetización y Construcción de un \SNARK}
-
-\section{Introducción a pruebas \ZK}
-
-\input{chapter2/introduccion}
-
-\section{SNARKs}
-
-\input{chapter2/snark}
-
-\section{Circuitos Aritméticos}
-
-\input{chapter2/arithmetic-circuits}
-
-\section{Sistemas de Restricciones \ROneCS (Rank-1 Constraint Systems)}
-
-\input{chapter2/r1cs}
-
-\section{\QAP: Quadratic Arithmetic Programs}
-
-\input{chapter2/qap}
-
-\section{Esquemas de Compromiso (Commitment Schemes)}
-
-\input{chapter2/commitment-schemes}
-
-\section{\KZG}
-
-\input{chapter2/kzg}
-
-\section{Protocolo \FiatShamir y No-Interactividad}
-
-\input{chapter2/fiat-shamir}
-
-\section{\Groth}
-
-\input{chapter2/groth16}
-
+\input{chapter0-introduction}
 
 \chapter{Bridges y \zkBridge}
-
 \section{Bridges en la Blockchain}
 
 \input{chapter3/bridges}
@@ -236,5 +165,84 @@
 
 \bibliographystyle{ieeetr}
 \bibliography{tesis}
+
+\cleardoublepage
+\makeatletter
+\@mainmattertrue
+\makeatother
+\appendix
+
+\chapter{Primitivas Criptográficas}
+\section{Cuerpos Finitos}
+
+\input{chapter1/cuerpos-finitos}
+
+\section{Problema del logaritmo discreto (\DLP)}
+
+\input{chapter1/dlp}
+
+\section{Polinomios}
+
+\input{chapter1/polinomios}
+
+\section{Curvas Elípticas}
+
+\input{chapter1/curvas-elipticas}
+
+\section{Pairings bilineales}
+
+\input{chapter1/pairings}
+
+\section{Hashes}
+
+\input{chapter1/hashes}
+
+\section{Merkle Trees}
+
+\input{chapter1/merkle_tree}
+
+\section{Sparse Merkle Trees (\SMT)}
+
+\input{chapter1/sparse-merkle-tree}
+
+
+%% ...
+\chapter{Aritmetización y Construcción de un \SNARK}
+
+\section{Introducción a pruebas \ZK}
+
+\input{chapter2/introduccion}
+
+\section{SNARKs}
+
+\input{chapter2/snark}
+
+\section{Circuitos Aritméticos}
+
+\input{chapter2/arithmetic-circuits}
+
+\section{Sistemas de Restricciones \ROneCS (Rank-1 Constraint Systems)}
+
+\input{chapter2/r1cs}
+
+\section{\QAP: Quadratic Arithmetic Programs}
+
+\input{chapter2/qap}
+
+\section{Esquemas de Compromiso (Commitment Schemes)}
+
+\input{chapter2/commitment-schemes}
+
+\section{\KZG}
+
+\input{chapter2/kzg}
+
+\section{Protocolo \FiatShamir y No-Interactividad}
+
+\input{chapter2/fiat-shamir}
+
+\section{\Groth}
+
+\input{chapter2/groth16}
 
 \end{document}

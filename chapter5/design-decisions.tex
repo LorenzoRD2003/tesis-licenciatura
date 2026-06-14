@@ -1,10 +1,6 @@
 % !TeX root = tesis.tex
 
-Durante este capítulo, utilizaremos $\ChainA$ para referirnos a la blockchain de origen y $\ChainB$ para referirnos a la blockchain destino.
-
-\section{Resumen}
-
-Este capítulo formaliza \emph{decisiones de diseño} para un \zkBridge sobre \Cardano, partiendo de las restricciones del modelo \eUTxO y de la capa de ejecución (límites \maxTxSize y \maxTxExUnits), discutidas en el Capítulo 4. Se propone separar el sistema en dos capas. Por un lado, una \emph{capa de actualización} que mantiene, en $\ChainB$, información verificable sobre $\ChainA$; y una \emph{capa de aplicación} que implementa la lógica de \textit{locking}/\textit{minting} y \textit{burning}/\textit{unlocking} sobre esa base. Esta estructura guía todas las decisiones.
+Este capítulo formaliza \emph{decisiones de diseño} para un \zkBridge sobre \Cardano, partiendo de las restricciones del modelo \eUTxO y de la capa de ejecución (límites \maxTxSize y \maxTxExUnits) discutidas en el capítulo anterior. Se propone separar el sistema en dos capas. Por un lado, una \emph{capa de actualización} que mantiene, en $\ChainB$, información verificable sobre $\ChainA$; y una \emph{capa de aplicación} que implementa la lógica de \textit{locking}/\textit{minting} y \textit{burning}/\textit{unlocking} sobre esa base. Esta estructura guía todas las decisiones.
 
 La decisión central de diseño es \textbf{evitar} un argumento \ZK del algoritmo nativo de validación de headers de \Praos (\VRF, selección de slot leader, certificados operacionales y firmas \KES), y \textbf{adoptar Mithril como \LightClient} para certificar \emph{\StakeDistribution por \Epoch} e \emph{inclusión de transacciones} mediante certificados de \Mithril y pruebas de Merkle, con la seguridad anclada en el stake \cite{MithrilDocsOverview}. Una alternativa nativa requeriría una cantidad grande de datos contextuales (por ejemplo, el stake relativo del pool productor y el \Nonce de época), complicando el circuito y su actualización por época. El uso de \Mithril desplaza ese costo a un protocolo dedicado a snapshots/certificación, y reduce la superficie de cambios para la futura evolución del consenso de \Cardano (\Peras y \Leios), ya que el \Bridge valida certificados \Mithril en lugar de reglas de consenso directamente \cite{PerasFAQ,LeiosSite}.
 
