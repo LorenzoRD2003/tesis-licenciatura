@@ -1,0 +1,127 @@
+\chapter*{Notación}
+\addcontentsline{toc}{chapter}{Notación}
+
+\begingroup
+\small
+\setlength{\LTleft}{0pt}
+\setlength{\LTright}{0pt}
+\renewcommand{\arraystretch}{1.15}
+
+\section*{Notación matemática y algebraica}
+\begin{longtable}{p{0.33\textwidth}p{0.61\textwidth}}
+\toprule
+\textbf{Símbolo} & \textbf{Significado} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Símbolo} & \textbf{Significado} \\
+\midrule
+\endhead
+$\F, \K$ & Cuerpo (finito, base, escalar), según el contexto. \\
+$\Fp, \Fq, \Fr$ & Cuerpos finitos de orden $p$, $q$ y $r$. \\
+$\charac{\K}$ & Característica del cuerpo $\K$. \\
+$\GG, \GOne, \GTwo, \GT$ & Grupos algebraicos usados en esquemas con pairings. \\
+$\pairing{P}{Q}$ & Pairing bilineal evaluado en $P \in \GOne$ y $Q \in \GTwo$. \\
+$\E, \OO$ & Curva elíptica y su punto al infinito. \\
+$\Hash$ & Función de hash genérica. \\
+$\Prob$ & Operador de probabilidad. \\
+$\securityparam, \negl$ & Parámetro de seguridad y función negligible. \\
+$\BigO, \BigOmega, \BigTheta$ & Notación asintótica estándar. \\
+$\Pclass, \NP, \IP, \PSPACE$ & Clases de complejidad computacional. \\
+\bottomrule
+\end{longtable}
+
+\section*{Pruebas sucintas y aritmetización}
+\begin{longtable}{p{0.33\textwidth}p{0.61\textwidth}}
+\toprule
+\textbf{Símbolo} & \textbf{Significado} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Símbolo} & \textbf{Significado} \\
+\midrule
+\endhead
+$\Prover, \Verifier$ & \textit{Prover} y \textit{verifier} de un protocolo. \\
+$\Relation, \Language$ & Relación y lenguaje asociados a un problema de verificación. \\
+$\InstanceSpace, \WitnessSpace, \ProofSpace$ & Espacios de \textit{public inputs}, \textit{witness} y pruebas/argumentos. \\
+\Setup, \Prove, \Verify & Algoritmos de protocolos de pruebas/argumentos. \\
+$\CRS$, \SRS & \textit{Common Reference String} y \textit{Structured Reference String}. \\
+\NIZK, \SNARK, \zkSNARK, \STARK, \zkSTARK & Familias de pruebas no interactivas y sucintas. \\
+\ROneCS, \QAP, \PCS, \VCS & Modelos y primitivas de aritmetización y compromiso. \\
+\KZG, \FiatShamir, \Groth, \PLONK, \HaloTwo & Protocolos usados recurrentemente en la tesis. \\
+$\Circuit, \Constraint$ & Circuito aritmético y restricción genérica de un circuito. \\
+$\EvalDomain, \VanishingPoly$ & Dominio de evaluación y polinomio anulador asociado. \\
+$\QuotientPoly, \PermutationPoly, \LookupPoly$ & Polinomio cociente y polinomios auxiliares de permutación y \textit{lookup}. \\
+\bottomrule
+\end{longtable}
+
+\section*{Merkle Trees}
+\begin{longtable}{p{0.33\textwidth}p{0.61\textwidth}}
+\toprule
+\textbf{Símbolo} & \textbf{Significado} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Símbolo} & \textbf{Significado} \\
+\midrule
+\endhead
+$\MerkleTree{T}$ & Árbol de Merkle genérico. \\
+$\MerkleRoot{\MerkleTree{T}}$ & Raíz del árbol $\MerkleTree{T}$. \\
+$\MerkleProof$ & Prueba de inclusión de Merkle. \\
+$\MerklePath$ & Camino autenticado dentro del árbol. \\
+$\MerkleLeaf, \MerkleSibling, \MerkleIndex$ & Hoja, nodo hermano e índice de una prueba de inclusión. \\
+\SMT & \textit{Sparse Merkle Tree}. \\
+$\EmptyNode$ & Hoja o nodo vacío en un \SMT. \\
+$\RootIn, \RootOut$ & Raíces de entrada y salida del anti-replay. \\
+$\SiblingVec$ & Vector de nodos hermanos en una prueba de Merkle. \\
+\bottomrule
+\end{longtable}
+
+\section*{\Cardano y validadores}
+\begin{longtable}{p{0.33\textwidth}p{0.61\textwidth}}
+\toprule
+\textbf{Símbolo} & \textbf{Significado} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Símbolo} & \textbf{Significado} \\
+\midrule
+\endhead
+$\ChainA, \ChainB$ & Cadenas de origen y destino del bridge. \\
+$\state, \tx, \event$ & Estado, transacción y evento abstractos del protocolo. \\
+\LockTx, \MintTx, \BurnTx, \UnlockTx, \UpdaterTx & Transacciones canónicas del flujo del bridge. \\
+\UTxO, \UTxOs, \eUTxO, \eUTxOs & Modelo \UTxO clásico y su extensión en \Cardano. \\
+\Plutus, \UPLC & Lenguaje y \textit{assembly} de scripts en \Cardano. \\
+$\Ouroboros$ & Protocolo de consenso de \Cardano. \\
+$\Epoch, \Slot$ & Época y slot del protocolo \Ouroboros. \\
+$\datum, \redeemer, \validator, \txcontext$ & Componentes semánticos de un validador en \Cardano. \\
+\bottomrule
+\end{longtable}
+
+\section*{\Mithril, certificados y snapshots}
+\begin{longtable}{p{0.33\textwidth}p{0.61\textwidth}}
+\toprule
+\textbf{Símbolo} & \textbf{Significado} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Símbolo} & \textbf{Significado} \\
+\midrule
+\endhead
+\Mithril, \STM & Protocolo \Mithril y su esquema de multi-firma. \\
+$\Stake, \StakeDistribution$ & Participación individual y distribución de stake certificada. \\
+\AVK & \textit{Aggregate Verification Key} del certificado vigente. \\
+$\ProtocolMsg, \Certificate$ & Mensaje de protocolo certificado y certificado genérico. \\
+\GenesisCertificate, \StakeDistributionCertificate, \TransactionSnapshotCertificate & Certificados de \Mithril: génesis de la cadena de certificados, de \StakeDistribution y de \textit{snapshot} de transacciones. \\
+\TransactionSnapshot & Snapshot de transacciones expuesto por \Mithril. \\
+$\TransactionSnapshotHash$ & Hash asociado a un snapshot de transacciones. \\
+\CertificateChain & Cadena de certificados enlazados. \\
+$\ChainVerify, \CertVerify$ & Verificación de la cadena completa de \Mithril. \\
+$\CertVerify$ & Verificación de un certificado individual de \Mithril. \\
+\STMRelation, \STMLanguage & Relación y lenguaje del circuito \STM. \\
+\TxSetUpdateRelation & Relación del circuito del conjunto de transacciones usadas. \\
+\TxSnapshotMembershipRelation & Relación del circuito que prueba pertenencia a un snapshot. \\
+\bottomrule
+\end{longtable}
+
+\endgroup

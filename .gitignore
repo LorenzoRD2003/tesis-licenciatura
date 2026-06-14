@@ -1,12 +1,12 @@
 .omx/
 docs/
 venv/
+build/
 *.aux
 *.fdb_latexmk
 *.fls
 *.log
 *.md
 *.out
-*.pdf
 *.toc
 .DS_Store
