@@ -24,7 +24,7 @@ Para superar estas limitaciones se introducen los \SMT. La idea de una estructur
 	\end{enumerate}
 \end{definition}
 
-Cada default hash $\defaultHash{i}$ es un valor que representa un subárbol completamente vacío de altura $i$. cuyos nodos hoja contienen únicamente el valor por defecto.Intuitivamente, los default hashes $\defaultHash{i}$ son valores que representan subárboles completamente vacíos. Entonces, la raíz de un \SMT vacío $\MerkleTree{T}_\emptyset$ de altura $k$ es exactamente $\defaultHash{k}$. Esto provee a los \SMT de una estructura algebraica bien definida.
+Cada default hash $\defaultHash{i}$ es un valor que representa un subárbol completamente vacío de altura $i$, cuyos nodos hoja contienen únicamente el valor por defecto. Entonces, la raíz de un \SMT vacío $\MerkleTree{T}_\emptyset$ de altura $k$ es exactamente $\defaultHash{k}$. Esto provee a los \SMT de una estructura algebraica bien definida.
 
 \begin{figure}[ht]
 	\centering
@@ -50,7 +50,7 @@ Cada default hash $\defaultHash{i}$ es un valor que representa un subárbol comp
 		\node[stored] {$\MerkleRoot{\MerkleTree{T}} = \Hash(h_3 \concat h_4)$}
 		child { node[stored] {$h_3 = \Hash(h_0 \concat h_1)$}
 			child { node[stored] {$h_0 = \Hash(\Hash(\EmptyNode) \concat \Hash(001))$}
-				child { node[implicit] {$\Hash(H(\EmptyNode))$}}
+				child { node[implicit] {$\Hash(\EmptyNode)$}}
 				child { node[stored] {$\Hash(001)$}
 					child { node[stored] {$001$} }
 				}
@@ -79,7 +79,7 @@ Cada default hash $\defaultHash{i}$ es un valor que representa un subárbol comp
 	\label{fig:sparse-merkle-tree}
 \end{figure}
 
-En la imagen \ref{fig:sparse-merkle-tree} no llega a apreciarse la gran ventaja de reducir la cantidad de nodos guardados. Sin embargo, al considerar un $m$ grande usado en la práctica, como $224$ o $256$, la cantidad de nodos que se necesitarían almacenar supera con creces el límite computacional posible, y excede cualquier límite físico concebible.
+La ventaja de representar implícitamente la mayor parte de los nodos no se aprecia del todo en la figura \ref{fig:sparse-merkle-tree}, ya que allí la altura del árbol es muy pequeña. Sin embargo, para valores de $k$ usados en la práctica, como $224$ o $256$, almacenar explícitamente todos los nodos del árbol completo resulta completamente inviable. Esa es precisamente la motivación operativa detrás de los \SMT.
 
 \subsection{Sparse Merkle Proofs}
 
@@ -117,7 +117,7 @@ Para el algoritmo de verificación, podemos simplemente indicar con un bit adici
 	\caption{Verificación de una Sparse Merkle Proof}
 	\label{alg:verify-sparse-merkle-proof}
 	\begin{algorithmic}[1]
-		\Require Elemento $\ell \in \{0,1\}^*$, Sparse Merkle Proof $\MerkleProof = h_1, \ldots, h_k]$, raíz $\MerkleRoot{\MerkleTree{T}} \in \{0,1\}^n$, bit $b \in \{0,1\}$
+		\Require Elemento $\ell \in \{0,1\}^*$, Sparse Merkle Proof $\MerkleProof = [h_1, \ldots, h_k]$, raíz $\MerkleRoot{\MerkleTree{T}} \in \{0,1\}^n$, bit $b \in \{0,1\}$
 		\Ensure \textbf{true} si $\MerkleProof$ prueba que $\ell \in L$ o $\ell \notin L$, \textbf{false} en caso contrario
 		\State $(b_1, \ldots, b_k) \gets \ell$ \Comment{representación binaria de $\ell$}
 		\State $x \gets \textbf{if } \text{b = 1} \textbf{ then } \Hash(\ell) \textbf{ else } \defaultHash{0}$
@@ -132,7 +132,7 @@ Para el algoritmo de verificación, podemos simplemente indicar con un bit adici
 	\end{algorithmic}
 \end{algorithm}
 
-Se observa que nada nos impide combinar una Sparse Merkle Proof de exclusión y otra de inclusión para poder hacer una prueba sobre la actualización correcta de un \SMT. En efecto, tenemos una estructura \textbf{autenticada} de datos, lo que quiere decir que todas las actualizaciones que se hagan en $\MerkleTree{T}$ producen resultados que pueden ser autenticados por terceros \cite{Miller2014}. Esto nos será útil durante el trabajo.
+Nada impide combinar una Sparse Merkle Proof de exclusión con una de inclusión para argumentar la corrección de una actualización sobre un \SMT. En efecto, se trata de una estructura de datos \textbf{autenticada}: toda actualización de $\MerkleTree{T}$ induce una nueva raíz que puede ser verificada por terceros a partir de la información adecuada \cite{Miller2014}. Esta propiedad será especialmente relevante en los mecanismos de actualización autenticada que aparecen más adelante en la tesis.
 
 \subsection{Actualización de un Sparse Merkle Tree}
 
@@ -160,7 +160,41 @@ Hasta ahora, los \SMT resultan demasiado similares a los Merkle Tree tradicional
 	\end{algorithmic}
 \end{algorithm}
 
-En la figura \ref{fig:update-sparse-merkle-tree-100-path}, podemos ver la actualización de un Sparse Merkle Tree de altura $3$ luego de agregarle el elemento $000 \in \{0,1\}^3$. Observar que se encuentra coloreado de rojo su Merkle Path asociado, en donde los nodos marcados como $\Hash(0)$ y $h_5$ no existían antes, mientras que los nodos marcados con $h_6$ y $r^*(\MerkleTree{T})$ vieron actualizado su hash.
+En muchos protocolos no solo interesa actualizar la estructura abstracta del árbol, sino recomputar de manera autenticada la nueva raíz a partir de una prueba válida respecto de la raíz anterior. Esto puede expresarse con el siguiente algoritmo, que combina verificación y actualización local del camino.
+
+\begin{algorithm}[ht]
+	\caption{Actualización autenticada de la raíz de un Sparse Merkle Tree}
+	\label{alg:update-smt-root-from-proof}
+	\begin{algorithmic}[1]
+		\Require Elemento $\ell \in \Strings{k}$, Sparse Merkle Proof $\MerkleProof = [h_1, \ldots, h_k]$, raíz anterior $r \in \Strings{n}$, bit $b \in \{0,1\}$
+		\Ensure Nueva raíz $r^* \in \Strings{n}$ si la prueba es consistente con $r$
+		\State $(b_1, \ldots, b_k) \gets \ell$ \Comment{representación binaria de $\ell$}
+		\State $x \gets \textbf{if } b = 1 \textbf{ then } \Hash(\ell) \textbf{ else } \defaultHash{0}$
+		\For{$i = 1$ \textbf{to} $k$}
+			\If{$b_i = 0$}
+				\State $x \gets \Hash(h_i \concat x)$
+			\Else
+				\State $x \gets \Hash(x \concat h_i)$
+			\EndIf
+		\EndFor
+		\If{$x \neq r$}
+			\State \Return \textbf{fail}
+		\EndIf
+		\State $x^* \gets \Hash(\ell)$
+		\For{$i = 1$ \textbf{to} $k$}
+			\If{$b_i = 0$}
+				\State $x^* \gets \Hash(h_i \concat x^*)$
+			\Else
+				\State $x^* \gets \Hash(x^* \concat h_i)$
+			\EndIf
+		\EndFor
+		\State \Return $x^*$
+	\end{algorithmic}
+\end{algorithm}
+
+Si la prueba original era de exclusión ($b = 0$), el algoritmo anterior primero verifica que la hoja correspondiente a $\ell$ estaba vacía respecto de la raíz antigua $r$, y luego sustituye ese valor por $\Hash(\ell)$ para producir la raíz nueva $r^*$. En consecuencia, formaliza exactamente el tipo de transición autenticada que más tarde reutilizaremos al discutir conjuntos \textit{anti-replay} resumidos por \SMT.
+
+En la figura \ref{fig:update-sparse-merkle-tree-100-path}, podemos ver la actualización de un Sparse Merkle Tree de altura $3$ luego de agregarle el elemento $100 \in \{0,1\}^3$. Observar que se encuentra coloreado su Merkle Path asociado, en donde los nodos marcados como $\Hash(0)$ y $h_5$ no existían antes, mientras que los nodos marcados con $h_6$ y $r^*(\MerkleTree{T})$ vieron actualizado su hash.
 
 \begin{figure}[ht]
 	\centering
@@ -189,7 +223,7 @@ En la figura \ref{fig:update-sparse-merkle-tree-100-path}, podemos ver la actual
 		\node[stored,pathnode] {$r^*(\MerkleTree{T}) = \Hash(h_3 \concat h_6)$}
 		child { node[stored,] {$h_3 = \Hash(h_0 \concat h_1)$}
 			child { node[stored] {$h_0 = \Hash(\Hash(\EmptyNode) \concat \Hash(001))$}
-				child { node[implicit] {$\Hash(H(\EmptyNode))$}}
+				child { node[implicit] {$\Hash(\EmptyNode)$}}
 				child { node[stored] {$\Hash(001)$}
 					child { node[stored] {$001$} }
 				}
@@ -220,4 +254,4 @@ En la figura \ref{fig:update-sparse-merkle-tree-100-path}, podemos ver la actual
 	\label{fig:update-sparse-merkle-tree-100-path}
 \end{figure}
 
-Las implementaciones reales aprovechan que la gran mayoría de los nodos son implícitos (default hashes) y representan únicamente los caminos relevantes mediante estructuras derivadas de tries binarios. La idea es interpretar $\ell$ como una ruta en el trie. Entonces, en el trie solamente existen nodos correspondientes a prefijos compartidos por claves efectivamente insertadas. Más aún, para los \SMT reales muy grandes, esto suele implementarse sobre un almacenamiento direccionado por hash, donde cada nodo existente se identifica por su hash y se reconstruye el árbol de forma dinámica a partir de una base de datos key-value.
+Las implementaciones reales aprovechan que la gran mayoría de los nodos son implícitos (default hashes) y representan únicamente los caminos relevantes mediante estructuras derivadas de tries binarios. La idea es interpretar $\ell$ como una ruta en el trie, de modo que solo existan nodos asociados a prefijos efectivamente compartidos por claves insertadas. Más aún, los \SMT suelen implementarse sobre almacenamiento direccionado por hash, donde cada nodo existente se identifica por su hash y el árbol se reconstruye dinámicamente a partir de una base de datos \textit{key-value}.

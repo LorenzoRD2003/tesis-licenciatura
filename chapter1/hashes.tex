@@ -14,13 +14,13 @@ Las funciones de hash son una primitiva criptográfica sumamente popular. Ejempl
 	\end{itemize}
 \end{definition}
 
-La definición anterior es informal, ya que por ejemplo es necesario especificar qué significa \textit{difícil}. Es preferible quedarnos con la idea de \textit{computacionalmente prohibitivo}, en tiempos usualmente de miles o millones de años. Las definiciones formales de estas propiedades pueden encontrarse en \cite{hac,katz}.
+La definición anterior es deliberadamente informal, ya que todavía no precisa qué significa \textit{difícil}. En este apéndice alcanza con la intuición de \textit{computacionalmente prohibitivo}; las formulaciones rigurosas de estas propiedades pueden encontrarse en \cite{hac,katz}.
 
 Existe una relación jerárquica entre estas propiedades. En particular, la resistencia a colisiones implica resistencia a segunda preimagen, y esta última implica resistencia a preimagen.
 
 La compresión de un dominio infinitamente grande $\Strings{*}$ en un codominio finito $\Strings{n}$ implica inevitablemente la existencia de colisiones. La seguridad no radica en su inexistencia, sino en la imposibilidad computacional de encontrarlas.
 
-En la criptografía, se busca demostrar la seguridad de construcciones. En general, no se modelan las funciones de hash como objetos matemáticos explícitos, sino como primitivas ideales. Por ello, muchas demostraciones de seguridad se formulan en modelos idealizados como el Random Oracle Model (\ROM) \cite{Bellare1993}. En este modelo, lo que se hace es suponer que $\Hash: \Strings{*} \to \Strings{n}$ es una función completamente aleatoria, de modo que se asume que todo algoritmo para hallar la preimagen de un elemento en $\Hash$ es genérico, y por lo tanto de complejidad $\BigTheta(2^n)$, así como todo algoritmo para hallar colisiones en $\Hash$ es genérico, y por lo tanto de complejidad $\BigTheta(2^{n/2})$ (ver \cite{hac}). Toda propiedad de seguridad que se pueda demostrar eventualmente en trabajos futuros sobre este proyecto también estará enmarcada en el \ROM.
+En criptografía, la seguridad de muchas construcciones se analiza en modelos idealizados. En particular, las funciones de hash suelen tratarse no como objetos matemáticos explícitos, sino como primitivas ideales. Por ello, numerosas demostraciones se formulan en modelos como el Random Oracle Model (\ROM) \cite{Bellare1993}. En este marco, se supone que $\Hash: \Strings{*} \to \Strings{n}$ se comporta como una función completamente aleatoria. Bajo esa idealización, cualquier algoritmo genérico para hallar una preimagen tiene complejidad $\BigTheta(2^n)$, mientras que cualquier algoritmo genérico para encontrar colisiones tiene complejidad $\BigTheta(2^{n/2})$ (ver \cite{hac}).
 
 Podemos transformar cualquier estructura matemática o información finita a una tira de bytes, es decir al conjunto $\Strings{*}$, y elegir un $n$ suficientemente grande como para que valga la propiedad de resistencia a colisiones. Esto es lo que se hace en la práctica. Entonces, dada una función de hash $\Hash$ y un conjunto arbitrario $X$ donde sus elementos tienen tamaño finito, podemos hablar de la función de hash asociada $\Hash_X: X \to \Strings{n}$, y por comodidad de notación usar simplemente $\Hash$.
 
@@ -34,17 +34,13 @@ Es decir, permite que una misma función $\Hash$ actúe como si fueran múltiple
 
 En numerosos protocolos criptográficos modernos resulta necesario mapear datos arbitrarios (es decir, tiras de bits de $\Strings{*}$) a puntos de una curva elíptica. Este problema no es trivial: una función de hash produce cadenas de bits, mientras que los puntos de una curva elíptica deben satisfacer una ecuación algebraica específica. Formalmente, buscamos una función determinística y eficiente
 
-$$
-\HashToCurve : \Strings{*} \to \E(\Fq)
-$$
+$$\HashToCurve : \Strings{*} \to \E(\Fq)$$
 
 que modele, idealmente, una distribución uniforme sobre un subgrupo criptográficamente relevante de $\E(\Fq)$  \cite{Fouque2012, Wahby2019}. Es decir, que ambas distribuciones (la del hash y la uniforme) sean computacionalmente indistinguibles.
 
 En esta tesis asumiremos la existencia de funciones HashToCurve seguras y eficientes, sin profundizar en sus construcciones explícitas. El estándar moderno que formaliza estas construcciones es RFC 9380 \cite{rfc9380}, que especifica algoritmos concretos. Conceptualmente, dichos algoritmos implementan funciones del tipo
 
-$$
-\Strings{*} \to \Fq \to \E(\Fq)
-$$
+$$\Strings{*} \to \Fq \to \E(\Fq)$$
 
 minimizando sesgos estadísticos \cite{Fouque2012} y evitando ataques estructurales.
 
@@ -58,3 +54,16 @@ En la práctica, estas funciones no se construyen directamente, sino mediante tr
 \end{enumerate}
 
 Más precisamente, estos mapeos algebraicos consisten en funciones racionales definidas sobre $\Fq$, diseñadas de modo que su imagen pertenezca a $\E(\Fq)$ con alta probabilidad o de forma determinística. Dichas funciones se construyen utilizando identidades algebraicas que garantizan la satisfacción de la ecuación de la curva.
+
+\subsection{Firmas Schnorr sobre curvas elípticas}
+
+Si fijamos un subgrupo cíclico de una curva elíptica $\gen{G} \subseteq \E(\Fq)$ de orden primo $r$, es natural construir sobre él primitivas criptográficas concretas. Un ejemplo es el esquema de firmas de Schnorr, que será utilizado en la tesis.
+
+\begin{itemize}[itemsep=0.1 cm]
+	\item El firmante tiene una clave privada, que es un escalar $\sk \in \Fr$, y una clave pública, que es un punto $\pk = \sk G \in \gen{G}$.
+	\item Para firmar un mensaje $m \in \Strings{*}$, el firmante elige un $k \in \Fr$ aleatorio, calcula
+	$R = kG$, deriva el \textit{challenge} $c = \Hash(m \concat R) \in \Fr$, define la respuesta $s = k + c \cdot \sk \in \Fr$, y publica como firma el par $\sigma = (R,s)$.
+	\item La verificación consiste en recomputar $c = \Hash(m \concat R)$ y comprobar si se verifica la igualdad $sG \stackrel{?}{=} R + c\cdot \pk$.
+\end{itemize}
+
+Informalmente, producir firmas válidas sin conocer $\sk$ requiere quebrar la dificultad esperada del \ECDLP o manipular indebidamente el \textit{challenge} derivado con la función de hash. Por esa razón, Schnorr constituye una de las construcciones más limpias para entender cómo se pasa de la teoría de grupos de curvas elípticas a primitivas criptográficas concretas.

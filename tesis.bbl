@@ -1,226 +1,13 @@
 \begin{thebibliography}{10}
 
-\bibitem{hac}
-A.~J. Menezes, P.~C. van Oorschot, and S.~A. Vanstone, {\em Handbook of Applied
-  Cryptography}.
-\newblock CRC Press, 1996.
-
-\bibitem{katz}
-J.~Katz and Y.~Lindell, {\em Introduction to Modern Cryptography}.
-\newblock CRC Press, 2020.
-
-\bibitem{shoup1997lowerbounds}
-V.~Shoup, ``Lower bounds for discrete logarithms and related problems,'' {\em
-  Journal of Cryptology}, vol.~10, no.~2, pp.~97--123, 1997.
-
-\bibitem{Smart1999}
-N.~P. Smart, ``The discrete logarithm problem on elliptic curves of trace
-  one,'' {\em Journal of Cryptology}, vol.~12, p.~193–196, June 1999.
-
-\bibitem{Menezes1993}
-A.~Menezes, T.~Okamoto, and S.~Vanstone, ``Reducing elliptic curve logarithms
-  to logarithms in a finite field,'' {\em IEEE Transactions on Information
-  Theory}, vol.~39, no.~5, p.~1639–1646, 1993.
-
-\bibitem{Hess2005}
-F.~Hess, {\em Weil Descent Attacks}, p.~151–180.
-\newblock Cambridge University Press, Apr. 2005.
-
-\bibitem{miller86}
-V.~S. Miller, ``Short programs for functions on curves,'' {\em Journal of
-  Cryptology}, 2004.
-\newblock Originally presented in 1986.
-
-\bibitem{costello2010pairings}
-C.~Costello, ``Pairings for beginners.'' Available online:
-  \url{https://static1.squarespace.com/static/5fdbb09f31d71c1227082339/t/5ff394720493bd28278889c6/1609798774687/PairingsForBeginners.pdf},
-  2010.
-
-\bibitem{Bellare1993}
-M.~Bellare and P.~Rogaway, ``Random oracles are practical: a paradigm for
-  designing efficient protocols,'' in {\em Proceedings of the 1st ACM
-  conference on Computer and communications security - CCS ’93}, CCS ’93,
-  p.~62–73, ACM Press, 1993.
-
-\bibitem{Fouque2012}
-P.-A. Fouque and M.~Tibouchi, {\em Indifferentiable Hashing to
-  Barreto–Naehrig Curves}, p.~1–17.
-\newblock Springer Berlin Heidelberg, 2012.
-
-\bibitem{Wahby2019}
-R.~S. Wahby and D.~Boneh, ``Fast and simple constant-time hashing to the
-  bls12-381 elliptic curve,'' {\em IACR Transactions on Cryptographic Hardware
-  and Embedded Systems}, p.~154–179, Aug. 2019.
-
-\bibitem{rfc9380}
-A.~Faz-Hernandez, S.~Scott, N.~Sullivan, R.~S. Wahby, and C.~A. Wood,
-  ``{Hashing to Elliptic Curves}.'' RFC 9380, Aug. 2023.
-
-\bibitem{cryptoeprint:2013/325}
-D.~J. Bernstein, M.~Hamburg, A.~Krasnova, and T.~Lange, ``Elligator:
-  Elliptic-curve points indistinguishable from uniform random strings.''
-  Cryptology {ePrint} Archive, Paper 2013/325, 2013.
-
-\bibitem{nakamoto2009bitcoin}
-S.~Nakamoto, ``Bitcoin: A peer-to-peer electronic cash system.''
-  \url{http://www.bitcoin.org/bitcoin.pdf}, May 2009.
-
-\bibitem{Merkle1988}
-R.~C. Merkle, {\em A Digital Signature Based on a Conventional Encryption
-  Function}, p.~369–378.
-\newblock Springer Berlin Heidelberg, 1988.
-
-\bibitem{Catalano2013}
-D.~Catalano and D.~Fiore, {\em Vector Commitments and Their Applications},
-  p.~55–72.
-\newblock Springer Berlin Heidelberg, 2013.
-
-\bibitem{Naor2000}
-M.~Naor and K.~Nissim, ``Certificate revocation and certificate update,'' {\em
-  IEEE Journal on Selected Areas in Communications}, vol.~18, p.~561–570,
-  Apr. 2000.
-
-\bibitem{Miller2014}
-A.~Miller, M.~Hicks, J.~Katz, and E.~Shi, ``Authenticated data structures,
-  generically,'' in {\em Proceedings of the 41st ACM SIGPLAN-SIGACT Symposium
-  on Principles of Programming Languages}, POPL ’14, p.~411–423, ACM, Jan.
-  2014.
-
-\bibitem{DBLP:journals/siamcomp/GoldwasserMR89}
-S.~Goldwasser, S.~Micali, and C.~Rackoff, ``The knowledge complexity of
-  interactive proof systems,'' {\em SIAM J. Comput.}, vol.~18, no.~1,
-  pp.~186--208, 1989.
-
-\bibitem{Shamir1992}
-A.~Shamir, ``Ip = pspace,'' {\em Journal of the ACM}, vol.~39, p.~869–877,
-  Oct. 1992.
-
-\bibitem{arora2006computational}
-S.~Arora and B.~Barak, {\em Computational Complexity: A Modern Approach}.
-\newblock Cambridge University Press, 2006.
-
-\bibitem{Goldreich2001}
-O.~Goldreich, {\em Foundations of Cryptography}.
-\newblock Cambridge University Press, Aug. 2001.
-
-\bibitem{Bitansky2012}
-N.~Bitansky, R.~Canetti, A.~Chiesa, and E.~Tromer, ``From extractable collision
-  resistance to succinct non-interactive arguments of knowledge, and back
-  again,'' in {\em Proceedings of the 3rd Innovations in Theoretical Computer
-  Science Conference}, ITCS ’12, p.~326–349, ACM, Jan. 2012.
-
-\bibitem{DBLP:journals/ftsec/Thaler22}
-J.~Thaler, ``Proofs, arguments, and zero-knowledge,'' {\em Found. Trends Priv.
-  Secur.}, vol.~4, no.~2-4, pp.~117--660, 2022.
-
-\bibitem{Parno2016}
-B.~Parno, J.~Howell, C.~Gentry, and M.~Raykova, ``Pinocchio: nearly practical
-  verifiable computation,'' {\em Communications of the ACM}, vol.~59,
-  p.~103–112, Jan. 2016.
-
-\bibitem{vonzurGathen1991}
-J.~von~zur Gathen and G.~Seroussi, ``Boolean circuits versus arithmetic
-  circuits,'' {\em Information and Computation}, vol.~91, p.~142–154, Mar.
-  1991.
-
-\bibitem{Gennaro2013}
-R.~Gennaro, C.~Gentry, B.~Parno, and M.~Raykova, {\em Quadratic Span Programs
-  and Succinct NIZKs without PCPs}, p.~626–645.
-\newblock Springer Berlin Heidelberg, 2013.
-
-\bibitem{Pedersen}
-T.~P. Pedersen, {\em Non-Interactive and Information-Theoretic Secure
-  Verifiable Secret Sharing}, p.~129–140.
-\newblock Springer Berlin Heidelberg, 1991.
-
-\bibitem{Kate2010}
-A.~Kate, G.~M. Zaverucha, and I.~Goldberg, {\em Constant-Size Commitments to
-  Polynomials and Their Applications}, p.~177–194.
-\newblock Springer Berlin Heidelberg, 2010.
-
-\bibitem{cryptoeprint:2019/953}
-A.~Gabizon, Z.~J. Williamson, and O.~Ciobotaru, ``{PLONK}: Permutations over
-  lagrange-bases for oecumenical noninteractive arguments of knowledge.''
-  Cryptology {ePrint} Archive, Paper 2019/953, 2019.
-
-\bibitem{BenSasson2017FastRI}
-E.~Ben-Sasson, I.~Bentov, Y.~Horesh, and M.~Riabzev, ``Fast reed-solomon
-  interactive oracle proofs of proximity,'' in {\em Electron. Colloquium
-  Comput. Complex.}, 2017.
-
-\bibitem{cryptoeprint:2018/046}
-E.~Ben-Sasson, I.~Bentov, Y.~Horesh, and M.~Riabzev, ``Scalable, transparent,
-  and post-quantum secure computational integrity.'' Cryptology {ePrint}
-  Archive, Paper 2018/046, 2018.
-
-\bibitem{Fiat}
-A.~Fiat and A.~Shamir, {\em How To Prove Yourself: Practical Solutions to
-  Identification and Signature Problems}, p.~186–194.
-\newblock Springer Berlin Heidelberg, 1986.
-
-\bibitem{cryptoeprint:2016/260}
-J.~Groth, ``On the size of pairing-based non-interactive arguments.''
-  Cryptology {ePrint} Archive, Paper 2016/260, 2016.
-
-\bibitem{Goldwasser}
-S.~Goldwasser and Y.~Kalai, ``On the (in)security of the fiat-shamir
-  paradigm,'' in {\em 44th Annual IEEE Symposium on Foundations of Computer
-  Science, 2003. Proceedings.}, SFCS-03, p.~102–113, IEEE Computer. Soc,
-  2003.
-
-\bibitem{Dao2023}
-Q.~Dao, J.~Miller, O.~Wright, and P.~Grubbs, ``Weak fiat-shamir attacks on
-  modern proof systems,'' in {\em 2023 IEEE Symposium on Security and Privacy
-  (SP)}, p.~199–216, IEEE, May 2023.
-
-\bibitem{cryptoeprint:2024/1565}
-H.~Nguyen, U.~Ho, and A.~Biryukov, ``Fiat-shamir in the wild.'' Cryptology
-  {ePrint} Archive, Paper 2024/1565, 2024.
-
-\bibitem{Khovratovich2025}
-D.~Khovratovich, R.~D. Rothblum, and L.~Soukhanov, {\em How to Prove False
-  Statements: Practical Attacks on Fiat-Shamir}, p.~3–26.
-\newblock Springer Nature Switzerland, 2025.
-
-\bibitem{cryptoeprint:2024/590}
-Q.~Yuan, C.~Sun, and T.~Takagi, ``Revisiting the security of fiat-shamir
-  signature schemes under superposition attacks.'' Cryptology {ePrint} Archive,
-  Paper 2024/590, 2024.
-
-\bibitem{Fuchsbauer2018}
-G.~Fuchsbauer, E.~Kiltz, and J.~Loss, {\em The Algebraic Group Model and its
-  Applications}, p.~33–62.
-\newblock Springer International Publishing, 2018.
-
-\bibitem{Pippenger1976}
-N.~Pippenger, ``On the evaluation of powers and related problems,'' in {\em
-  17th Annual Symposium on Foundations of Computer Science (sfcs 1976)},
-  p.~258–263, IEEE, Oct. 1976.
-
-\bibitem{gnark}
-G.~Botrel, T.~Piellard, Y.~E. Housni, I.~Kubjas, A.~Tabaie, and contributors,
-  ``gnark: A go library for zk-snark circuits and proof systems.''
-  \url{https://github.com/Consensys/gnark}, 2025.
-\newblock GitHub repository, accessed 2026-03-06.
-
-\bibitem{arkworks}
-arkworks contributors, ``\texttt{arkworks} zksnark ecosystem.''
-  \url{https://arkworks.rs}, 2022.
-
-\bibitem{bellman}
-{zkcrypto contributors}, ``bellman: A rust library for building zk-snark
-  circuits.'' \url{https://github.com/zkcrypto/bellman}, 2023.
-\newblock GitHub repository, accessed 2026-03-06.
-
-\bibitem{groth_validator_modulop}
-{Modulo-P}, ``groth-validator: Groth16 verifier implementation for cardano.''
-  \url{https://github.com/Modulo-P/groth-validator}, 2024.
-\newblock GitHub repository, accessed 2026-03-06.
-
 \bibitem{Belchior2021}
 R.~Belchior, A.~Vasconcelos, S.~Guerreiro, and M.~Correia, ``A survey on
   blockchain interoperability: Past, present, and future trends,'' {\em ACM
   Computing Surveys}, vol.~54, p.~1–41, Oct. 2021.
+
+\bibitem{nakamoto2009bitcoin}
+S.~Nakamoto, ``Bitcoin: A peer-to-peer electronic cash system.''
+  \url{http://www.bitcoin.org/bitcoin.pdf}, May 2009.
 
 \bibitem{Xie2022}
 T.~Xie, J.~Zhang, Z.~Cheng, F.~Zhang, Y.~Zhang, Y.~Jia, D.~Boneh, and D.~Song,
@@ -327,6 +114,11 @@ I.~O. Global, ``plutus-halo2-verifier-gen,'' 2025--2026.
 I.~O. Global, ``Unlocking zero-knowledge proofs for cardano: the halo2 plutus
   verifier,'' 2025.
 
+\bibitem{Kate2010}
+A.~Kate, G.~M. Zaverucha, and I.~Goldberg, {\em Constant-Size Commitments to
+  Polynomials and Their Applications}, p.~177–194.
+\newblock Springer Berlin Heidelberg, 2010.
+
 \bibitem{CIP0033}
 C.~Foundation, ``Cip-0033: Reference scripts,'' 2021.
 
@@ -355,5 +147,213 @@ C.~Foundation, ``Cip-0031: Reference inputs,'' 2021.
 \bibitem{DolosDocsOverview}
 {TxPipe}, ``{Dolos} quickstart and operation modes.''
   \url{https://docs.txpipe.io/dolos}, 2026.
+
+\bibitem{hac}
+A.~J. Menezes, P.~C. van Oorschot, and S.~A. Vanstone, {\em Handbook of Applied
+  Cryptography}.
+\newblock CRC Press, 1996.
+
+\bibitem{katz}
+J.~Katz and Y.~Lindell, {\em Introduction to Modern Cryptography}.
+\newblock CRC Press, 2020.
+
+\bibitem{shoup1997lowerbounds}
+V.~Shoup, ``Lower bounds for discrete logarithms and related problems,'' {\em
+  Journal of Cryptology}, vol.~10, no.~2, pp.~97--123, 1997.
+
+\bibitem{Smart1999}
+N.~P. Smart, ``The discrete logarithm problem on elliptic curves of trace
+  one,'' {\em Journal of Cryptology}, vol.~12, p.~193–196, June 1999.
+
+\bibitem{Menezes1993}
+A.~Menezes, T.~Okamoto, and S.~Vanstone, ``Reducing elliptic curve logarithms
+  to logarithms in a finite field,'' {\em IEEE Transactions on Information
+  Theory}, vol.~39, no.~5, p.~1639–1646, 1993.
+
+\bibitem{Hess2005}
+F.~Hess, {\em Weil Descent Attacks}, p.~151–180.
+\newblock Cambridge University Press, Apr. 2005.
+
+\bibitem{miller86}
+V.~S. Miller, ``Short programs for functions on curves,'' {\em Journal of
+  Cryptology}, 2004.
+\newblock Originally presented in 1986.
+
+\bibitem{costello2010pairings}
+C.~Costello, ``Pairings for beginners.'' Available online:
+  \url{https://static1.squarespace.com/static/5fdbb09f31d71c1227082339/t/5ff394720493bd28278889c6/1609798774687/PairingsForBeginners.pdf},
+  2010.
+
+\bibitem{Bellare1993}
+M.~Bellare and P.~Rogaway, ``Random oracles are practical: a paradigm for
+  designing efficient protocols,'' in {\em Proceedings of the 1st ACM
+  conference on Computer and communications security - CCS ’93}, CCS ’93,
+  p.~62–73, ACM Press, 1993.
+
+\bibitem{Fouque2012}
+P.-A. Fouque and M.~Tibouchi, {\em Indifferentiable Hashing to
+  Barreto–Naehrig Curves}, p.~1–17.
+\newblock Springer Berlin Heidelberg, 2012.
+
+\bibitem{Wahby2019}
+R.~S. Wahby and D.~Boneh, ``Fast and simple constant-time hashing to the
+  bls12-381 elliptic curve,'' {\em IACR Transactions on Cryptographic Hardware
+  and Embedded Systems}, p.~154–179, Aug. 2019.
+
+\bibitem{rfc9380}
+A.~Faz-Hernandez, S.~Scott, N.~Sullivan, R.~S. Wahby, and C.~A. Wood,
+  ``{Hashing to Elliptic Curves}.'' RFC 9380, Aug. 2023.
+
+\bibitem{cryptoeprint:2013/325}
+D.~J. Bernstein, M.~Hamburg, A.~Krasnova, and T.~Lange, ``Elligator:
+  Elliptic-curve points indistinguishable from uniform random strings.''
+  Cryptology {ePrint} Archive, Paper 2013/325, 2013.
+
+\bibitem{Merkle1988}
+R.~C. Merkle, {\em A Digital Signature Based on a Conventional Encryption
+  Function}, p.~369–378.
+\newblock Springer Berlin Heidelberg, 1988.
+
+\bibitem{Catalano2013}
+D.~Catalano and D.~Fiore, {\em Vector Commitments and Their Applications},
+  p.~55–72.
+\newblock Springer Berlin Heidelberg, 2013.
+
+\bibitem{Naor2000}
+M.~Naor and K.~Nissim, ``Certificate revocation and certificate update,'' {\em
+  IEEE Journal on Selected Areas in Communications}, vol.~18, p.~561–570,
+  Apr. 2000.
+
+\bibitem{Miller2014}
+A.~Miller, M.~Hicks, J.~Katz, and E.~Shi, ``Authenticated data structures,
+  generically,'' in {\em Proceedings of the 41st ACM SIGPLAN-SIGACT Symposium
+  on Principles of Programming Languages}, POPL ’14, p.~411–423, ACM, Jan.
+  2014.
+
+\bibitem{DBLP:journals/siamcomp/GoldwasserMR89}
+S.~Goldwasser, S.~Micali, and C.~Rackoff, ``The knowledge complexity of
+  interactive proof systems,'' {\em SIAM J. Comput.}, vol.~18, no.~1,
+  pp.~186--208, 1989.
+
+\bibitem{Shamir1992}
+A.~Shamir, ``Ip = pspace,'' {\em Journal of the ACM}, vol.~39, p.~869–877,
+  Oct. 1992.
+
+\bibitem{arora2006computational}
+S.~Arora and B.~Barak, {\em Computational Complexity: A Modern Approach}.
+\newblock Cambridge University Press, 2006.
+
+\bibitem{Goldreich2001}
+O.~Goldreich, {\em Foundations of Cryptography}.
+\newblock Cambridge University Press, Aug. 2001.
+
+\bibitem{Bitansky2012}
+N.~Bitansky, R.~Canetti, A.~Chiesa, and E.~Tromer, ``From extractable collision
+  resistance to succinct non-interactive arguments of knowledge, and back
+  again,'' in {\em Proceedings of the 3rd Innovations in Theoretical Computer
+  Science Conference}, ITCS ’12, p.~326–349, ACM, Jan. 2012.
+
+\bibitem{DBLP:journals/ftsec/Thaler22}
+J.~Thaler, ``Proofs, arguments, and zero-knowledge,'' {\em Found. Trends Priv.
+  Secur.}, vol.~4, no.~2-4, pp.~117--660, 2022.
+
+\bibitem{Parno2016}
+B.~Parno, J.~Howell, C.~Gentry, and M.~Raykova, ``Pinocchio: nearly practical
+  verifiable computation,'' {\em Communications of the ACM}, vol.~59,
+  p.~103–112, Jan. 2016.
+
+\bibitem{vonzurGathen1991}
+J.~von~zur Gathen and G.~Seroussi, ``Boolean circuits versus arithmetic
+  circuits,'' {\em Information and Computation}, vol.~91, p.~142–154, Mar.
+  1991.
+
+\bibitem{Gennaro2013}
+R.~Gennaro, C.~Gentry, B.~Parno, and M.~Raykova, {\em Quadratic Span Programs
+  and Succinct NIZKs without PCPs}, p.~626–645.
+\newblock Springer Berlin Heidelberg, 2013.
+
+\bibitem{Pedersen}
+T.~P. Pedersen, {\em Non-Interactive and Information-Theoretic Secure
+  Verifiable Secret Sharing}, p.~129–140.
+\newblock Springer Berlin Heidelberg, 1991.
+
+\bibitem{cryptoeprint:2019/953}
+A.~Gabizon, Z.~J. Williamson, and O.~Ciobotaru, ``{PLONK}: Permutations over
+  lagrange-bases for oecumenical noninteractive arguments of knowledge.''
+  Cryptology {ePrint} Archive, Paper 2019/953, 2019.
+
+\bibitem{BenSasson2017FastRI}
+E.~Ben-Sasson, I.~Bentov, Y.~Horesh, and M.~Riabzev, ``Fast reed-solomon
+  interactive oracle proofs of proximity,'' in {\em Electron. Colloquium
+  Comput. Complex.}, 2017.
+
+\bibitem{cryptoeprint:2018/046}
+E.~Ben-Sasson, I.~Bentov, Y.~Horesh, and M.~Riabzev, ``Scalable, transparent,
+  and post-quantum secure computational integrity.'' Cryptology {ePrint}
+  Archive, Paper 2018/046, 2018.
+
+\bibitem{Fiat}
+A.~Fiat and A.~Shamir, {\em How To Prove Yourself: Practical Solutions to
+  Identification and Signature Problems}, p.~186–194.
+\newblock Springer Berlin Heidelberg, 1986.
+
+\bibitem{cryptoeprint:2016/260}
+J.~Groth, ``On the size of pairing-based non-interactive arguments.''
+  Cryptology {ePrint} Archive, Paper 2016/260, 2016.
+
+\bibitem{Goldwasser}
+S.~Goldwasser and Y.~Kalai, ``On the (in)security of the fiat-shamir
+  paradigm,'' in {\em 44th Annual IEEE Symposium on Foundations of Computer
+  Science, 2003. Proceedings.}, SFCS-03, p.~102–113, IEEE Computer. Soc,
+  2003.
+
+\bibitem{Dao2023}
+Q.~Dao, J.~Miller, O.~Wright, and P.~Grubbs, ``Weak fiat-shamir attacks on
+  modern proof systems,'' in {\em 2023 IEEE Symposium on Security and Privacy
+  (SP)}, p.~199–216, IEEE, May 2023.
+
+\bibitem{cryptoeprint:2024/1565}
+H.~Nguyen, U.~Ho, and A.~Biryukov, ``Fiat-shamir in the wild.'' Cryptology
+  {ePrint} Archive, Paper 2024/1565, 2024.
+
+\bibitem{Khovratovich2025}
+D.~Khovratovich, R.~D. Rothblum, and L.~Soukhanov, {\em How to Prove False
+  Statements: Practical Attacks on Fiat-Shamir}, p.~3–26.
+\newblock Springer Nature Switzerland, 2025.
+
+\bibitem{cryptoeprint:2024/590}
+Q.~Yuan, C.~Sun, and T.~Takagi, ``Revisiting the security of fiat-shamir
+  signature schemes under superposition attacks.'' Cryptology {ePrint} Archive,
+  Paper 2024/590, 2024.
+
+\bibitem{Fuchsbauer2018}
+G.~Fuchsbauer, E.~Kiltz, and J.~Loss, {\em The Algebraic Group Model and its
+  Applications}, p.~33–62.
+\newblock Springer International Publishing, 2018.
+
+\bibitem{Pippenger1976}
+N.~Pippenger, ``On the evaluation of powers and related problems,'' in {\em
+  17th Annual Symposium on Foundations of Computer Science (sfcs 1976)},
+  p.~258–263, IEEE, Oct. 1976.
+
+\bibitem{gnark}
+G.~Botrel, T.~Piellard, Y.~E. Housni, I.~Kubjas, A.~Tabaie, and contributors,
+  ``gnark: A go library for zk-snark circuits and proof systems.''
+  \url{https://github.com/Consensys/gnark}, 2025.
+\newblock GitHub repository, accessed 2026-03-06.
+
+\bibitem{arkworks}
+arkworks contributors, ``\texttt{arkworks} zksnark ecosystem.''
+  \url{https://arkworks.rs}, 2022.
+
+\bibitem{bellman}
+{zkcrypto contributors}, ``bellman: A rust library for building zk-snark
+  circuits.'' \url{https://github.com/zkcrypto/bellman}, 2023.
+\newblock GitHub repository, accessed 2026-03-06.
+
+\bibitem{groth_validator_modulop}
+{Modulo-P}, ``groth-validator: Groth16 verifier implementation for cardano.''
+  \url{https://github.com/Modulo-P/groth-validator}, 2024.
+\newblock GitHub repository, accessed 2026-03-06.
 
 \end{thebibliography}

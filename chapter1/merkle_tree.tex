@@ -66,7 +66,7 @@ Observar que en las imágenes se indica la secuencia de datos por debajo de $\Me
 
 \subsection{Merkle Proofs}
 
-Otra cosa importantísima que nos permite hacer esta estructura son pruebas de pertenencia, también conocidas como Merkle Proofs. Esta es la primera introducción a las pruebas que vamos a tener en el desarrollo de esta tesis. Una Merkle Proof permite demostrar que un elemento pertenece a un Merkle Tree $\MerkleTree{T}$ sin necesidad de revelar todos los elementos de la secuencia de datos asociada, lo que es útil para no tener que almacenar la totalidad de $\MerkleTree{T}$ para verificar un solo dato, sino solamente $\MerkleRoot{\MerkleTree{T}}$. En algún lugar se tiene que guardar $\MerkleTree{T}$, pero hace innecesario replicarlo en más lugares.
+Una de las propiedades más importantes de esta estructura es que permite construir pruebas de pertenencia, también conocidas como Merkle Proofs. Una Merkle Proof permite demostrar que un elemento pertenece a un Merkle Tree $\MerkleTree{T}$ sin necesidad de revelar todos los elementos de la secuencia de datos asociada. En particular, esto permite verificar un solo dato conociendo únicamente la raíz $\MerkleRoot{\MerkleTree{T}}$ y el camino autenticado correspondiente, sin necesidad de replicar el árbol completo en cada lugar donde se quiera verificar pertenencia.
 
 \begin{definition}[Merkle Proof]
 	Sea $\MerkleTree{T}$ un Merkle Tree con raíz $\MerkleRoot{\MerkleTree{T}}$, construido sobre una secuencia de datos $L = \{\ell_1, \ldots, \ell_n\}$ y usando una función de hash criptográfica $\Hash$. Una Merkle Proof para un dato $\ell = (b_1, \ldots, b_k) \in L$ es una lista ordenada $\MerkleProof = [h_1, \ldots, h_k]$ que representa un camino (Merkle Path) desde la hoja correspondiente a $\ell$ hasta $\MerkleRoot{\MerkleTree{T}}$, donde:
@@ -77,7 +77,7 @@ Otra cosa importantísima que nos permite hacer esta estructura son pruebas de p
 	\end{itemize}
 \end{definition}
 
-Intuituivamente, una Merkle Proof es el conjunto de nodos hermanos a lo largo del camino desde una hoja hasta la raíz del Merkle Tree.
+Intuitivamente, una Merkle Proof consiste en los nodos hermanos a lo largo del camino que conecta una hoja con la raíz del Merkle Tree.
 
 \begin{figure}[h]
 	\centering
@@ -129,7 +129,7 @@ En la imagen de una Merkle Proof, se observa que es una prueba de pertenencia de
 La seguridad criptográfica de un Merkle Tree se reduce a la resistencia a colisiones de su función de hash. En efecto, una colisión permitiría construir dos subárboles distintos con la misma raíz, comprometiendo la solidez de las pruebas de pertenencia (ver \cite{hac,katz}).
 
 \begin{definition}[Función de verificación de Merkle Proof]
-	Sea $\MerkleTree{T}$ un Merkle Tree con raíz $\MerkleRoot{\MerkleTree{T}}$, construido usando una función de hash criptográfica $\Hash$, y sea $\MerkleProof$ una Merkle Proof para un dato $l \in L$. Definimos la función de verificación de $\MerkleProof$ como:
+	Sea $\MerkleTree{T}$ un Merkle Tree con raíz $\MerkleRoot{\MerkleTree{T}}$, construido usando una función de hash criptográfica $\Hash$, y sea $\MerkleProof$ una Merkle Proof para un dato $\ell \in L$. Definimos la función de verificación de $\MerkleProof$ como:
 	$$\Verify(\ell, \MerkleProof, \MerkleRoot{\MerkleTree{T}}) = \llbracket x_k = \MerkleRoot{\MerkleTree{T}} \rrbracket,$$
 	donde
 	$$x_0 := \Hash(\ell), \qquad x_i := \begin{cases}
@@ -159,4 +159,4 @@ La seguridad criptográfica de un Merkle Tree se reduce a la resistencia a colis
 
 Notar que el algoritmo \ref{alg:verify-merkle-proof} tiene una complejidad temporal de $\BigO(k) = \BigO(\log n)$, así como el tamaño de la Merkle Proof. Para árboles con muchos niveles, esto resulta clave. Además, no resulta necesario almacenar todo el vector camino $x$ durante el mismo.
 
-Desde una perspectiva criptográfica, los Merkle Trees pueden interpretarse como esquemas de compromiso vectorial \cite{Catalano2013} con pruebas de tamaño logarítmico. Esta interpretación será particularmente relevante en el desarrollo de sistemas de pruebas del siguiente capítulo.
+Desde una perspectiva criptográfica, los Merkle Trees pueden interpretarse como esquemas de compromiso vectorial \cite{Catalano2013} con pruebas de tamaño logarítmico. Esta interpretación resulta especialmente útil para entender cómo el cuerpo principal reutiliza árboles autenticados dentro de argumentos más estructurados.

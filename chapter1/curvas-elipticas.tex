@@ -7,7 +7,7 @@ En esta sección introducimos las curvas elípticas sobre un cuerpo, y las dotam
 	$$\E: y^2 = x^3 + ax + b, \quad a,b \in \K,$$
 	y sujeta a la condición de no singularidad $4a^3 + 27b^2 \neq 0$.
 	
-	El conjunto de puntos de la curva elíptica sobre $K$ se define como
+	El conjunto de puntos de la curva elíptica sobre $\K$ se define como
 	$$\E(\K) = \{(x,y) \in \K \times \K: y^2 = x^3 + ax + b\} \cup \{\OO\},$$
 	donde $\OO$ denota el punto del infinito o punto identidad.
 \end{definition}
@@ -50,7 +50,7 @@ La condición de no singularidad garantiza que la curva no posee puntos singular
 			\addplot[blue, thick] {-sqrt(x^3 - x + 1)};
 		\end{axis}
 	\end{tikzpicture}
-	\caption{Curva elíptica en $\poly{\R}$ asociada a la ecuación $\E: y^2 = x^3 - x + 1$.}
+	\caption{Curva elíptica sobre $\R$ asociada a la ecuación $\E: y^2 = x^3 - x + 1$.}
 	\label{fig:curva-eliptica-real}
 \end{figure}
 
@@ -65,7 +65,30 @@ La introducción del punto $\OO$ es necesaria para que la suma de puntos esté d
 
 Por convención, utilizaremos notación aditiva en vez de multiplicativa al trabajar con grupos de curva elíptica. Dados $n \in \N$ y $P \in \E(\K)$, podemos definir $nP := P + P + \ldots + P$, donde hay $n$ sumandos.
 
-Al pasar a considerar curvas elípticas sobre cuerpos finitos (i.e., los que nos serán útiles criptográficamente), es decir de la forma $\E(\Fp)$ con $p > 3$, la interpretación geométrica deja de ser literal, aunque resulta útil como guía conceptual. Pero seguimos teniendo un grupo abeliano, y en particular la operación de suma sigue siendo cerrada. Sin embargo, no tiene sentido definir la operación de forma geométrica, sino que deberemos hacerlo algebraicamente. Observar durante la definición cómo nos apoyamos en las definiciones geométricas para hacer las definiciones algebraicas.
+Al pasar a considerar curvas elípticas sobre cuerpos finitos, es decir curvas de la forma $\E(\Fq)$ con $q = p^k$, $p$ primo y $\charac{\Fq} \neq 2,3$, la interpretación geométrica deja de ser literal, aunque sigue siendo una guía conceptual valiosa. La estructura de grupo abeliano se preserva, y en particular la operación de suma continúa estando bien definida. Sin embargo, en este contexto ya no resulta conveniente describir la suma en términos geométricos, sino mediante fórmulas algebraicas explícitas.
+
+\begin{definition}[Definición algebraica de suma en curvas elípticas]
+	Sea $\K$ un cuerpo finito, sea $\E(\K)$ una curva elíptica y sean $P, Q \in \E(\K)$. Se define la suma $+: \E(\K) \times \E(\K) \to \E(\K)$ desde una perspectiva algebraica mediante fórmulas explícitas y el siguiente algoritmo:
+	\begin{enumerate}
+		\item Si $P = \OO$, entonces $P + Q := Q$. Similarmente, si $Q = \OO$, entonces $P + Q := P$.
+		\item Si $P, Q \neq \OO$, entonces son puntos de la forma $P = (x_P, y_P)$, $Q = (x_Q, y_Q)$ con coordenadas en $\Fq$. Si $Q = -P$, lo que es equivalente a $x_P = x_Q$ y $y_P = -y_Q$, entonces $P + Q := \OO$.
+		\item Se calcula la pendiente $\lambda$ de la recta que pasa por $P$ y $Q$.
+		\begin{itemize}
+			\item En el caso $P = Q$, es una recta tangente a $P$ y $\lambda := \frac{3x_P^2 + a}{2y_P}$.
+			\item En el caso $P \neq Q$, se calcula de forma usual: $\lambda := \frac{y_Q - y_P}{x_Q - x_P}$.
+		\end{itemize}
+		\item Para $x^* := \lambda^2 - x_P - x_Q$ y $y^* = \lambda(x_P - x^*) - y_P$, se define $P + Q := (x^*, y^*)$.
+	\end{enumerate}
+\end{definition}
+
+Podemos ver un ejemplo concreto sobre la curva $\E(\F_{19})$ dada por la ecuación $y^2 = x^3 - x + 1$. Tomemos
+$P = (2,8), Q = (3,5) \in \E(\F_{19})$. Como $P \neq Q$ y $Q \neq -P$, hacemos los siguientes cálculos:
+$$\begin{aligned}
+	\lambda = \frac{y_Q - y_P}{x_Q - x_P} = \frac{5 - 8}{3 - 2} = -3 \equiv 16 \pmod{19}, \\
+	x^* = \lambda^2 - x_P - x_Q = 16^2 - 2 - 3 = 251 \equiv 4 \pmod{19}, \\
+	y^* = \lambda(x_P - x^*) - y_P = 16(2 - 4) - 8 = -40 \equiv 17 \pmod{19}.
+\end{aligned}$$
+Por lo tanto, $P + Q = (4,17)$.
 
 \begin{figure}[ht]
 	\centering
@@ -85,10 +108,10 @@ Al pasar a considerar curvas elípticas sobre cuerpos finitos (i.e., los que nos
 			height = 10cm
 			]
 			\addplot[
-			only marks,
-			mark = *,
-			mark size = 2.5pt,
-			blue
+				only marks,
+				mark = *,
+				mark size = 2.2pt,
+				blue
 			]
 			coordinates {
 				(0,1) (0,18)
@@ -102,26 +125,38 @@ Al pasar a considerar curvas elípticas sobre cuerpos finitos (i.e., los que nos
 				(13,0)
 				(15,6) (15,13)
 				(18,1) (18,18)
-			};		
+			};
+
+			\addplot[
+				only marks,
+				mark = *,
+				mark size = 3.2pt,
+				red
+			]
+			coordinates {(2,8)};
+			\addplot[
+				only marks,
+				mark = square*,
+				mark size = 3.0pt,
+				orange!90!black
+			]
+			coordinates {(3,5)};
+			\addplot[
+				only marks,
+				mark = triangle*,
+				mark size = 3.6pt,
+				green!50!black
+			]
+			coordinates {(4,17)};
+
+			\node[anchor=south west, text=red] at (axis cs:2,8) {$P=(2,8)$};
+			\node[anchor=south west, text=orange!90!black] at (axis cs:3,5) {$Q=(3,5)$};
+			\node[anchor=south west, text=green!50!black] at (axis cs:4,17) {$P+Q=(4,17)$};
 		\end{axis}
 	\end{tikzpicture}
-	\caption{Curva elíptica en $\F_{19}[x]$ asociada a la ecuación $\E: y^2 = x^3 - x + 1$.}
-	\label{fig:curva-eliptica-f19}
+	\caption{Puntos racionales de la curva elíptica $\E(\F_{19})$ asociada a la ecuación $y^2 = x^3 - x + 1$, con $P=(2,8)$, $Q=(3,5)$ y el resultado de la suma algebraica $P+Q=(4,17)$ destacados.}
+	\label{fig:curva-eliptica-f19-suma}
 \end{figure}
-
-\begin{definition}[Definición algebraica de suma en curvas elípticas]
-	Sea $\K$ un cuerpo finito, sea $\E(\K)$ una curva elíptica y sean $P, Q \in \E(\K)$. Se define la suma $+: \E(\K) \times \E(\K) \to \E(\K)$ desde una perspectiva algebraica mediante fórmulas explícitas y el siguiente algoritmo:
-	\begin{enumerate}
-		\item Si $P = \OO$, entonces $P + Q := Q$. Similarmente, si $Q = \OO$, entonces $P + Q := P$.
-		\item Si $P, Q \neq \OO$, entonces son puntos de la forma $P = (x_P, y_P)$, $Q = (x_Q, y_Q)$ con coordenadas en $\Fp$. Si $Q = -P$, lo que es equivalente a $x_P = x_Q$ y $y_P = -y_Q$, entonces $P + Q := \OO$.
-		\item Se calcula la pendiente $\lambda$ de la recta que pasa por $P$ y $Q$.
-		\begin{itemize}
-			\item En el caso $P = Q$, es una recta tangente a $P$ y $\lambda := \frac{3x_P^2 + a}{2y_P}$.
-			\item En el caso $P \neq Q$, se calcula de forma usual: $\lambda := \frac{y_Q - y_P}{x_Q - x_P}$.
-		\end{itemize}
-		\item Para $x^* := \lambda^2 - x_P - x_Q$ y $y^* = \lambda(x_P - x^*) - y_P$, se define $P + Q := (x^*, y^*)$.
-	\end{enumerate}
-\end{definition}
 
 Una curva elíptica sobre cuerpos finitos tiene finitos puntos. Pero es notable que, en general, $|\E(\Fq)| \neq |\Fq| = q$. La cota de Hasse establece un límite preciso para el número de puntos racionales de una curva elíptica definida sobre un cuerpo finito.
 
@@ -141,15 +176,15 @@ Observamos que el orden de $P$ siempre existe y es un divisor del orden de $\E(\
 		Sea $\Fq$ un cuerpo finito, y sea $\E(\Fq)$ una curva elíptica. Dados un punto generador $G \in \E(\Fq)$ y un punto $P \in \gen{G}$, el problema del logaritmo discreto sobre curvas elípticas (\ECDLP) es encontrar un $k \in \N$ tal que $P = kG$.
 \end{definition}
 
-En este contexto, se entiende por qué es útil buscar que el orden $r$ de $\gen{G}$ sea un número primo grande. A diferencia del \DLP en el grupo multiplicativo $\Fmul{p}$, los algoritmos conocidos más eficientes para resolver el \ECDLP para cualquier curva elíptica son genéricos en la estructura de grupo, por lo que su complejidad está en $\BigOmega(\sqrt{r})$. Esta diferencia algorítmica se traduce en una ventaja práctica en términos de bits de seguridad para algoritmos criptográficos, y por lo tanto en operaciones más rápidas, menos uso de memoria, claves de menor tamaño, y pruebas más pequeñas. En este contexto, las claves privadas serán de la forma $k \in \Fr$, mientras que sus claves públicas derivadas serán de la forma $K = kG \in \E(\Fq)$.
+En este contexto, se entiende por qué es útil buscar que el orden $r$ de $\gen{G}$ sea un número primo grande. A diferencia del \DLP en el grupo multiplicativo de un cuerpo finito, los algoritmos conocidos más eficientes para resolver el \ECDLP para cualquier curva elíptica son genéricos en la estructura de grupo, por lo que su complejidad está en $\BigOmega(\sqrt{r})$. Esta diferencia algorítmica se traduce en una ventaja práctica en términos de bits de seguridad para algoritmos criptográficos, y por lo tanto en operaciones más rápidas, menos uso de memoria, claves de menor tamaño, y pruebas más pequeñas. En este contexto, las claves privadas serán de la forma $k \in \Fr$, mientras que sus claves públicas derivadas serán de la forma $K = kG \in \E(\Fq)$.
 
 \begin{table}[h]
 	\centering
 	\begin{tabular}{ccc}
 		\toprule
 		\textbf{Bits de seguridad} &
-		\textbf{$\Fmul{p}$ (\DLP clásico)} &
-		\textbf{$\E(\Fp)$ (\ECDLP)} \\
+		\textbf{$\Fmul{q}$ (\DLP clásico)} &
+		\textbf{$\E(\Fq)$ (\ECDLP)} \\
 		\midrule
 		128 & $\sim 3072$ bits & $\sim 256$ bits \\
 		192 & $\sim 7680$ bits & $\sim 384$ bits \\
@@ -160,13 +195,21 @@ En este contexto, se entiende por qué es útil buscar que el orden $r$ de $\gen
 	\label{tab:security-comparison}
 \end{table}
 
-Sin embargo, existen curvas elípticas tales que existen algoritmos más eficientes (e incluso polinomiales) para resolver el \ECDLP. Esto hace que seleccionar qué curvas elípticas usar para los protocolos criptográficos no dependa solamente de la eficiencia de las operaciones, sino también de las características de la curva. Estas consideraciones motivan el estudio detallado de subgrupos cíclicos de orden primo, que constituyen el entorno algebraico fundamental para numerosas construcciones criptográficas modernas.
+Sin embargo, no todas las curvas elípticas son igualmente adecuadas para fines criptográficos. Existen familias especiales para las cuales se conocen algoritmos más eficientes, e incluso polinomiales, para resolver el \ECDLP. Por ello, la selección de una curva no depende solo de la eficiencia de sus operaciones, sino también de sus propiedades aritméticas y de su resistencia frente a ataques conocidos. Estas consideraciones motivan el estudio detallado de subgrupos cíclicos de orden primo, que constituyen el entorno algebraico fundamental para numerosas construcciones criptográficas modernas.
 
-Si alguien descubre un algoritmo para resolver el \ECDLP en forma eficienta para alguna familia de curvas, se pasan a considerar al conjunto de curvas mal elegidas, y pasan a estar prohibidas para uso en criptografía. Decimos que un algoritmo de este tipo es un \textbf{ataque} criptográfico. El lector interesado puede referirse a ataques a curvas anómalas \cite{Smart1999}, al \textit{MOV attack} sobre curvas supersingulares \cite{Menezes1993}, o a los ataques con el algoritmo \textit{Weil Descent} \cite{Hess2005}.
+Cuando se descubre un algoritmo significativamente más eficiente para resolver el \ECDLP sobre una familia de curvas, dicha familia deja de ser considerada segura para uso criptográfico. En ese contexto, se habla de un \textbf{ataque} criptográfico. El lector interesado puede consultar, por ejemplo, los ataques a curvas anómalas \cite{Smart1999}, el \textit{MOV attack} sobre curvas supersingulares \cite{Menezes1993} o los ataques basados en \textit{Weil descent} \cite{Hess2005}.
 
-Veremos que hay varias curvas elípticas que son usadas en distintas partes del proyecto. En general, a la hora de describir curvas elípticas sobre cuerpos finitos, vamos a diferenciar los siguientes parámetros:
+A lo largo del proyecto aparecen varias curvas elípticas con roles diferentes. En general, al describir una curva elíptica sobre un cuerpo finito, conviene distinguir los siguientes parámetros:
 \begin{itemize}
-	\item El cuerpo base $\Fq$ sobre el que está construido la curva $\E(\Fq)$, para un primo $q \in \N$.
+	\item El cuerpo base $\Fq$ sobre el que está construida la curva $\E(\Fq)$, donde $q = p^k$ con $p$ primo.
 	\item Un generador $G \in \E(\Fq)$ de un subgrupo $\gen{G} \subset \E(\Fq)$.
 	\item El cuerpo escalar $\Fr$, donde $r \in \N$ es el orden del subgrupo generado por $G$. Idealmente, $r$ será un primo grande.
+\end{itemize}
+
+\subsection{Curvas elípticas útiles para este trabajo}
+
+\begin{itemize}[noitemsep]
+	\item \textbf{\BLS.} Es la curva emparejable más importante para esta tesis. Aparece en la discusión de \Groth y de \KZG, en la motivación de las decisiones de diseño y en la implementación \Onchain del verificador, ya que \Cardano expone primitivas criptográficas sobre \BLS y bibliotecas como \texttt{ak-381} se apoyan precisamente en esa curva. Además, en la segunda etapa de implementación, el cuerpo escalar asociado a \BLS se reutiliza para modelar nodos internos del \SMT y para formalizar circuitos basados en \PoseidonHash.
+	\item \textbf{\Jubjub.} Esta curva aparece asociada al circuito \STM de \Mithril en la era \Lagrange. Allí las firmas Schnorr de los participantes, así como parte de la aritmetización de \HaloTwo, se expresan sobre \Jubjub. En consecuencia, aunque \Jubjub no sea la curva usada para pairings \Onchain en \Cardano, sí es central para entender la evidencia criptográfica que el \zkBridge recibe y posteriormente comprime o verifica.
+	\item \textbf{\BN.} Históricamente fue muy utilizada en otros entornos blockchain, en particular en \Ethereum, y constituye una de las curvas emparejables más conocidas en la literatura de pruebas \zkSNARK. Su presencia en el texto sirve para contrastar alternativas posibles y para explicar por qué, en el ecosistema concreto de \Cardano, la curva emparejable relevante termina siendo \BLS.
 \end{itemize}

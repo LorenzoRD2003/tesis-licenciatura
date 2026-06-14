@@ -17,16 +17,10 @@ Los pairings bilineales son una primitiva criptográfica fundamental en las cons
 
 Una forma útil de interpretar la bilinealidad es observar que el pairing bilineal convierte operaciones aditivas en operaciones multiplicativas:
 
-$$\pairing{P + P'}{Q}  = \pairing{P}{Q} \cdot \pairing{P'}{Q)}, \quad \pairing{P}{Q + Q'} = \pairing{P}{Q} \cdot \pairing{P}{Q'}.$$
+$$\pairing{P + P'}{Q}  = \pairing{P}{Q} \cdot \pairing{P'}{Q}, \quad \pairing{P}{Q + Q'} = \pairing{P}{Q} \cdot \pairing{P}{Q'}.$$
 
-Esto permite trasladar relaciones lineales entre puntos de curvas elípticas a relaciones multiplicativas en $\GT$, lo cual resulta extremadamente poderoso en construcciones criptográficas, como veremos en el capítulo 2. Más aún, observamos que el pairing \textit{mezcla} los escalares $a,b$ en su producto, lo que induce otra operación difícil de revertir. Sin pairings, muchas construcciones modernas (como los \SNARK, \BN y \BLS) no serían posibles.
+Esto permite trasladar relaciones lineales entre puntos de curvas elípticas a relaciones multiplicativas en $\GT$, lo cual resulta extremadamente poderoso en construcciones criptográficas. Más aún, observamos que el pairing \textit{mezcla} los escalares $a,b$ en su producto, lo que induce otra operación difícil de revertir. Sin pairings, muchas construcciones modernas de pruebas sucintas y de autenticación algebraica no serían posibles.
 
-La construcción explícita de un pairing bilineal involucra una cantidad considerable de teoría adicional, incluyendo el uso de cuerpos de extensión, divisores en curvas algebraicas, funciones racionales y algoritmos específicos como el algoritmo del loop de Miller \cite{miller86}. El desarrollo completo de estos conceptos excede el objetivo de esta tesis y requeriría una extensión significativa que no sería reutilizada en las secciones posteriores. Ejemplos clásicos de pairings bilineales utilizados en la práctica son el pairing de Weil y el pairing de Tate. Por lo tanto, se asumirá la existencia de los pairings bilineales junto con las propiedades mencionadas anteriormente, sin entrar en los detalles de su construcción matemática. Se remite al lector interesado a \cite{costello2010pairings}, que proporciona una amigable aproximación a los pairings bilineales.
+La construcción explícita de un pairing bilineal involucra una cantidad considerable de teoría adicional, incluyendo el uso de cuerpos de extensión, divisores en curvas algebraicas, funciones racionales y algoritmos específicos como el algoritmo del loop de Miller \cite{miller86}. El desarrollo completo de estos conceptos excede el objetivo de esta tesis y requeriría una extensión significativa que no sería reutilizada en las secciones posteriores. Ejemplos clásicos de pairings bilineales utilizados en la práctica son el pairing de Weil y el pairing de Tate. Por lo tanto, se asumirá la existencia de los pairings bilineales junto con las propiedades mencionadas anteriormente, sin entrar en los detalles de su construcción matemática. Se remite al lector interesado a \cite{costello2010pairings}, que proporciona una introducción accesible a los pairings bilineales.
 
 Los pairings bilineales que vamos a necesitar se dicen asimétricos, es decir, son tales que no se conoce ningún isomorfismo eficiente entre los subgrupos $\GOne,\GTwo$. Además, el \ECDLP debe ser difícil de resolver en ellos.
-
-Diversas implementaciones criptográficas modernas utilizan curvas emparejables específicas. Entre las más relevantes se encuentran:
-\begin{itemize}[itemsep=0.1 cm]
-	\item \BN (\texttt{bn128}): utilizada históricamente en \Ethereum.
-	\item \BLS: ampliamente adoptada en sistemas criptográficos modernos.
-\end{itemize}

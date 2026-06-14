@@ -14,7 +14,7 @@ Los conjuntos numéricos más familiares, como los números racionales, reales o
 		\item Todo $x \in \K$ tiene un inverso aditivo, notado $-x$. Es decir, tal que $x + (-x) = 0_\K$.
 		\item Todo $x \in \K \setminus \{0_\K\}$ tiene un inverso multiplicativo, notado $x^{-1}$. Es decir, tal que $x \cdot x^{-1} = 1_\K$.
 		\item La operación $\cdot$ es distributiva sobre la operación $+$.
-		\\item $1_\K \neq 0_\K$.
+		\item $1_\K \neq 0_\K$.
 	\end{itemize}
 \end{definition}
 
@@ -28,7 +28,7 @@ Por ejemplo, $(\R, +, \cdot)$ es un cuerpo, así como lo son $(\Q, +, \cdot)$, $
 	Un cuerpo finito es un cuerpo $(\K, +, \cdot)$ donde $|\K| < \infty$.
 \end{definition}
 
-El conjunto de enteros módulo $n$ siempre forma un anillo. Este anillo es un cuerpo si y sólo si $n$ es primo. Para un primo $p$, notamos $\F_p$ a su cuerpo finito asociado, con las operaciones binarias de suma y producto definidas módulo $p$. En particular, $\Fmul{p}$ es un grupo finito de $p - 1$ elementos con la multiplicación. Intuitivamente, un cuerpo finito puede pensarse como un sistema numérico donde todas las operaciones usuales funcionan, pero con una cantidad finita de elementos.
+El conjunto de enteros módulo $n$ siempre forma un anillo. Este anillo es un cuerpo si y sólo si $n$ es primo. Para un primo $p$, notamos $\F_p$ a su cuerpo finito asociado, con las operaciones binarias de suma y producto definidas módulo $p$. Más generalmente, todo cuerpo finito tiene cardinalidad $q = p^k$ para algún primo $p$ y algún entero $k \geq 1$, y es habitual notarlo $\F_q$. Intuitivamente, un cuerpo finito puede pensarse como un sistema numérico donde todas las operaciones usuales funcionan, pero con una cantidad finita de elementos.
 
 Desde el punto de vista criptográfico, los cuerpos finitos permiten definir operaciones eficientes, controlar la complejidad computacional (al tener una cantidad finita de elementos) y formular problemas matemáticos difíciles de resolver, sobre los que sostener la seguridad de sistemas criptográficos.
 
@@ -38,21 +38,21 @@ Desde el punto de vista criptográfico, los cuerpos finitos permiten definir ope
 
 Es notable que $\Q, \R, \C$ son cuerpos de característica $0$, mientras que para todo primo $p \in \N$, $\mathrm{char}(\F_p) = p$. Es conocido que todo cuerpo tiene característica $0$ o característica prima.
 
-\subsection{Estructura multiplicativa del grupo no nulo de Fp}
-El conjunto de elementos no nulos de un cuerpo finito forma un grupo bajo la multiplicación. En particular, $(\Fmul{p}, \cdot)$ es un grupo finito de $p - 1$ elementos.
+\subsection{Estructura multiplicativa del grupo no nulo de \texorpdfstring{$\Fq$}{Fq}}
+El conjunto de elementos no nulos de un cuerpo finito forma un grupo bajo la multiplicación. En particular, $(\Fmul{q}, \cdot)$ es un grupo finito de $q - 1$ elementos.
 
 Recordamos algunas nociones básicas de teoría de grupos.
 
 \begin{definition}[Subgrupo, grupo cíclico, generador]
-	Dado un grupo $(\GG, \cdot)$ y $g \in G$, consideramos el conjunto $\gen{g} = \{g^\K: \K \in \Z\}$. El par $(\gen{g}, \cdot)$ es un subgrupo de $\GG$, y nos referimos a $\gen{g}$ como un subgrupo cíclico de $\GG$. Decimos que $g$ genera $\gen{g}$. Si $\gen{g} = \GG$, entonces decimos que $\GG$ es cíclico y que $g$ es un generador de $\GG$.
+	Dado un grupo $(\GG, \cdot)$ y $g \in \GG$, consideramos el conjunto $\gen{g} = \{g^k: k \in \Z\}$. El par $(\gen{g}, \cdot)$ es un subgrupo de $\GG$, y nos referimos a $\gen{g}$ como un subgrupo cíclico de $\GG$. Decimos que $g$ genera $\gen{g}$. Si $\gen{g} = \GG$, entonces decimos que $\GG$ es cíclico y que $g$ es un generador de $\GG$.
 \end{definition}
 
 Observar que siempre $g$ es un generador del grupo $\gen{g}$. Para un grupo finito, vale que $\gen{g} = \{1, g, g^2, \ldots, g^{n-1}\}$, y decimos que $n$ es el orden de $\gen{g}$. También nos podemos referir a $n$ como el orden de $\gen{g}$. Veremos una propiedad relevante de los subgrupos, que es corolario del Teorema de Lagrange sobre subgrupos:
 
 \begin{theorem}[Corolario del Teorema de Lagrange]
-	Sea $\GG$ un grupo y sea $\HH$ un subgrupo de $\GG$. Entonces, la cantidad de elementos de $H$ divide a la cantidad de elementos de $\GG$.
+	Sea $\GG$ un grupo y sea $\HH$ un subgrupo de $\GG$. Entonces, la cantidad de elementos de $\HH$ divide a la cantidad de elementos de $\GG$.
 \end{theorem}
 
-\begin{theorem}[$(\Fmul{p}, \cdot)$ es cíclico]
-	Sea $p \in \N$ un número primo. Entonces, existe $a \in \Fmul{p}$ (no necesariamente único) tal que $\Fmul{p} = \{1, a, a^2, a^{p-2}\}$.
+\begin{theorem}[$(\Fmul{q}, \cdot)$ es cíclico]
+	Sea $\Fq$ un cuerpo finito. Entonces, existe $a \in \Fmul{q}$ (no necesariamente único) tal que $\Fmul{q} = \{1, a, a^2, \ldots, a^{q-2}\}$.
 \end{theorem}
