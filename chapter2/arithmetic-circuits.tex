@@ -16,7 +16,7 @@ Pero también sabemos que en el contexto de la construcción de \SNARK, resulta 
 		\item \textbf{Puertas aritméticas}, que computan operaciones de suma o multiplicación en $\K$. Cada puerta aritmética tiene grado de entrada 2, grado de salida 1, y está etiquetada por una operación en $\{+, \times\}$.
 	\end{itemize}
 	
-	El valor de un nodo se obtiene evaluando el circuito en orden topológico, comenzando por los nodos de entrada. Uno o más nodos del circuito se designan como \textbf{nodos de salida}, y su valor define el resultado del cómputo. Entonces, si hay $n \in \N$ nodos de entrada y $m \in \N$ nodos de salida, el circuito induce una función $C : \K^n \to \K^m$.
+		El valor de un nodo se obtiene evaluando el circuito en orden topológico, comenzando por los nodos de entrada. Uno o más nodos del circuito se designan como \textbf{nodos de salida}, y su valor define el resultado del cómputo. Entonces, si hay $n \in \N$ nodos de entrada y $m \in \N$ nodos de salida, el circuito induce una función $f_\Circuit : \K^n \to \K^m$.
 	
 	El \textbf{tamaño} $|\Circuit|$ de un circuito aritmético se define como el número total de nodos que contiene, mientras que su \textbf{profundidad} se define como la longitud máxima de un camino dirigido desde un nodo de entrada hasta un nodo de salida.
 \end{definition}
@@ -25,16 +25,18 @@ Como primera aclaración, si bien los \textit{public inputs} y el \textit{witnes
 
 Observamos que la corrección de la evaluación de un circuito aritmético $\Circuit$ puede expresarse como la verificación de igualdades algebraicas locales: una por cada puerta del circuito. Esta propiedad será central en las dos siguientes secciones, donde veremos cómo transformar circuitos aritméticos en representaciones algebraicas aún más estructuradas, adecuadas para la construcción de argumentos \SNARK eficientes.
 
-Este modelo de cómputo permite representar funciones polinómicas de varias variables. Para representar funciones booleanas en un circuito aritmético, se puede usar codificación polinómica: $\AND$ se traduce en multiplicación  $a \wedge b = a \cdot b$, $\OR$ en $a \vee b = a + b - a \cdot b$, y $\NOT$ en $\neg a = 1 - a$. Estas identidades son válidas únicamente bajo la restricción adicional $a, b \in \{0,1\} \subset \K$, lo cual se impone mediante restricciones algebraicas del tipo $a(a - 1) = 0$. Esto garantiza que se pueden construir circuitos aritméticos equivalentes a cualquier función lógica.
+Este modelo de cómputo permite representar funciones polinómicas de varias variables. Para representar funciones booleanas en un circuito aritmético, se puede usar codificación polinómica: $\AND$ se traduce en multiplicación  $a \wedge b = a \cdot b$, $\OR$ en $a \vee b = a + b - a \cdot b$, y $\NOT$ en $\neg a = 1 - a$. Estas identidades son válidas únicamente bajo la restricción adicional $a, b \in \{0,1\} \subseteq \K$, identificando $0$ y $1$ con los elementos correspondientes del cuerpo. Esto se impone mediante restricciones algebraicas del tipo $a(a - 1) = 0$. Esto garantiza que se pueden construir circuitos aritméticos equivalentes a cualquier función lógica.
 
-Dado que cualquier verificador polinómico puede representarse mediante combinaciones de sumas y productos (por ejemplo, representando condiciones booleanas como polinomios), es posible construir un circuito aritmético que verifique la pertenencia de un \textit{witness} $w$ a una relación $\Relation \subseteq \InstanceSpace \times \WitnessSpace$, y concluir que los circuitos aritméticos son suficientemente expresivos \cite{arora2006computational} para capturar todas las relaciones en $\NP$. Formalmente, dada cualquier relación $L$ en $\NP$ con verificador polinómico $f_\Relation(x,w)$, existe un circuito aritmético $\Circuit_\Relation$ sobre un cuerpo finito $\K$ tal que la evaluación de $\Circuit_\Relation$ sobre $(x,w)$ devuelve el valor esperado si y solo si $f_\Relation(x,w)$ acepta el par $(x,w)$.
+Dado que cualquier verificador polinómico puede representarse mediante combinaciones de sumas y productos (por ejemplo, representando condiciones booleanas como polinomios), es posible construir un circuito aritmético que verifique la pertenencia de un \textit{witness} $w$ a una relación $\Relation \subseteq \InstanceSpace \times \WitnessSpace$, y concluir que los circuitos aritméticos son suficientemente expresivos \cite{arora2006computational} para capturar relaciones en $\NP$. Formalmente, dada cualquier relación $\Relation \subseteq \InstanceSpace \times \WitnessSpace$ en $\NP$ con verificador polinómico
+$$f_\Relation : \InstanceSpace \times \WitnessSpace \to \{0,1\},$$
+existe un circuito aritmético $\Circuit_\Relation$ sobre un cuerpo finito $\K$ tal que la evaluación de $\Circuit_\Relation$ sobre $(x,w)$ devuelve el valor esperado si y solo si $f_\Relation(x,w)$ acepta el par $(x,w)$.
 
 \subsection{Construcción de un ejemplo}
 
 Consideramos el cuerpo finito $\Fp$. Supongamos que queremos verificar la siguiente relación (trivial) $\Relation \subseteq \Fp^4 \times \Fp^3$:
-$$R = \{((x_1, x_2, x_3, y), (w_1, w_2, w_3)) \mid y = (w_1 + x_1) \cdot (w_2 + x_2 + 1) + w_3 \cdot x_3\}$$
+$$\Relation = \{((x_1, x_2, x_3, y), (w_1, w_2, w_3)) \mid y = (w_1 + x_1) \cdot (w_2 + x_2 + 1) + w_3 \cdot x_3\}.$$
 
-En la relación anterior, interpretamos a $x_1, x_2, x_3, y$ como \textit{inputs} públicos y a $w_1, w_2, w_3$ como el \textit{witness}. El valor $y$ actúa como el \textit{output} del circuito. Este valor combina las sumas y multiplicaciones que definen la relación $\Relation$. Podemos observar un circuito aritmético $\Circuit$ para la relación $\Relation$ en la figura \ref{fig:arith-circuit-example}.
+En la relación anterior, interpretamos a $x_1, x_2, x_3, y$ como \textit{inputs} públicos y a $w_1, w_2, w_3$ como el \textit{witness}. El valor $y$ representa la salida pública esperada del cómputo, mientras que el circuito calcula explícitamente un valor $y'$ a partir de $(x,w)$. La relación exige entonces que ambos coincidan. Podemos observar un circuito aritmético $\Circuit$ para la relación $\Relation$ en la figura \ref{fig:arith-circuit-example}.
 
 \begin{figure}[ht]
 	\centering
@@ -93,7 +95,7 @@ En la relación anterior, interpretamos a $x_1, x_2, x_3, y$ como \textit{inputs
 		\node[draw=none, below=0.01cm of mul1] {$m_1$};
 		\node[draw=none, below=0.01cm of mul2] {$m_2$};
 	\end{tikzpicture}
-	\caption{Circuito aritmético $C$ para la relación $y = (w_1 + x_1) \cdot (w_2 + x_2 + 1) + w_3 \cdot x_3$}
+		\caption{Circuito aritmético $\Circuit$ para la relación $y = (w_1 + x_1) \cdot (w_2 + x_2 + 1) + w_3 \cdot x_3$}
 	\label{fig:arith-circuit-example}
 \end{figure}
 
@@ -114,13 +116,13 @@ Introducimos explícitamente todas las variables del circuito, incluyendo las va
 	\end{itemize}
 \end{itemize}
 
-Al final, se realiza un chequeo de la salida, es decir se verifica $y' = y$. Esto no es una puerta condicional, sino la verificación de correctitud que permite devolver un valor booleano. $y'$ es la evaluación del circuito, mientras que $y$ es el \textit{input} público esperado.
+Al final, se realiza un chequeo de la salida, es decir se verifica $y' = y$. Esto no es una puerta booleana adicional dentro del circuito, sino una condición externa de aceptación que expresa la correctitud del cómputo respecto de la salida pública declarada. Aquí $y'$ es la evaluación del circuito, mientras que $y$ es el \textit{input} público esperado.
 
 En el ejemplo anterior, el circuito aritmético $\Circuit$ que representa la relación $\Relation$ permite separar de manera clara el cómputo de su verificación. El \textit{prover} evalúa el circuito completo, calculando los valores intermedios asociados a cada puerta, mientras que conceptualmente la corrección del circuito puede descomponerse en verificaciones locales y la consistencia final con el \textit{witness} declarado. Este esquema es consistente con el de cómputo verificable introducido en la sección 2.1: el costo de verificación no depende de ejecutar nuevamente el algoritmo subyacente, sino de validar una prueba estructurada de su correcta ejecución.
 
 Desde la perspectiva de los \SNARK discutidos en la sección 2.2, el circuito aritmético actúa como la representación explícita de la relación $\Relation$ de $\NP$ que se desea probar. El \textit{witness} $(w_1, w_2, w_3)$, junto con los valores intermedios del circuito, conforman la información que $\Prover$ tiene pero $\Verifier$ no. Por otra parte, los \textit{public inputs} $(x_1,x_2,x_3,y)$ así como la estructura particular de $\Circuit$ son conocidos por $\Verifier$.
 
-En particular, la verificación de un circuito aritmético puede expresarse como un conjunto de restricciones algebraicas (constraints), una por cada puerta del circuito. Esta observación es más profunda de lo que podría parecer inicialmente. En lugar de pensar al circuito como un objeto gráfico compuesto por puertas, podemos reinterpretar toda la computación como un sistema algebraico de ecuaciones (restricción polinómica de grado como mucho cuadrático). Cada puerta impone una restricción polinómica de bajo grado sobre las variables del cómputo, y la corrección global del circuito equivale entonces a la satisfacibilidad simultánea de todas dichas restricciones.
+En particular, la verificación de un circuito aritmético puede expresarse como un conjunto de restricciones algebraicas (constraints), una por cada puerta del circuito. Esta observación es más profunda de lo que podría parecer inicialmente. En lugar de pensar al circuito como un objeto gráfico compuesto por puertas, podemos reinterpretar toda la computación como un sistema algebraico de ecuaciones, donde cada puerta induce una restricción polinómica de grado a lo sumo $2$. Cada puerta impone una restricción polinómica de bajo grado sobre las variables del cómputo, y la corrección global del circuito equivale entonces a la satisfacibilidad simultánea de todas dichas restricciones.
 
 Esta reformulación puramente algebraica del cómputo es precisamente la perspectiva adoptada por los sistemas de prueba modernos. En la siguiente sección introduciremos Rank-1 Constraint Systems (\ROneCS), que son una representación canónica y particularmente conveniente de circuitos aritméticos para llegar a los \SNARK. En este caso, un \SNARK va a permitir demostrar, mediante un argumento sucinto (asintóticamente menos que la cantidad de compuertas) y no interactivo, que existe una asignación de valores que satisface todas las igualdades inducidas por el circuito $\Circuit$, sin revelar dicha asignación.
 
@@ -129,7 +131,7 @@ Esta reformulación puramente algebraica del cómputo es precisamente la perspec
 Por ahora, $\Prover$ podría confeccionar un argumento $\pi$ a partir del circuito $\Circuit$. La forma inmediata de hacerlo consistiría en enviar todos los valores involucrados en la evaluación del circuito:
 $$\pi = (w_1, w_2, w_3, s_1, s_2, s_3, m_1, m_2, y') \in \Fp^9.$$
 
-Dado este argumento, el \textit{verifier} puede comprobar localmente la corrección de cada puerta del circuito y verificar que el valor final coincide con el \textit{witness} declarado. Desde este punto de vista, $\pi$ actúa como un certificado explícito de que el \textit{prover} conoce una asignación válida que satisface todas las igualdades inducidas por $\Circuit$. Esta idea refleja fielmente el principio de los argumentos de conocimiento: convencer al \textit{verifier} de la existencia de un \textit{witness} consistente con el \textit{input} público.
+Dado este argumento, el \textit{verifier} puede comprobar localmente la corrección de cada puerta del circuito y verificar que el valor final calculado coincide con el \textit{input} público declarado. Desde este punto de vista, $\pi$ actúa como un certificado explícito de que el \textit{prover} conoce una asignación válida que satisface todas las igualdades inducidas por $\Circuit$. Esta idea refleja fielmente el principio de los argumentos de conocimiento: convencer al \textit{verifier} de la existencia de un \textit{witness} consistente con el \textit{input} público.
 
 Desde un punto de vista puramente matemático, este enfoque ya constituye un argumento de correctitud completamente válido. Aunque esta construcción es simple, tiene problemas fundamentales que la hacen inapropiada para un \SNARK. En primer lugar, el tamaño del argumento $\pi$ crece linealmente con el tamaño de $\Circuit$, por lo que no cumple la propiedad de sucintez, y el costo de verificación se vuelve comparable al del cómputo original. En segundo lugar, el esquema no tiene una estructura algebraica que permita verificar en forma global la corrección del circuito en forma eficiente.
 
@@ -139,7 +141,7 @@ Estos problemas del argumento $\pi$ motivan la necesidad de transformar la descr
 
 \subsection{Limitaciones de los circuitos aritméticos}
 
-Nos estamos comprometiendo a trabajar con un nuevo modelo de cómputo específico, que tiene propiedades favorables para implementar \SNARK construcciones criptográficas a partir de estos últimos. Por lo tanto, debemos ser conscientes lo antes posible de qué limitaciones tenemos a la hora de trabajar con ellos. Cabe notar que la representatividad de los circuitos aritméticos para relaciones en $\NP$ no implica eficiencia automática; optimizar el tamaño y la profundidad de los circuitos es un problema no trivial al que los desarrolladores se enfrentan con frecuencia.
+Nos estamos comprometiendo a trabajar con un modelo de cómputo específico, que tiene propiedades favorables para implementar construcciones criptográficas basadas en \SNARK. Por lo tanto, debemos ser conscientes lo antes posible de qué limitaciones tenemos a la hora de trabajar con él. Cabe notar que la representatividad de los circuitos aritméticos para relaciones en $\NP$ no implica eficiencia automática; optimizar el tamaño y la profundidad de los circuitos es un problema no trivial al que los desarrolladores se enfrentan con frecuencia.
 
 Los circuitos aritméticos representan funciones polinómicas sobre un cuerpo $\K$. Pero en general, la mayoría de funciones requieren una codificación adicional para ser expresadas como polinomios en varias variables. Esto puede incrementar el tamaño de los circuitos en forma drástica. Por ejemplo, la mayoría de funciones de hash criptográficas son sumamente costosas de representar, evaluar y verificar en este modelo computacional, ya que están compuestas mayoritariamente de operaciones booleanas costosas de construir a partir de sumas y productos en $\K$. Otro ejemplo son las funciones recursivas.
 

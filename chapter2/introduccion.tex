@@ -1,20 +1,20 @@
 % !TeX root = tesis.tex
 
-Una prueba de conocimiento cero (\ZeroKnowledgeProof) o prueba \ZK es un protocolo entre dos partes, en donde una quiere convencer a otra de que posee un valor, sin revelar nada sobre el conocimiento de este valor más allá de la veracidad de la información. Estas partes se conocen como \textbf{Prover} $\Prover$ y \textbf{Verifier} $\Verifier$. Podemos pensar a estas partes como personas ejecutando un algoritmo, o como algoritmos en sí mismos (usaremos estos conceptos de forma indistinta). Esta idea fue introducida inicialmente por Goldwasser, Micali y Rackoff en \cite{DBLP:journals/siamcomp/GoldwasserMR89}. Se trabaja con el modelo \textit{honest-verifier}, que asume que $\Verifier$ actúa en forma honesta. Daremos una definición formal, y luego construiremos intuición sobre las pruebas \ZK.
- 
-\begin{definition}[Protocolo de pruebas \ZK, prueba \ZK, protocolo (no) interactivo]
-	Sea $\Relation \subseteq \InstanceSpace \times \WitnessSpace$ una relación entre dos conjuntos (coloquialmente conocidos como \textbf{\textit{public inputs}} y \textbf{\textit{witness}} respectivamente), y sea $\ProofSpace$ un conjunto (coloquialmente conocido como de \textbf{pruebas}). Un protocolo de pruebas \ZK es un protocolo $(\Prover, \Verifier)$ entre un algoritmo \textit{prover} no necesariamente determinístico
-	$$\Prover: \mathcal{X} \times \WitnessSpace \to \Pi,$$
-	y un algoritmo verifier determinístico que corre en tiempo polinomial
-	$$\Verifier: \InstanceSpace \times \ProofSpace \to \{0,1\},$$
-	tales que para cualesquiera $x \in \InstanceSpace, w \in \WitnessSpace$ con $(x, w) \in \Relation$, valen las siguientes tres propiedades:
+Una prueba de conocimiento cero (\ZeroKnowledgeProof) o prueba \ZK es un protocolo entre dos partes, en donde una quiere convencer a otra de que posee un valor, sin revelar nada sobre el conocimiento de este valor más allá de la veracidad de la información. Estas partes se conocen como \textbf{Prover} $\Prover$ y \textbf{Verifier} $\Verifier$. Podemos pensar a estas partes como personas ejecutando un algoritmo, o como algoritmos en sí mismos (usaremos estos conceptos de forma indistinta). Esta idea fue introducida inicialmente por Goldwasser, Micali y Rackoff en \cite{DBLP:journals/siamcomp/GoldwasserMR89}.
+
+\begin{definition}[Protocolo de pruebas \ZK]
+	Sea $\Relation \subseteq \InstanceSpace \times \WitnessSpace$ una relación, donde $\InstanceSpace$ es el conjunto de \textit{public inputs} y $\WitnessSpace$ el conjunto de \textit{witnesses}. Asociado a $\Relation$, definimos el lenguaje
+	$$\Language_\Relation := \{x \in \InstanceSpace : \exists w \in \WitnessSpace,\ (x,w) \in \Relation\}.$$
+	Un protocolo de pruebas \ZK para $\Relation$ está dado por un prover $\Prover$ y un verifier $\Verifier$ tales que, sobre una instancia pública $x \in \InstanceSpace$ y un witness $w \in \WitnessSpace$, generan una interacción verificable por el verifier. Si el protocolo es interactivo, el objeto matemático relevante es el \textit{transcript} completo de esa interacción; si es no interactivo, dicho objeto se reduce a una prueba $\pi \in \ProofSpace$.
+
+	Informalmente, el protocolo debe satisfacer las siguientes propiedades:
 	\begin{enumerate}[noitemsep]
-		\item Completitud: Para $\pi = \Prover(x,w)$, vale $\Prob[\Verifier(x, \pi) = 1 \mid (x,w) \in \Relation] = 1$.
-		\item Solidez: Para cualquier prover $\Prover^*$ y $\pi = \Prover^*(x,w)$, vale $\Prob[\Verifier(x, \pi) = 1 \mid (x,w) \not\in \Relation] \leq \epsilon$, donde $\epsilon$ es un valor negligible.
-		\item Conocimiento cero: Para cualquier $x \in \InstanceSpace$, existe un algoritmo simulador eficiente $\Simulator_x$ que puede generar una secuencia de interacciones con $\Verifier$ que le sea indistinguible en distribución de probabilidad con respecto a una interacción real con $\Prover$.
+		\item Completitud: si $(x,w) \in \Relation$ y ambas partes siguen el protocolo, entonces $\Verifier$ acepta con probabilidad alta.
+		\item Solidez: si la afirmación pública es falsa, es decir, si $x \notin \Language_\Relation$, entonces un prover deshonesto no puede hacer que $\Verifier$ acepte salvo con probabilidad negligible.
+		\item Conocimiento cero: el verifier no aprende nada esencial sobre $w$ más allá de la validez de la afirmación demostrada.
 	\end{enumerate}
-	Las probabilidades se toman sobre todas las posibles ejecuciones del protocolo $(\Prover, \Verifier)$. Dentro de este protocolo, llamamos prueba \ZK a $\pi \in \ProofSpace$.
-	Finalmente, decimos que $(\Prover, \Verifier)$ es no interactivo si hay un solo mensaje (la prueba $\pi$ enviada de $\Prover$ a $\Verifier$), y en caso contrario que es interactivo.
+
+	Diremos que el protocolo es \textit{no interactivo} si toda la comunicación de $\Prover$ a $\Verifier$ consiste en un único mensaje $\pi \in \ProofSpace$; en ese caso llamaremos prueba a dicho mensaje. En caso contrario, diremos que es \textit{interactivo} y hablaremos del \textit{transcript} completo de la ejecución.
 \end{definition}
 
 Vamos a ganar intuición sobre esta definición, apoyados también en el protocolo de ejemplo de la imagen \ref{fig:interactive-zk-protocol}. Supongamos que tenemos un valor secreto $w \in \Strings{*}$ y calculamos $x = \Hash(w) \in \Strings{n}$ para una función de hash criptográfica $\Hash$, de modo que $x$ es interesante (por ejemplo, empieza con muchos ceros) y por lo cual nos darían un premio al haber hallado $w$. Si alguien nos pide ver $w$ para verificar la igualdad $\Hash(w) = x$, podemos no compartirlo, pero demostrar que lo conocemos (por esto se habla de prueba de conocimiento). En este contexto:
@@ -27,7 +27,7 @@ Vamos a ganar intuición sobre esta definición, apoyados también en el protoco
 	\item Pensemos que si un $w$ tal que $(x,w) \in \Relation$ fuera fácil de calcular, el protocolo de pruebas ZK no tendría sentido.
 \end{itemize}
 
-En la imagen \ref{fig:interactive-zk-protocol}, el protocolo de ejemplo muestra una interacción de tres pasos entre $\Prover$ y $\Verifier$. La prueba $\pi$ está compuesta por todos los valores que $\Prover$ le envió a $\Verifier$ como respuesta a sus mensajes. En la mayoría de protocolos ZK, los valores que $\Verifier$ son en cierta medida aleatorios, es por eso que en esta figura elegimos nombrarlos como $r_i$.
+En la imagen \ref{fig:interactive-zk-protocol}, el protocolo de ejemplo muestra una interacción de tres pasos entre $\Prover$ y $\Verifier$. En este caso, el objeto relevante no es una prueba aislada sino el \textit{transcript} completo de la interacción, formado por todos los mensajes intercambiados.
 
 \begin{figure}[h]
 	\centering
@@ -55,12 +55,12 @@ En la imagen \ref{fig:interactive-zk-protocol}, el protocolo de ejemplo muestra 
 		\draw[msg] (0,-6) -- (7,-6) node[pos=0.15, above] {$\pi_3$};
 		
 		% Output
-		\node at (0,-7) {$\Prover(x,w) = (\pi_1, \pi_2, \pi_3)$};
-		\node at (7,-7) {$\Verifier(x,\pi) \in \{0,1\}$};
+		\node at (0,-7) {$\textnormal{Transcript}(x,w) = (r_1,\pi_1,r_2,\pi_2,r_3,\pi_3)$};
+		\node at (7,-7) {$\Verifier(x,\textnormal{Transcript}) \in \{0,1\}$};
 		
 	\end{tikzpicture}
 	
-\caption{Prototipo de un protocolo ZK interactivo, donde $\pi = (\pi_1, \pi_2, \pi_3)$}
+\caption{Prototipo de un protocolo ZK interactivo, donde el objeto verificable es el \textit{transcript} completo}
 \label{fig:interactive-zk-protocol}
 \end{figure}
 
@@ -68,12 +68,12 @@ Por otra parte, podemos desglosar las tres propiedades que debe cumplir un proto
 
 \begin{itemize}[noitemsep]
 	\item Si $\Prover$ ejecuta su algoritmo con un $w$ tal que $(x,w) \in \Relation$, porque efectivamente \textbf{conoce} un $w$ que cumple esto, entonces seguramente podrá convencer a $\Verifier$ de que lo conoce.
-	\item Si un prover deshonesto $\Prover^*$ ejecuta su algoritmo con un $w$ tal que $(x,w) \not\in \Relation$, entonces probablemente $\Verifier$ podrá detectarlo. La probabilidad no es nula, pero es negligible. Qué tan baja queremos que sea esta probabilidad depende del nivel de bits de seguridad que exigimos a nuestro sistema criptográfico. Otra forma intuitiva de interpretar la solidez es que si $\Verifier$ fue convencido por $\Prover$, es porque probablemente este conocía un $w$ tal que $(x,w) \in \Relation$. Observamos que la propiedad de solidez, a diferencia de las otras, vale para \textbf{cualquier} prover.
-	\item $\Verifier$ no aprende ninguna información sobre $w$ a partir de la prueba ZK $\pi$ (compuesta por los mensajes enviados por $\Prover$), sino que sólo aprende que $\Prover$ lo conoce. La propiedad de conocimiento cero se enuncia a partir de un simulador que no tiene acceso a un $w$ tal que $(x,w) \in \Relation$, pero tal que $\Verifier$ no puede distinguirlo (computacionalmente) de una interacción real con $\Prover$. Intuitivamente, la existencia de un simulador implica que todo lo que ve el \textit{verifier} durante el protocolo podría haberse generado sin conocer el \textit{witness}. Por lo tanto, la interacción no puede estar revelando información adicional sobre $w$. La clave es la \textbf{indistinguibilidad computacional}. Es crucial que el simulador sea eficiente, pues el tiempo sería otra forma de distinguir las interacciones.
-	\item Un detalle adicional es que si bien la propiedad de solidez trata el caso donde un prover puede ser deshonesto, en ningún caso estamos tratando la posibilidad de que el verifier sea deshonesto y no acepte pruebas ZK válidas. Aquí es donde se observa \textit{honest-verifier}.
+		\item Si la afirmación pública es falsa, es decir, si $x \notin \Language_\Relation$, entonces un prover deshonesto $\Prover^*$ probablemente no podrá convencer a $\Verifier$. La probabilidad de engaño no es nula, pero es negligible. Qué tan baja queremos que sea esta probabilidad depende del nivel de bits de seguridad que exigimos a nuestro sistema criptográfico. Observamos que la propiedad de solidez, a diferencia de las otras, vale para \textbf{cualquier} prover.
+		\item En esta introducción estamos trabajando con la noción de \textit{honest-verifier zero knowledge}. Esto significa que $\Verifier$ no aprende ninguna información esencial sobre $w$ a partir del \textit{transcript} del protocolo, más allá de la validez de la afirmación, siempre que siga honestamente el protocolo. La propiedad se enuncia a partir de un simulador que no tiene acceso a un witness válido, pero que puede generar una vista indistinguible de una ejecución real para ese verifier honesto. Intuitivamente, la existencia de tal simulador implica que todo lo que ve el \textit{verifier} durante el protocolo podría haberse generado sin conocer el \textit{witness}. Por lo tanto, la interacción no revela información adicional sobre $w$. La clave es la \textbf{indistinguibilidad computacional}. Es crucial que el simulador sea eficiente, pues el tiempo también podría ser una forma de distinguir las interacciones.
+		\item Un detalle adicional es que, si bien la propiedad de solidez trata el caso donde un prover puede ser deshonesto, acá no estamos considerando verifiers arbitrarios o maliciosos. La noción usada en esta sección es, precisamente, la de \textit{honest-verifier zero knowledge}.
 \end{itemize}
 
-Desde el punto de vista de la teoría de la complejidad, los protocolos de pruebas \ZK están en la clase de complejidad \textit{Interactive Proofs} ($\IP$). Informalmente, una clase de lenguajes $L$ pertenece a $\IP$ si existe un protocolo interactivo $(\Prover, \Verifier)$ tal que para toda instancia $x \in \InstanceSpace$, el verifier $\Verifier$, que se ejecuta en tiempo polinomial, acepta con probabilidad 1 cuando $x \in L$ y rechaza con probabilidad al menos $1 - \epsilon$ cuando $x \notin L$. El prover $\Prover$ no está restringido computacionalmente, y la interacción puede contar con un número polinomial de rondas. Podemos pensar al lenguaje $L$ como inducido por $\Relation \subseteq \InstanceSpace \times \WitnessSpace$, donde $x \in L$ si y sólo si existe $w \in \WitnessSpace$ tal que $(x,w) \in \Relation$.
+Desde el punto de vista de la teoría de la complejidad, los protocolos de pruebas \ZK interactivos se estudian dentro del marco más general de las pruebas interactivas, correspondiente a la clase \textit{Interactive Proofs} ($\IP$). No todo protocolo en $\IP$ es de conocimiento cero, pero todo protocolo \ZK interactivo es, en particular, una prueba interactiva. Informalmente, una clase de lenguajes $L$ pertenece a $\IP$ si existe un protocolo interactivo $(\Prover, \Verifier)$ tal que para toda instancia $x \in \InstanceSpace$, el verifier $\Verifier$, que se ejecuta en tiempo polinomial, acepta con probabilidad 1 cuando $x \in L$ y rechaza con probabilidad al menos $1 - \epsilon$ cuando $x \notin L$. El prover $\Prover$ no está restringido computacionalmente, y la interacción puede contar con un número polinomial de rondas. Podemos pensar al lenguaje $L$ como inducido por $\Relation \subseteq \InstanceSpace \times \WitnessSpace$, donde $x \in L$ si y sólo si existe $w \in \WitnessSpace$ tal que $(x,w) \in \Relation$.
 
 Un resultado central de la teoría de la complejidad es que la potencia expresiva de los protocolos interactivos coincide exactamente con la de la clase $\PSPACE$. Es decir, todo lenguaje que puede decidirse utilizando una cantidad polinomial de espacio admite un protocolo de prueba interactivo con un verifier probabilístico en tiempo polinomial. En esta tesis, solamente nos interesa hablar del mismo como indicador de la enorme expresividad de los protocolos interactivos.
 
@@ -90,13 +90,13 @@ Por ahora, consideramos protocolos de pruebas \ZK en su forma más general, y vi
 Más aún, podemos pensar a los protocolos \ZK como una herramienta general para la verificación de cómputo. Dado un algoritmo eficiente y una entrada secreta, el prover puede convencer al verifier de que el algoritmo fue calculado correctamente, sin revelar información adicional sobre $w$ ni sobre el proceso interno de cómputo. Si el tiempo de verificación es bajo, y el tamaño de prueba es reducido, podemos incluso obviar el hecho de que no estamos revelando información sobre $w$ y hablar de protocolos \ZK que permiten verificar cómputos de gran complejidad en sistemas con muy escasos recursos (como una blockchain). También se puede hablar de \textit{cómputo delegado}.
 
 \begin{definition}[Esquema de cómputo verificable (\ZK)]
-	Sea $f: \InstanceSpace \times \WitnessSpace \to \mathcal{Y}$ una función computable en tiempo polinomial. Un esquema de cómputo verificable para $f$ es un protocolo $(\Prover, \Verifier)$ asociado a la relación $\Relation_f \subseteq \InstanceSpace^* \times \WitnessSpace$, donde el conjunto de \textit{public inputs} es $\InstanceSpace* = \InstanceSpace \times \mathcal{Y}$ y el conjunto de \textit{witness} es $\WitnessSpace$, y que está definida por:
+	Sea $f: \InstanceSpace \times \WitnessSpace \to \mathcal{Y}$ una función computable en tiempo polinomial. Un esquema de cómputo verificable para $f$ es un protocolo $(\Prover, \Verifier)$ asociado a la relación $\Relation_f \subseteq \InstanceSpace^* \times \WitnessSpace$, donde el conjunto de \textit{public inputs} es $\InstanceSpace^* = \InstanceSpace \times \mathcal{Y}$ y el conjunto de \textit{witness} es $\WitnessSpace$, y que está definida por:
 	$$(x, y, w) \in \Relation_f \iff f(x,w) = y.$$
 	
 	El protocolo $(\Prover, \Verifier)$ debe satisfacer:
 	\begin{enumerate}[noitemsep]
-		\item Completitud: Para $\pi = \Prover(x,y,w)$, vale $\Prob[\Verifier(x,y, \pi) = 1 \mid y = f(x,w)] = 1$.
-		\item Solidez: Para $\pi = \Prover(x,y,w)$, vale $\Prob[\Verifier(x, y, \pi) = 1 \mid y \neq f(x,w)] \leq \epsilon$, donde $\epsilon$ es un valor negligible.
+		\item Completitud: Para todo $x \in \InstanceSpace$ y todo $w \in \WitnessSpace$, si definimos $y := f(x,w)$ y $\pi = \Prover(x,w)$, entonces vale $\Prob[\Verifier(x,y, \pi) = 1] = 1$.
+		\item Solidez: Para todo prover probabilístico en tiempo polinomial posiblemente deshonesto $\Prover^\star$ que, dada una entrada pública $(x,y)$, produce una prueba $\pi = \Prover^\star(x,y)$, vale $\Prob[\Verifier(x, y, \pi) = 1 \mid y \neq f(x,w)\ \textnormal{ para todo }\ w \in \WitnessSpace] \leq \epsilon$, donde $\epsilon$ es un valor negligible.
 		\item Eficiencia del verifier: El tiempo de ejecución de $\Verifier$ es polinomial en el tamaño de $x$ y $y$, y sublineal respecto al costo requerido para computar directamente $f(x,w)$.
 	\end{enumerate}
 	
@@ -108,8 +108,8 @@ En la definición anterior, asumimos que la función $f$ es fija, pública y con
 También observamos que en la definición anterior nos referimos al esquema de cómputo verificable era \ZK, pero no hablamos de que $(\Prover, \Verifier)$ era un protocolo de pruebas ZK. Esto es porque debemos hacer una distinción fundamental antes de pasar a la siguiente sección de la tesis, entre \textit{prueba \ZK} y \textit{argumento \ZK}. Es notable cómo coloquialmente suele haber confusión entre estos dos términos y pensar que se refieren a lo mismo, usándose indistintamente. Daremos una distinción informal, basada en la distinción formal que se puede encontrar en el séptimo capítulo de \cite{Goldreich2001}.
 
 \begin{enumerate}[noitemsep]
-	\item En una prueba, la propiedad de solidez del protocolo vale para todo $\Prover$, incluso con recursos computacionales no acotados. Es decir, la probabilidad de aceptación de una afirmación falsa está acotada por $\epsilon$ negligible independientemente del poder computacional de $\Prover$ (incluso no acotado).
-	\item En un argumento, la propiedad de solidez del protocolo se garantiza únicamente asumiendo que $\Prover$ es eficiente. En particular, se toma que $\Prover$ sea probabilístico en tiempo polinomial. También reciben el nombre de \textit{Computationally Sound Proof System}, pero nosotros utilizaremos argumento. Si además vale la propiedad de conocimiento cero, diremos que es un argumento \ZK.
+	\item En una prueba, la propiedad de solidez vale contra provers arbitrarios, incluso computacionalmente no acotados. Es decir, aun concediendo poder de cómputo ilimitado al prover deshonesto, la probabilidad de convencer al verifier de una afirmación falsa permanece acotada por un valor negligible.
+	\item En un argumento, la propiedad de solidez sólo se exige contra provers eficientes. En particular, se cuantifica sobre provers probabilísticos en tiempo polinomial. Por eso también se habla de \textit{computationally sound proof systems}. Si además vale la propiedad de conocimiento cero, diremos que se trata de un argumento \ZK.
 \end{enumerate}
 
-Ahora bien, ¿por qué usaríamos algo más débil que una prueba \ZK, que puede ser teóricamente roto? Porque los argumentos \ZK pueden ser mucho más eficientes y escalables, y pueden transformarse a protocolos no interactivos. En general, los argumentos \ZK asumen la imposibilidad de ciertos problemas criptográficos, como \ECDLP, \BDH, o la resistencia a colisiones de funciones de hash criptográficas.
+Ahora bien, ¿por qué usaríamos algo más débil que una prueba \ZK, que puede ser teóricamente roto? Porque los argumentos \ZK pueden ser mucho más eficientes y escalables. En general, los argumentos \ZK asumen la imposibilidad de ciertos problemas criptográficos, como \ECDLP, \BDH, o la resistencia a colisiones de funciones de hash criptográficas.

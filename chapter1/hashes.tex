@@ -63,7 +63,7 @@ Si fijamos un subgrupo cíclico de una curva elíptica $\gen{G} \subseteq \E(\Fq
 	\item El firmante tiene una clave privada, que es un escalar $\sk \in \Fr$, y una clave pública, que es un punto $\pk = \sk G \in \gen{G}$.
 	\item Para firmar un mensaje $m \in \Strings{*}$, el firmante elige un $k \in \Fr$ aleatorio, calcula
 	$R = kG$, deriva el \textit{challenge} $c = \Hash(m \concat R) \in \Fr$, define la respuesta $s = k + c \cdot \sk \in \Fr$, y publica como firma el par $\sigma = (R,s)$.
-	\item La verificación consiste en recomputar $c = \Hash(m \concat R)$ y comprobar si se verifica la igualdad $sG \stackrel{?}{=} R + c\cdot \pk$.
+	\item La verificación consiste en recomputar $c = \Hash(m \concat R)$ y comprobar si se verifica la igualdad $sG \stackrel{?}{=} R + c\cdot \pk$. Esta igualdad se satisface si el firmante conocía la clave privada $\sk$, ya que $sG = (k + c \cdot \sk)G = kG + c \cdot \sk G = R + c \cdot \pk$.
 \end{itemize}
 
 Informalmente, producir firmas válidas sin conocer $\sk$ requiere quebrar la dificultad esperada del \ECDLP o manipular indebidamente el \textit{challenge} derivado con la función de hash. Por esa razón, Schnorr constituye una de las construcciones más limpias para entender cómo se pasa de la teoría de grupos de curvas elípticas a primitivas criptográficas concretas.

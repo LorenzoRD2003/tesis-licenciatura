@@ -1,41 +1,48 @@
 % !TeX root = tesis.tex
 
-Entre los distintos tipos de argumentos de conocimiento introducidos en la sección anterior, los \textit{\SNARK (Succint Non-Interactive ARgument of Knowledge)} ocupan un lugar central por su eficiencia y aplicabilidad práctica. Fueron introducidos por primera vez en \cite{Bitansky2012}. Estos sistemas permiten demostrar la corrección de cómputos arbitrariamente complejos mediante pruebas extremadamente cortas y verificables en tiempo reducido. La combinación de no interactividad, sucintez y solidez convierte a los \SNARK en una herramienta fundamental en criptografía moderna, particularmente en contextos donde la verificación eficiente resulta crítica, como sistemas distribuidos, protocolos de privacidad y blockchain.
+Entre los distintos tipos de argumentos de conocimiento introducidos en la sección anterior, los \textit{\SNARK (Succinct Non-Interactive ARgument of Knowledge)} ocupan un lugar central por su eficiencia y aplicabilidad práctica. Fueron introducidos por primera vez en \cite{Bitansky2012}. Estos sistemas permiten demostrar la corrección de cómputos arbitrariamente complejos mediante pruebas extremadamente cortas y verificables en tiempo reducido. La combinación de no interactividad, sucintez y solidez convierte a los \SNARK en una herramienta fundamental en criptografía moderna, particularmente en contextos donde la verificación eficiente resulta crítica, como sistemas distribuidos, protocolos de privacidad y blockchain.
 
 \begin{definition}[\SNARK, \zkSNARK]
 	Sea $\Relation \subseteq \InstanceSpace \times \WitnessSpace$ una relación en la clase de complejidad $\NP$. Un \SNARK para $\Relation$ es una tripla de algoritmos en tiempo polinomial
 	$$\mathcal{S} = (\Setup, \Prover, \Verifier),$$
 	definidos como:
 	\begin{itemize}
-		\item $\Setup(1^\securityparam)$ es un algoritmo aleatorio que genera un conjunto de parámetros públicos $\CRS$, conocido como \textit{Common Reference String}, que es usado tanto por el prover como por el verifier. $\securityparam$ es un parámetro de seguridad.
-		\item $\Prover_{\CRS}: \InstanceSpace \times \WitnessSpace \to \ProofSpace$ es un algoritmo aleatorio que produce una prueba $\pi$
+		\item $\Setup(1^\securityparam)$ es un algoritmo aleatorio que genera un conjunto de parámetros públicos $\CRS$, conocido como \textit{Common Reference String}, que es usado tanto por el prover como por el verifier. Es decir, $\Setup(1^\securityparam) \to \CRS$. Aquí $\securityparam$ es un parámetro de seguridad.
+		\item $\Prover_{\CRS}: \InstanceSpace \times \WitnessSpace \to \ProofSpace$ es un algoritmo aleatorio que produce una prueba $\pi$.
 		\item $\Verifier_\CRS: \InstanceSpace \times \ProofSpace \to \{0,1\}$ es un algoritmo determinístico.
 	\end{itemize}
 	
 	La tripla de algoritmos $\mathcal{S}$ debe, además, cumplir con las siguientes propiedades:
 	\begin{itemize}
-		\item Completitud: Para todo $(x,w) \in R$, $\Prob[\Verifier_\CRS(x,\Prover_\CRS(x,w)) = 1] = 1$.
-		\item Solidez computacional: Para todo prover probabilístico en tiempo polinomial $\Prover^\star$ que produce un argumento $\pi$ tal que
-		$$\Prob\left[\Verifier_\CRS(x, \pi) = 1\right]$$
-		es no negligible, existe un extractor probabilístico en tiempo polinomial con acceso a $\Prover^\star$ que devuelve (extrae) un witness $w$ tal que \((x,w) \in R\). Es por esto que hablamos de que $\pi$ es un argumento y no una prueba. En adelante, cuando hablamos de \SNARK nos referimos a argumentos de conocimiento.
+		\item Completitud: Para todo $(x,w) \in \Relation$, se cumple
+		$$\Prob[\Verifier_\CRS(x,\Prover_\CRS(x,w)) = 1] = 1.$$
+		\item Solidez por extracción: Sea
+		$$\Language_\Relation := \{x \in \InstanceSpace : \exists w \in \WitnessSpace,\ (x,w) \in \Relation\}.$$
+		Para todo prover probabilístico en tiempo polinomial $\Prover^\star$, existe un extractor probabilístico en tiempo polinomial $\Extractor^{\Prover^\star}$ tal que, para toda instancia $x \in \InstanceSpace$, si
+		$$\Prob\left[\Verifier_\CRS(x, \Prover^\star(x)) = 1\right]$$
+		es no negligible, entonces
+		$$\Prob\left[(x,\Extractor^{\Prover^\star}(x)) \in \Relation\right]$$
+		también es no negligible. Es por esto que hablamos de que $\pi$ es un argumento y no una prueba. En adelante, cuando hablamos de \SNARK nos referimos a argumentos de conocimiento.
 		\item Sucintez: Esta propiedad se divide, a su vez, en otras subpropiedades:
 		\begin{itemize}
-			\item Existe un polinomio $p \in \poly{N}_0$ tal que para todo $(x,w) \in \Relation$, $|\pi| \leq p(\securityparam, |x|)$, donde $\pi = \Prover_\CRS(x,w)$. En particular, el tamaño de la prueba es independiente de $|w|$.
-			\item El tiempo de ejecución de $\Verifier_\CRS$ está acotado por $q(\securityparam, |x|)$, donde $q \in \poly{N_0}$. También es independiente de $|w|$.
-			\item El costo de verificación de $\pi = \Prover_\CRS(x, w)$ es sublineal con respecto al costo de verificar $(x,w) \in R$.
+			\item Existen polinomios $p$ y $q$ tales que, para todo $(x,w) \in \Relation$, si $\pi = \Prover_\CRS(x,w)$, entonces $|\pi| \leq p(\securityparam, |x|)$. En particular, el tamaño de la prueba es independiente de $|w|$.
+			\item El tiempo de ejecución de $\Verifier_\CRS$ está acotado por $q(\securityparam, |x|)$. También es independiente de $|w|$.
+			\item Intuitivamente, el costo de verificación de $\pi = \Prover_\CRS(x, w)$ debe ser asintóticamente menor que el de recomputar por completo la relación a partir del witness.
 		\end{itemize}
 		\item No interactividad: El prover $\Prover_\CRS$ genera un único mensaje $\pi$, que luego es verificado por $\Verifier_\CRS$ sin interacción adicional.
 	\end{itemize}
 	
 		Si además $\mathcal{S}$ satisface la siguiente propiedad, decimos que es un \zkSNARK.
 	\begin{itemize}
-		\item Conocimiento cero: Para todo $x \in \InstanceSpace$, existe un simulador probabilístico en tiempo polinomial $\Simulator_{x,\CRS}$ tal que la distribución de las pruebas simuladas $\Simulator_{x,\CRS}(x)$ es indistinguible computacionalmente de la distribución de pruebas reales $\Prover_\CRS(x,w)$, para cualquier $w \in \WitnessSpace$ tal que $(x,w) \in \Relation$. Intuitivamente, esto implica que el verifier podría haber generado por sí mismo una prueba indistinguible de la real, sin conocer el witness.
+		\item Conocimiento cero: Para todo $x \in \InstanceSpace$, existe un simulador probabilístico en tiempo polinomial $\Simulator(\CRS,x)$ tal que la distribución de las pruebas simuladas $\Simulator(\CRS,x)$ es computacionalmente indistinguible de la distribución de pruebas reales $\Prover_\CRS(x,w)$, para cualquier $w \in \WitnessSpace$ tal que $(x,w) \in \Relation$. Intuitivamente, esto implica que el verifier podría haber generado por sí mismo una prueba indistinguible de la real, sin conocer el witness.
 	\end{itemize}
 \end{definition}
 
 La definición de sucintez que dimos es informal. Para acercarnos a la formalidad, consideramos toda familia de instancias $(x_n,w_n) \in \Relation$ tales que el tamaño mínimo de $w_n$ para verificar $\Relation$ con $x_n$ crece de forma no acotada, el costo de verificación es asintóticamente menor que el costo de verificar explícitamente la pertenencia de $(x_n, w_n)$ a $\Relation$. Es decir, el verifier no debe volver a ejecutar el cómputo implícito en el witness.
 
-Recordar que, como $\Relation$ está en $\NP$, entonces es seguro que existe una máquina de Turing determinística $M_\Relation$ que decide $(x,w) \in \Relation$ en tiempo polinomial respecto a $|x| + |w|$. Lo que no necesariamente es polinomial (y justamente nos sirve que no lo sea) es el lenguaje $\Language_\Relation = \{x: \exists w \mid (x,w) \in \Relation\}$, o sea, decidir la pertenencia a la relación sin conocer el \textit{witness} $w$. Tener presente que una relación en $\NP$ representa un cómputo siempre resulta útil a la hora de aprender o reforzar estos conceptos.
+Recordar que, como $\Relation$ está en $\NP$, entonces existe una máquina de Turing determinística $M_\Relation$ que decide si $(x,w) \in \Relation$ en tiempo polinomial respecto de $|x| + |w|$. Lo que no necesariamente admite una decisión eficiente a partir sólo de la instancia pública es el lenguaje inducido
+$$\Language_\Relation = \{x \in \InstanceSpace : \exists w \in \WitnessSpace,\ (x,w) \in \Relation\},$$
+es decir, el problema de decidir la pertenencia a la relación sin conocer el \textit{witness} $w$. Tener presente que una relación en $\NP$ representa un cómputo siempre resulta útil a la hora de aprender o reforzar estos conceptos.
 
 Ahora, vamos a hablar más informalmente de \SNARK y \zkSNARK para ganar mayor intuición respecto a estos conceptos. En primer lugar, un \SNARK puede entenderse como un mecanismo que permite a una parte demostrar que conoce un \textit{witness} $w$ consistente con un \textit{input} público $x$, sin interacción adicional y con una prueba de tamaño pequeño. La no interactividad surge del hecho de que primero se ejecuta $\Prover_\CRS$ y luego $\Verifier_\CRS$, de modo que toda la comunicación entre el \textit{prover} y el \textit{verifier} es un único mensaje $\pi$.
 

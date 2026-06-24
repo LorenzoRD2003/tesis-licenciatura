@@ -72,7 +72,7 @@ Una de las propiedades más importantes de esta estructura es que permite constr
 	Sea $\MerkleTree{T}$ un Merkle Tree con raíz $\MerkleRoot{\MerkleTree{T}}$, construido sobre una secuencia de datos $L = \{\ell_1, \ldots, \ell_n\}$ y usando una función de hash criptográfica $\Hash$. Una Merkle Proof para un dato $\ell = (b_1, \ldots, b_k) \in L$ es una lista ordenada $\MerkleProof = [h_1, \ldots, h_k]$ que representa un camino (Merkle Path) desde la hoja correspondiente a $\ell$ hasta $\MerkleRoot{\MerkleTree{T}}$, donde:
 	\begin{itemize}
 		\item Cada $h_i \in \Strings{n}$ es el hash del hermano del nodo del nivel $i$ en el Merkle Path desde la hoja correspondiente a $\ell$ hasta $\MerkleRoot{\MerkleTree{T}}$.
-		\item Cada $b_i \in \{0,1\}$ es el $i$-ésimo bit de $\ell$, e indica si el hash $h_i$ está a la izquierda ($b_i = 0$) o a la derecha ($b_i = 1$) del nodo en el Merkle Path..
+		\item Cada $b_i \in \{0,1\}$ es el $i$-ésimo bit de $\ell$, e indica si el hash $h_i$ está a la izquierda ($b_i = 0$) o a la derecha ($b_i = 1$) del nodo en el Merkle Path.
 		\item $k = \lceil \log_2 n \rceil$ es la altura de $\MerkleTree{T}$, por lo tanto la cantidad de pasos en el Merkle Path hasta $\MerkleRoot{\MerkleTree{T}}$.
 	\end{itemize}
 \end{definition}
@@ -159,4 +159,4 @@ La seguridad criptográfica de un Merkle Tree se reduce a la resistencia a colis
 
 Notar que el algoritmo \ref{alg:verify-merkle-proof} tiene una complejidad temporal de $\BigO(k) = \BigO(\log n)$, así como el tamaño de la Merkle Proof. Para árboles con muchos niveles, esto resulta clave. Además, no resulta necesario almacenar todo el vector camino $x$ durante el mismo.
 
-Desde una perspectiva criptográfica, los Merkle Trees pueden interpretarse como esquemas de compromiso vectorial \cite{Catalano2013} con pruebas de tamaño logarítmico. Esta interpretación resulta especialmente útil para entender cómo el cuerpo principal reutiliza árboles autenticados dentro de argumentos más estructurados.
+Desde una perspectiva criptográfica, los Merkle Trees pueden interpretarse como esquemas de compromiso vectorial \cite{Catalano2013} con pruebas de tamaño logarítmico. Esta interpretación resulta especialmente útil para entender por qué la tesis utiliza Merkle Trees dentro de circuitos con mayor estructura.

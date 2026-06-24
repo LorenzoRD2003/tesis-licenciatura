@@ -52,20 +52,26 @@ JOBNAME="partial-$SLUG"
 AUX_BASENAME="$BUILD_DIR/$JOBNAME"
 
 APPENDIX_MODE="$(
-  awk -v title="$TITLE" '
-    BEGIN { in_appendix = 0 }
-    /^\\appendix$/ { in_appendix = 1 }
-    $0 == "\\chapter{" title "}" {
-      print(in_appendix ? "yes" : "no")
-      found = 1
-      exit
-    }
-    END {
-      if (!found) {
-        exit 1
-      }
-    }
-  ' "$MAIN_TEX"
+  python3 - "$MAIN_TEX" "$TITLE" <<'PY'
+import sys
+from pathlib import Path
+
+main_tex = Path(sys.argv[1])
+title = sys.argv[2]
+lines = main_tex.read_text(encoding="utf-8").splitlines()
+
+in_appendix = False
+target = f"\\chapter{{{title}}}"
+
+for line in lines:
+    if line == r"\appendix":
+        in_appendix = True
+    if line == target:
+        print("yes" if in_appendix else "no")
+        raise SystemExit(0)
+
+raise SystemExit(1)
+PY
 )" || {
   echo "No encontre un bloque con titulo exacto: $TITLE" >&2
   exit 1
@@ -79,18 +85,29 @@ APPENDIX_MODE="$(
   if [[ "$APPENDIX_MODE" == "yes" ]]; then
     printf '\\appendix\n'
   fi
-  awk -v title="$TITLE" '
-    $0 == "\\chapter{" title "}" {
-      capture = 1
-    }
-    capture {
-      if (seen && $0 ~ /^\\chapter\{/) {
-        exit
-      }
-      print
-      seen = 1
-    }
-  ' "$MAIN_TEX"
+  python3 - "$MAIN_TEX" "$TITLE" <<'PY'
+import sys
+from pathlib import Path
+
+main_tex = Path(sys.argv[1])
+title = sys.argv[2]
+lines = main_tex.read_text(encoding="utf-8").splitlines()
+
+target = f"\\chapter{{{title}}}"
+capture = False
+seen = False
+
+for line in lines:
+    if line == target:
+        capture = True
+    if capture:
+        if line == r"\end{document}":
+            break
+        if seen and line.startswith(r"\chapter{"):
+            break
+        print(line)
+        seen = True
+PY
   printf '\n\\backmatter\n'
   printf '\\bibliographystyle{ieeetr}\n'
   printf '\\bibliography{tesis}\n'

@@ -6,34 +6,34 @@ Muchos protocolos criptográficos tienen el mismo patrón estructural: una parte
 
 Los esquemas de compromiso formalizan precisamente este mecanismo criptográfico. Intuitivamente, un compromiso actúa como un “sobre sellado”: permite ocultar información en una primera fase, garantizando simultáneamente que dicha información no puede modificarse más adelante. Las dos palabras fundamentales son \emph{ocultamiento} e \emph{inmutabilidad}. En la segunda fase, el emisor revela dicho valor junto con información auxiliar para poder verificar la consistencia del compromiso.
 
-Más formalmente, un esquema de compromiso define un protocolo de dos fases. En la fase de \textit{commit}, el emisor fija un valor secreto. En la fase de \textit{open} (o \textit{reveal}), el emisor revela información auxiliar que permite verificar la consistencia del compromiso con alguna propiedad a demostrar. Un ejemplo fundamental de esquema de compromiso es el de Pedersen \cite{Pedersen}.
+Más formalmente, un esquema de compromiso define un protocolo de dos fases. En la fase de \textit{commit}, el emisor fija un valor secreto. En la fase de \textit{open} (o \textit{reveal}), el emisor revela información auxiliar que permite verificar la consistencia de la apertura con el compromiso emitido. Un ejemplo fundamental de esquema de compromiso es el de Pedersen \cite{Pedersen}.
 
 \begin{definition}[Esquema de Compromiso]
-	Sean $\MessageSpace$ un espacio de mensajes, $\RandomnessSpace$ un espacio de aleatoriedad, y $\CommitmentSpace$ un espacio de compromisos. Un esquema de compromiso (o commitment scheme) es un par de algoritmos probabilísticos en tiempo polinomial:
+	Sean $\MessageSpace$ un espacio de mensajes, $\RandomnessSpace$ un espacio de aleatoriedad, y $\CommitmentSpace$ un espacio de compromisos. Adoptaremos la convención simplificada de describir un esquema de compromiso mediante un algoritmo de compromiso y un procedimiento de verificación de apertura. Un esquema de compromiso (o commitment scheme) es entonces un par de algoritmos probabilísticos en tiempo polinomial:
 	$$\begin{aligned}
 		\Commit: \MessageSpace \times \RandomnessSpace &\to \CommitmentSpace, \\
-		\Open: \CommitmentSpace \times \MessageSpace \times \RandomnessSpace &\to \{0,1\},
+		\VerifyOpen: \CommitmentSpace \times \MessageSpace \times \RandomnessSpace &\to \{0,1\},
 	\end{aligned}$$
-	tales que para todo mensaje $m \in \MessageSpace$ y valores aleatorios $r \in \RandomnessSpace$, si $c = \Commit(m,r)$, entonces $\Open(c,m,r) = 1$.
+	tales que para todo mensaje $m \in \MessageSpace$ y valores aleatorios $r \in \RandomnessSpace$, si $c = \Commit(m,r)$, entonces $\VerifyOpen(c,m,r) = 1$.
 	
 	Además, un esquema de compromiso debe satisfacer las siguientes propiedades:
 	\begin{itemize}[noitemsep]
 			\item \textit{Hiding}: el compromiso no revela información computacionalmente distinguible sobre el mensaje comprometido.
-			\item \textit{Binding}: es computacionalmente inviable encontrar $m \neq m'$ y $r \neq r'$ tales que $\Commit(m,r) = \Commit(m',r')$.
+			\item \textit{Binding}: es computacionalmente inviable encontrar un compromiso $c \in \CommitmentSpace$ y dos aperturas válidas $(m,r)$ y $(m',r')$ con $m \neq m'$ tales que $\VerifyOpen(c,m,r) = \VerifyOpen(c,m',r') = 1$.
 	\end{itemize}
 \end{definition}
 
-Intuitivamente, abrir un compromiso consiste en revelar el mensaje junto con la aleatoriedad utilizada durante la fase de compromiso, permitiendo su verificación pública. Notamos que los espacios $\mathcal{M, C, R}$ pueden ser conjuntos arbitrarios, de modo que este esquema es instanciable para diferentes estructuras algebraicas.
+Intuitivamente, abrir un compromiso consiste en revelar el mensaje junto con la aleatoriedad utilizada durante la fase de compromiso, permitiendo su verificación pública. Notamos que los espacios $\MessageSpace$, $\CommitmentSpace$ y $\RandomnessSpace$ pueden ser conjuntos arbitrarios, de modo que este esquema es instanciable para diferentes estructuras algebraicas.
 
-Un detalle sumamente importante es que la aleatoriedad $r \in \RandomnessSpace$ usada en ambos algoritmos sea la misma. El algoritmo $\Open$ no introduce nueva aleatoriedad $r' \neq r$, ya que si permitiera hacerlo, se podría abrir el mismo $c$ como infinitas cosas distintas.
+Un detalle sumamente importante es que la aleatoriedad $r \in \RandomnessSpace$ usada en ambos algoritmos sea la misma. El procedimiento $\VerifyOpen$ no introduce nueva aleatoriedad $r' \neq r$, ya que si permitiera hacerlo, se podría abrir el mismo $c$ como infinitas cosas distintas.
 
-Notar que el algoritmo $\Open$ cumple simultáneamente el rol de procedimiento de verificación. En muchas referencias, se lo separa de otro algoritmo explícitamente como $\Verify$. Dependiendo del caso, los vamos a separar para hacer que la idea fundamental sea más explícita: $\Open$ generará una prueba o argumento $\pi$ en un espacio de pruebas/argumentos $\ProofSpace$, que será recibida por $\Verify$.
+Notar que en esta definición general $\VerifyOpen$ cumple el rol de procedimiento de verificación de apertura. En muchas referencias, se separa además un algoritmo de apertura que produce evidencia explícita y otro de verificación, que suele escribirse como $\Open$ y $\Verify$ respectivamente. Dependiendo del caso, los vamos a separar para hacer que la idea fundamental sea más explícita: en las próximas definiciones, $\Open$ generará una prueba o argumento $\pi$ en un espacio de pruebas/argumentos $\ProofSpace$, que será recibida por $\Verify$.
 
 Las propiedades de \textit{hiding} y \textit{binding} capturan exactamente la intuición del sobre sellado: \textit{hiding} indica que nadie puede ver el contenido del sobre, mientras que \textit{binding} indica que el contenido del sobre no puede ser modificado luego de sellarse.
 
 Es importante remarcar que un compromiso no es un cifrado criptográfico: un cifrado protege confidencialidad frente a terceros, pero el emisor puede modificar el mensaje antes de enviarlo. Un compromiso, en cambio, protege consistencia temporal: fija criptográficamente un valor \cite{katz}.
 
-Aunque la definición formal contempla un algoritmo de apertura $\Open$, en muchas aplicaciones criptográficas modernas el mensaje completo no se revela, sino únicamente información derivada verificable. En la práctica (en particular, en la construcción de los \SNARK) no se revelará el mensaje completo, ya que queremos tener propiedades de sucintez y conocimiento cero.
+Aunque la definición formal anterior contempla un procedimiento de verificación de apertura $\VerifyOpen$, en muchas aplicaciones criptográficas modernas el mensaje completo no se revela, sino únicamente información derivada verificable. En la práctica (en particular, en la construcción de los \SNARK) no se revelará el mensaje completo, ya que queremos tener propiedades de sucintez y conocimiento cero.
 
 Los esquemas de compromiso son un mecanismo criptográfico que permite transformar objetos matemáticos en artefactos verificables públicamente. En las siguientes subsecciones veremos instancias concretas de esta abstracción. Primero, observaremos que los Merkle Trees pueden interpretarse naturalmente como compromisos vectoriales. Luego, extenderemos esta idea a los polinomios.
 
@@ -51,28 +51,28 @@ Esta generalización conduce naturalmente a la noción de compromisos vectoriale
 La idea de esta subsección es observar que un esquema de compromiso vectorial es exactamente lo que podíamos hacer con los Merkle Trees, y que por lo tanto no son algo muy diferente a lo que venimos trabajando. Ahora vamos con la definición formal.
 
 \begin{definition}[\VCS]
-		Sean $\K$ un cuerpo finito, $\MessageSpace$ un espacio de mensajes, $\CommitmentSpace$ un espacio de compromisos, $\Pi$ un espacio de pruebas, y $n \in \N$. Un esquema de compromiso vectorial (vector commitment scheme, \VCS) es una tripla de algoritmos probabilísticos en tiempo polinomial:
+		Sean $\MessageSpace$ un espacio de mensajes, $\CommitmentSpace$ un espacio de compromisos, $\ProofSpace$ un espacio de pruebas, y $n \in \N$. Un esquema de compromiso vectorial (vector commitment scheme, \VCS) es una tripla de algoritmos probabilísticos en tiempo polinomial:
 	$$\begin{aligned}
 		\Commit: \MessageSpace^n &\to \CommitmentSpace, \\
-		\Open: \CommitmentSpace \times [n] \times \MessageSpace &\to \Pi, \\
-		\Verify: \CommitmentSpace \times [n] \times \MessageSpace \times \Pi &\to \{0,1\},
+		\Open: \MessageSpace^n \times [n] &\to \MessageSpace \times \ProofSpace, \\
+		\Verify: \CommitmentSpace \times [n] \times \MessageSpace \times \ProofSpace &\to \{0,1\},
 	\end{aligned}$$
-	tales que para todo vector $\mathbf{v} \in \MessageSpace^n$, $c := \Commit(\mathbf{v})$ fija el vector completo, $\pi := \Open(c, i, \mathbf{v}_i)$ produce una prueba de apertura, y $\Verify(c, i, \mathbf{v}_i, \pi) = 1$ si la apertura es válida.
+	tales que para todo vector $\mathbf{v} \in \MessageSpace^n$, si $c := \Commit(\mathbf{v})$ y $(\mathbf{v}_i,\pi) := \Open(\mathbf{v}, i)$, entonces $\Verify(c, i, \mathbf{v}_i, \pi) = 1$.
 \end{definition}
 
 Para simplificar la exposición, omitimos explícitamente el espacio de aleatoriedad $\RandomnessSpace$. Esta omisión no afecta la construcción que utilizaremos (Merkle Trees), la cual es determinística, y la seguridad no se basa en la aleatoriedad, sino en la resistencia a colisiones de una función de hash criptográfica $\Hash$ (en el \ROM) \cite{katz}.
 
 Por otra parte, decidimos incluir el espacio de pruebas $\ProofSpace$, así como separar los algoritmos $\Open$ y $\Verify$, para poder ver con más detalle la relación entre ambos y las primitivas ya introducidas.
 
-Podemos definir un \VCS a partir de los Merkle Trees de la siguiente forma: dado un vector $\mathbf{v} \in \K^n$, el compromiso se define como $c := \MerkleRoot{\MerkleTree{T}}$, donde $\MerkleTree{T}$ es el Merkle Tree de hojas son $h_i = \Hash(v_i)$, y la apertura de la $i$-ésima posición se corresponde exactamente con una Merkle Proof. Bajo esta interpretación:
+Podemos definir un \VCS a partir de los Merkle Trees de la siguiente forma: dado un vector $\mathbf{v} \in \K^n$, el compromiso se define como $c := \MerkleRoot{\MerkleTree{T}}$, donde $\MerkleTree{T}$ es el Merkle Tree cuyas hojas son $h_i = \Hash(v_i)$, y la apertura de la $i$-ésima posición se corresponde exactamente con una Merkle Proof. Bajo esta interpretación:
 
 \begin{itemize}[itemsep=0.1cm]
 	\item $\Commit(\mathbf{v}) := \MerkleRoot{\MerkleTree{T}}$.
-	\item $\Open(c,i, \mathbf{v}_i)$ devuelve la Merkle Proof $\pi$ asociada a $\ell_i$.
+	\item $\Open(\mathbf{v},i)$ devuelve el par $(\mathbf{v}_i,\pi)$, donde $\pi$ es la Merkle Proof asociada a la hoja $\ell_i$.
 	\item $\Verify(c, i, \mathbf{v}_i, \pi)$ se corresponde con verificar la Merkle Proof (con el algoritmo $\Verify$ del Merkle Tree ya introducido).
 \end{itemize}
 
-La propiedad de binding se deduce de que la resistencia a colisiones de $\Hash$ (no es computacionalmente posible abrir una posición del vector de dos maneras distintas y llegar a la misma raíz). Por otra parte, los Merkle Trees no garantizan hiding en el sentido tradicional de los esquemas de compromiso, ya que el compromiso es determinístico, pero utilizaremos que en el \ROM un hash puede interpretarse como una forma de ocultamiento computacional.
+La propiedad de binding se deduce de la resistencia a colisiones de $\Hash$: no es computacionalmente posible abrir una posición del vector de dos maneras distintas y llegar a la misma raíz. Por otra parte, los Merkle Trees no garantizan \textit{hiding} en el sentido tradicional de los esquemas de compromiso, ya que el compromiso es determinístico. En esta tesis los utilizaremos por sus propiedades de autenticidad e inclusión, no como mecanismos de ocultamiento criptográfico general.
 
 Además, el compromiso $\MerkleRoot{\MerkleTree{T}}$ tiene tamaño constante $\BigO(1)$, las Merkle Proofs $\pi_i$ tienen tamaño logarítmico: $\BigO(\log n)$, y la verificación requiere de $\BigO(\log n)$ evaluaciones de $\Hash$. Esto refleja la propiedad de sucintez que tanto deseamos en el esquema.
 
@@ -85,41 +85,41 @@ $$P(z) = y, \quad y,z \in \K$$
 sin necesidad de revelar completamente $P$. Esta noción es el \emph{argumento de evaluación}. Una prueba de evaluación es un argumento criptográfico que permite convencer al verificador de que una evaluación reclamada $y = P(z)$ es consistente con un compromiso $c$, sin revelar $P$. Daremos ahora la definición formal de los compromisos polinomiales.
 
 \begin{definition}[\PCS]
-	Sean $\K$ un cuerpo finito, $d \in \N$, $\PolynomialSpace \subseteq \poly{\K_{\leq d}}$ un espacio de polinomios sobre $\K$, $\CommitmentSpace$ un espacio de compromisos, y $\Pi$ un espacio de argumentos. Un esquema de compromiso polinomial (polynomial commitment scheme, \PCS) es una tripla de algoritmos probabilísticos en tiempo polinomial:
+	Sean $\K$ un cuerpo finito, $d \in \N$, $\PolynomialSpace \subseteq \poly{\K}_{\leq d}$ un espacio de polinomios sobre $\K$, $\CommitmentSpace$ un espacio de compromisos, y $\ProofSpace$ un espacio de argumentos. Un esquema de compromiso polinomial (polynomial commitment scheme, \PCS) es una tripla de algoritmos probabilísticos en tiempo polinomial:
 	$$
 	\begin{aligned}
 		\Commit: \PolynomialSpace &\to \CommitmentSpace, \\
-		\Open: \CommitmentSpace \times \K &\to \K \times \ProofSpace \\
+		\Open: \PolynomialSpace \times \K &\to \K \times \ProofSpace, \\
 		\Verify: \CommitmentSpace \times \K \times \K \times \ProofSpace &\to \{0,1\},
 	\end{aligned}
 	$$
 	tales que para todo polinomio $P \in \PolynomialSpace$, si $c := \Commit(P)$, entonces
-	$\Open(c, z)$ produce un par $(y, \pi)$ con $y = P(z)$, y $\Verify(c, z, y, \pi) = 1$.
+	$\Open(P, z)$ produce un par $(y, \pi)$ con $y = P(z)$, y $\Verify(c, z, y, \pi) = 1$.
 \end{definition}
 
-Formalmente, el concepto de un argumento de evaluación es el objeto $\pi \in \Pi$ generado por el algoritmo $\Open$.
+Formalmente, el concepto de un argumento de evaluación es el objeto $\pi \in \ProofSpace$ generado por el algoritmo $\Open$.
 
-Ahora, vamos a conectar estas ideas con las primitivas criptográficas ya introducidas. Desde una perspectiva puramente algebraica, $P(z) = y$ equivale a que el polinomio $Q(x) = P(x) - y$ tiene a $z$ como raíz, es decir que existe un polinomio $H \in \poly{\K}$ tal que $P(x) - y = (x - z)H(x)$. El problema se reduce entonces a argumentar esta afirmación.
+Ahora, vamos a conectar estas ideas con las primitivas criptográficas ya introducidas. Desde una perspectiva puramente algebraica, $P(z) = y$ equivale a que el polinomio $Q(x) := P(x) - y$ tiene a $z$ como raíz, es decir que existe un polinomio $H \in \poly{\K}$ tal que $Q(x) = (x - z)H(x)$. El problema se reduce entonces a argumentar esta afirmación.
 
-El Lema de Schwartz–Zippel establece que dos polinomios distintos de grado acotado $d$ coinciden en un punto aleatorio con probabilidad despreciable, a lo sumo $\frac{d}{|\K|}$. Por lo tanto, si el verifier pudiera evaluar ambos lados de la identidad en un punto aleatorio $r$. Es decir, si pudiera evaluar la identidad
+El Lema de Schwartz–Zippel establece que dos polinomios distintos de grado acotado $d$ coinciden en un punto aleatorio con probabilidad despreciable, a lo sumo $\frac{d}{|\K|}$. Por lo tanto, si el verifier pudiera evaluar ambos lados de la identidad en un punto aleatorio $r$, podría chequear la igualdad
 $$P(r) - y \overset{?}{=} (r - z)H(r).$$
 
 Sin embargo, en un esquema de compromiso polinomial no basta con verificar evaluaciones explícitas de $P$, ya que el verifier no tiene acceso a $P$, sino al compromiso $c \in \CommitmentSpace$. Surge entonces el problema fundamental: ¿cómo verificar identidades algebraicas sin acceso directo a los objetos algebraicos? Necesitamos un mecanismo que permita “transportar” esta verificación algebraica al espacio de los compromisos. Como problema aún más fundamental, no hicimos ninguna especificación de la estructura del espacio de los compromisos $\CommitmentSpace$.
 
-Un requisito mínimo para cualquier esquema de este tipo es que las evaluaciones puedan manipularse algebraicamente en el espacio de los compromisos. Si representamos valores mediante exponentes en un grupo cíclico $\GG = \gen{G}$, una evaluación $a \in \K$ se codifica como $aG$. En este contexto, las operaciones lineales se preservan naturalmente: $aG +_\GG bG = (a + b)G$. Esto permite transportar combinaciones lineales de evaluaciones al espacio de los compromisos.
+Un requisito mínimo para cualquier esquema de este tipo es que las evaluaciones puedan manipularse algebraicamente en el espacio de los compromisos. Sea $\GOne$ un grupo cíclico aditivo con generador $G_1$. Entonces, una evaluación $a \in \K$ puede codificarse como $aG_1$. En este contexto, las operaciones lineales se preservan naturalmente: $aG_1 + bG_1 = (a + b)G_1$. Esto permite transportar combinaciones lineales de evaluaciones al espacio de los compromisos.
 
 No obstante, las relaciones algebraicas relevantes en sistemas de prueba no son meramente lineales. En particular, si queremos resolver el problema que expresamos mediante un \QAP utilizando un argumento de evaluación, vemos que se involucran productos:
 
 $$A(r) \cdot B(r) - C(r) = H(r)Z(r).$$
 
-Esto es una dificultad central. La estructura de grupo no ofrece un mecanismo directo para preservar productos. Si $a = A(r), b = B(r)$, vamos a necesitar codificar el elemento $(ab)G$ de alguna forma, y no podemos hacerlo.
+Esto es una dificultad central. La estructura de grupo no ofrece un mecanismo directo para preservar productos. Si $a = A(r)$ y $b = B(r)$, vamos a necesitar codificar el elemento $(ab)G_1$ de alguna forma, y no podemos hacerlo usando sólo la estructura aditiva de $\GOne$.
 
-El problema es que acá nos vamos a tener que comprometer a $A, B, C$. Y solamente usando una estructura de grupo, el esquema de compromiso polinomial no preservaría estructura multiplicativa. Es decir que no podríamos transportar ese mecanismo al mundo de los compromisos.
+El problema es que aquí vamos a querer comprometer polinomios como $A, B, C$ provenientes de la aritmetización del \QAP. Solamente usando una estructura de grupo aditiva, el esquema de compromiso polinomial no preservaría estructura multiplicativa. Es decir que no podríamos transportar ese mecanismo al mundo de los compromisos.
 
-En particular, necesitamos una estructura criptográfica que preserve relaciones multiplicativas entre exponentes.  Los pairings bilineales proporcionan precisamente esta herramienta, pero utilizando más de un grupo. Dados grupos $\GOne = \gen{G}, \GTwo = \gen{H}, \GT$ y un pairing bilineal
+En particular, necesitamos una estructura criptográfica que preserve relaciones multiplicativas entre exponentes. Los pairings bilineales proporcionan precisamente esta herramienta, pero utilizando más de un grupo. Sean $\GOne$ y $\GTwo$ grupos cíclicos aditivos con generadores $G_1$ y $G_2$ respectivamente, sea $\GT$ un grupo multiplicativo, y sea
 $$e: \GOne \times \GTwo \to \GT,$$
 se cumple la propiedad fundamental
-$$\pairing{aG}{bH} = \pairing{G}{H}^{ab},$$
-donde el producto $ab$ aparece automáticamente en el exponente del grupo objetivo $\GT$. Esta propiedad permite transportar identidades multiplicativas al espacio de los compromisos, haciendo viable la verificación eficiente de relaciones polinómicas complejas.
+$$\pairing{aG_1}{bG_2} = \pairing{G_1}{G_2}^{ab},$$
+donde usamos notación aditiva en los grupos fuente y notación multiplicativa en el grupo objetivo $\GT$. En particular, el producto $ab$ aparece automáticamente en el exponente del elemento del grupo objetivo. Esta propiedad permite transportar identidades multiplicativas al espacio de los compromisos, haciendo viable la verificación eficiente de relaciones polinómicas complejas.
 
 Por ahora, esto puede sonar muy abstracto. Pero en la siguiente sección introduciremos una instanciación concreta de estas ideas: el esquema de compromisos polinomiales de Kate–Zaverucha–Goldberg (\KZG) \cite{Kate2010}, donde la divisibilidad polinomial se traduce directamente en una única ecuación de pairing.

@@ -22,6 +22,15 @@
 \usepackage{stmaryrd}
 \usepackage[textsize=scriptsize]{todonotes}
 \usepackage{xspace}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\hypersetup{
+	colorlinks,
+	linkcolor={black},
+	citecolor={blue!50!black},
+	urlcolor={blue!80!black}
+}
+
 
 \setlength{\emergencystretch}{3em}
 \Urlmuskip=0mu plus 2mu\relax
@@ -216,6 +225,10 @@ Este apéndice reúne herramientas algebraicas y criptográficas que el cuerpo p
 
 %% ...
 \chapter{Aritmetización y Construcción de un \SNARK}
+
+Este apéndice reúne la teoría criptográfica subyacente a los argumentos sucintos utilizados en la tesis. Su propósito es concentrar en un único lugar las definiciones, transformaciones y construcciones que permiten pasar de un cómputo expresado como relación en $\NP$ a un argumento \zkSNARK verificable de manera eficiente. En particular, las nociones de circuitos aritméticos, \ROneCS, \QAP, compromisos polinomiales, \KZG, \FiatShamir y \Groth aparecen luego de forma directa en las decisiones de diseño del \Bridge, en la justificación de la verificación \Onchain en \Cardano, y en la discusión posterior sobre circuitos y pruebas asociadas a \Mithril.
+
+Puede leerse de dos maneras. Una lectura lineal, de principio a fin, reconstruye la cadena completa que va desde la representación algebraica del cómputo hasta el esquema de prueba finalmente adoptado en el proyecto. En cambio, un lector que sólo necesite contexto para seguir el argumento principal puede usarlo como material de consulta selectiva: las secciones sobre \QAP, \KZG y \Groth son las más directamente conectadas con los capítulos de diseño e implementación, mientras que las secciones iniciales fijan la intuición necesaria para que esas construcciones no aparezcan como cajas negras.
 
 \section{Introducción a pruebas \ZK}
 

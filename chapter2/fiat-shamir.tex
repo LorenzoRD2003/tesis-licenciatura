@@ -14,25 +14,25 @@ Para que esta transformación sea segura, se necesita trabajar en el \ROM, de mo
 	Decimos que $\Pi = (\Commit, \Open, \Verify)$ es un \SigmaProtocol para una relación $\Relation \subseteq \InstanceSpace \times \WitnessSpace$ con public inputs $x$ y witness $w$ tales que $(x,w) \in \Relation$, entre un prover $\Prover$ y un verifier $\Verifier$, si consiste de los siguientes tres mensajes:
 	\begin{enumerate}[itemsep=0.1 cm]
 		\item El prover le envía al verifier un compromiso $c = \Commit(x, w; r)$ ($r$ es la aleatoriedad interna del prover, fijada al inicio de la ejecución).
-		\item El verifier responde con un desafío uniformemente aleatorio $z$.
-		\item El prover le envía una respuesta $\pi = \Open(c, z, w, x; r)$.
+		\item El verifier responde con un desafío uniformemente aleatorio $\Challenge$.
+		\item El prover le envía una respuesta $\pi = \Open(c, \Challenge, w, x; r)$.
 	\end{enumerate}
-	Una ejecución completa del $\Sigma$-protocol produce la tripla $(c, z, \pi)$. El verifier acepta la respuesta $\pi$ si $\Verify(x, c, z, \pi) = 1$.
+	Una ejecución completa del $\Sigma$-protocol produce la tripla $(c, \Challenge, \pi)$. El verifier acepta la respuesta $\pi$ si $\Verify(x, c, \Challenge, \pi) = 1$.
 \end{definition}
 
 \begin{definition}[Transformación \FiatShamir]
-	Sea $\Pi = (\Commit, \Open, \Verify)$ un \SigmaProtocol para una relación $\Relation \subseteq \InstanceSpace \times \WitnessSpace$. La \emph{transformación \FiatShamir} bajo una función de hash criptográfica $\Hash: \Strings{*} \to \Strings{n}$ es un protocolo no interactivo $\Pi_{FS} = (\Prove_{FS}, \Verify_{FS})$ definido como:
+	Sea $\Pi = (\Commit, \Open, \Verify)$ un \SigmaProtocol para una relación $\Relation \subseteq \InstanceSpace \times \WitnessSpace$, y supongamos que su espacio de desafíos es compatible con la salida de una función hash criptográfica $\Hash: \Strings{*} \to \Strings{n}$. La \emph{transformación \FiatShamir} es un protocolo no interactivo $\Pi_{FS} = (\Prove_{FS}, \Verify_{FS})$ definido como:
 	\begin{itemize}[noitemsep]
 		\item $\Prove_{FS}(x,w)$, ejecutado por el prover:
 		\begin{itemize}[noitemsep]
-			\item Se computa $c = \text{Commit}(x,w;r)$.
+			\item Se computa $c = \Commit(x,w;r)$.
 			\item Se computa un \textit{challenge} $\Challenge \in \Strings{n}$ como $\Challenge = \Hash(x \concat c)$, donde la concatenación $x \concat c$ representa una codificación no ambigua del \textit{transcript} parcial.
-			\item Se computa la respuesta $\pi = \Open(c, z, w, x; r)$.
+			\item Se computa la respuesta $\pi = \Open(c, \Challenge, w, x; r)$.
 		\end{itemize}
 		\item $\Verify_{FS}(x,c,\pi)$, ejecutado por el verifier:
 		\begin{itemize}[noitemsep]
 			\item Se recomputa el challenge $\Challenge = \Hash(x \concat c)$.
-			\item Se acepta si y solo si $\Verify(x,c,z,\pi) = 1$.
+			\item Se acepta si y solo si $\Verify(x,c,\Challenge,\pi) = 1$.
 		\end{itemize}
 	\end{itemize}
 \end{definition}
@@ -41,7 +41,7 @@ Para que esta transformación sea segura, se necesita trabajar en el \ROM, de mo
 
 Vamos a ver un ejemplo de la transformación de \FiatShamir. En particular, la vamos a aplicar al esquema de compromisos polinomiales \KZG. Esto nos permitirá ganar intuición sobre la transformación, lo que será necesario para la sección final del capítulo. Observemos que esto es para las etapas posteriores al trusted setup.
 
-Sea una función hash criptográfica $\Hash: \Strings{*} \to \Fp$, modelada como oráculo aleatorio en el \ROM. La transformación consiste en reemplazar el desafío aleatorio $\Challenge \in \Fp$ por $\Challenge := \Hash(x \concat c)$, donde $c$ es el compromiso polinomial generado por el prover. En implementaciones reales, se computa $\Challenge :=  \Hash(x \concat \textnormal{encode}(c))$, para una codificación determinística y no ambigua.
+Sea una función hash criptográfica $\Hash: \Strings{*} \to \Fp$, modelada como oráculo aleatorio en el \ROM. La transformación consiste en reemplazar el desafío aleatorio $\Challenge \in \Fp$ por $\Challenge := \Hash(\textnormal{encode}(c))$, donde $c$ es el compromiso polinomial generado por el prover. En implementaciones reales, la entrada al hash incluye una codificación determinística y no ambigua del compromiso, así como cualquier otro contexto público que deba formar parte del transcript.
 
 El protocolo consiste de los algoritmos $\Prove_{FS}$ \ref{alg:kzg-fs-prove}, a ser ejecutado por el prover, y $\Verify_{FS}$ \ref{alg:kzg-fs-verify}, a ser ejecutado por el verifier.
 
@@ -49,10 +49,10 @@ El protocolo consiste de los algoritmos $\Prove_{FS}$ \ref{alg:kzg-fs-prove}, a 
 	\caption{$\Prove_{FS}$ para el esquema \KZG}
 	\label{alg:kzg-fs-prove}
 	\begin{algorithmic}[1]
-		\Require Polinomio $P \in \poly{\Fp}_{\leq d}$, \SRS $\{G_1, G_1\tau, \ldots, \tau^d G_1, G_2, G_2 \tau\}$.
+		\Require Polinomio $P \in \poly{\Fp}_{\leq d}$, \SRS $\{G_1, \tau G_1, \ldots, \tau^d G_1, G_2, \tau G_2\}$.
 		\Ensure $(c, y, \pi)$ es una prueba no interactiva que será aceptada por el algoritmo $\Verify_{FS}$.
 		\State $c \gets P(\tau) G_1$ \Comment{cómputo del compromiso $c$}
-		\State $\Challenge \gets \Hash(x \concat c)$ \Comment{cómputo del \textit{challenge} $\Challenge$}
+		\State $\Challenge \gets \Hash(\textnormal{encode}(c))$ \Comment{cómputo del \textit{challenge} $\Challenge$}
 		\State $y \gets P(\Challenge)$ \Comment{evaluación del polinomio $P$ en el \textit{challenge}}
 		\State $Q(x) \gets \frac{P(x) - y}{x - \Challenge}$ \Comment{cómputo del polinomio cociente $Q$}
 		\State $\pi \gets Q(\tau) G_1$ \Comment{cómputo del argumento de evaluación $\pi$}
@@ -64,16 +64,16 @@ El protocolo consiste de los algoritmos $\Prove_{FS}$ \ref{alg:kzg-fs-prove}, a 
 	\caption{$\Verify_{FS}$ para el esquema \KZG}
 	\label{alg:kzg-fs-verify}
 	\begin{algorithmic}[1]
-		\Require Compromiso polinomial $c \in \GOne$, evaluación $y \in \Fp$, argumento de evaluación $\pi \in \GOne$.
+		\Require Compromiso polinomial $c \in \GOne$, evaluación $y \in \Fp$, argumento de evaluación $\pi \in \GOne$, y los elementos $G_2, \tau G_2 \in \GTwo$ de la \SRS.
 		\Ensure Si el algoritmo devuelve $1$, entonces el prover conoce un polinomio $P$ consistente con $c$ tal que $y = P(\Challenge)$, excepto por probabilidad negligible.
-		\State $\Challenge \gets \Hash(x \concat c)$ \Comment{recómputo del \textit{challenge} $\Challenge$}
-		\State \Return $\left\llbracket \pairing{c - yG_1}{G_2} = \pairing{\pi}{\tau - \Challenge) G_2} \right\rrbracket$
+		\State $\Challenge \gets \Hash(\textnormal{encode}(c))$ \Comment{recómputo del \textit{challenge} $\Challenge$}
+		\State \Return $\left\llbracket \pairing{c - yG_1}{G_2} = \pairing{\pi}{(\tau - \Challenge) G_2} \right\rrbracket$
 	\end{algorithmic}
 \end{algorithm}
 
 La transformación de \FiatShamir aplicada al protocolo de apertura de \KZG muestra un principio fundamental en el diseño de pruebas criptográficas modernas: la eliminación de la interacción mediante la derivación determinística de desafíos aleatorios a partir de información pública. Esta técnica permite eliminar la interactividad en protocolos sin sacrificar las demás propiedades deseables en un \SNARK.
 
-En el caso del esquema \KZG, el desafío $\Challenge$ pasa de ser generado por el verificador a determinarse como el resultado de una función hash aplicada al compromiso. En contraste, como veremos en la siguiente sección, el esquema \Groth es inherentemente \NIZK: la aleatoriedad que en un \SigmaProtocol sería provista por el verificador se encuentra implícitamente embebida en el trusted setup. La transformación de \FiatShamir reaparecerá más adelante en este trabajo en otros contextos, donde protocolos interactivos deben ser compilados a versiones no interactivas.
+En el caso del esquema \KZG, el desafío $\Challenge$ pasa de ser generado por el verificador a determinarse como el resultado de una función hash aplicada al compromiso. En contraste, como veremos en la siguiente sección, el esquema \Groth ya se presenta directamente como un argumento no interactivo, y la aleatoriedad que en un \SigmaProtocol sería provista por el verificador aparece absorbida en la estructura del trusted setup. La transformación de \FiatShamir reaparecerá más adelante en este trabajo en otros contextos, donde protocolos interactivos deben ser compilados a versiones no interactivas.
 
 \subsection{Limitaciones}
 
