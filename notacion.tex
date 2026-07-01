@@ -77,7 +77,7 @@ $\SiblingVec$ & Vector de nodos hermanos en una prueba de Merkle. \\
 \bottomrule
 \end{longtable}
 
-\section*{\Cardano y validadores}
+\section*{Cardano y validadores}
 \begin{longtable}{p{0.33\textwidth}p{0.61\textwidth}}
 \toprule
 \textbf{Símbolo} & \textbf{Significado} \\
@@ -87,6 +87,7 @@ $\SiblingVec$ & Vector de nodos hermanos en una prueba de Merkle. \\
 \textbf{Símbolo} & \textbf{Significado} \\
 \midrule
 \endhead
+$\Bridge, \zkBridge$ & Bridge genérico y bridge sucinto propuesto en la tesis. \\
 $\ChainA, \ChainB$ & Cadenas de origen y destino del bridge. \\
 $\state, \tx, \event$ & Estado, transacción y evento abstractos del protocolo. \\
 \LockTx, \MintTx, \BurnTx, \UnlockTx, \UpdaterTx & Transacciones canónicas del flujo del bridge. \\
@@ -98,7 +99,7 @@ $\datum, \redeemer, \validator, \txcontext$ & Componentes semánticos de un vali
 \bottomrule
 \end{longtable}
 
-\section*{\Mithril, certificados y snapshots}
+\section*{Mithril, certificados y snapshots}
 \begin{longtable}{p{0.33\textwidth}p{0.61\textwidth}}
 \toprule
 \textbf{Símbolo} & \textbf{Significado} \\
@@ -108,19 +109,33 @@ $\datum, \redeemer, \validator, \txcontext$ & Componentes semánticos de un vali
 \textbf{Símbolo} & \textbf{Significado} \\
 \midrule
 \endhead
-\Mithril, \STM & Protocolo \Mithril y su esquema de multi-firma. \\
+\Mithril, \STM & Protocolo \Mithril y esquema de \textit{stake-based threshold multisignatures}. \\
+\MithrilAggregator, \ZkBridgeOperator & \textit{Aggregator} de \Mithril y operador del \zkBridge que consume sus artefactos. \\
+\Pythagoras, \Lagrange & Eras relevantes de \Mithril para la tesis: ruta \textit{legacy} y ruta \textit{SNARK-friendly}. \\
+\LegacyHashScheme, \RigidHashScheme & Esquemas de \textit{hashing} del mensaje de protocolo en las rutas \Pythagoras y \Lagrange. \\
 $\Stake, \StakeDistribution$ & Participación individual y distribución de stake certificada. \\
-\AVK & \textit{Aggregate Verification Key} del certificado vigente. \\
-$\ProtocolMsg, \Certificate$ & Mensaje de protocolo certificado y certificado genérico. \\
-\GenesisCertificate, \StakeDistributionCertificate, \TransactionSnapshotCertificate & Certificados de \Mithril: génesis de la cadena de certificados, de \StakeDistribution y de \textit{snapshot} de transacciones. \\
-\TransactionSnapshot & Snapshot de transacciones expuesto por \Mithril. \\
-$\TransactionSnapshotHash$ & Hash asociado a un snapshot de transacciones. \\
-\CertificateChain & Cadena de certificados enlazados. \\
-$\ChainVerify, \CertVerify$ & Verificación de la cadena completa de \Mithril. \\
-$\CertVerify$ & Verificación de un certificado individual de \Mithril. \\
-\STMRelation, \STMLanguage & Relación y lenguaje del circuito \STM. \\
-\TxSetUpdateRelation & Relación del circuito del conjunto de transacciones usadas. \\
-\TxSnapshotMembershipRelation & Relación del circuito que prueba pertenencia a un snapshot. \\
+\MithrilStakeDistribution, \CardanoTransactions & Tipos principales de entidades firmadas por \Mithril usados en el \zkBridge. \\
+$\ClosedReg, \AuthReg$ & Registro cerrado por participante y registro autenticado del comité de una época. \\
+$\SchnorrVK, \SchnorrSK$ & Claves pública y secreta Schnorr de la ruta \Lagrange. \\
+$\LotteryTarget, \LotteryIndexSet, \WonIndexSet$ & Umbral de lotería por participante, conjunto de índices evaluados y subconjunto de índices ganados. \\
+$\AVK, \SnarkAVK, \CertSigAVK, \SnarkRoot$ & Claves de verificación agregadas y compromiso Merkle del comité autenticado. \\
+$\SnarkLeaf{i}, \SnarkWitness$ & Hoja autenticada del participante $i$ y \textit{witness} asociado a la prueba \STM. \\
+$\ProtocolMsg, \RigidHash, \RigidDigest$ & Mensaje de protocolo certificado, operador de \textit{hash} rígido y \textit{digest} firmado en la ruta \Lagrange. \\
+$\ProtocolParams$ & Parámetros del protocolo \STM, típicamente $(k,m,\phi_f)$ y sus variantes por época. \\
+\UniqueSchnorrSignature, \StandardSchnorrSignature & Variantes de firma Schnorr usadas por \Mithril en la era \Lagrange. \\
+$\Certificate, \Certificates$ & Certificado individual y familia de certificados de \Mithril. \\
+\GenesisCertificate, \FirstCertificate & Certificado génesis y primer certificado válido de una época. \\
+\StakeDistributionCertificate, \TransactionSnapshotCertificate & Certificados de distribución de stake y de \textit{snapshot} de transacciones. \\
+$\CertHash, \PrevCertHash, \CertMetadata, \CertSignedMessage$ & Hash del certificado, hash del predecesor, metadatos y mensaje efectivamente firmado. \\
+\CertificateChain & Cadena de certificados enlazados que autentica la evolución de \Mithril entre épocas. \\
+$\Pred, \ChainVerify, \CertVerify$ & Predecesor de un certificado, verificación de la cadena completa y verificación individual. \\
+\TransactionSnapshot, \Snapshots & Snapshot de transacciones individual y familia de snapshots expuestos por \Mithril. \\
+$\TransactionSnapshotHash, \SnapshotBlockNumber, \TxSetRoot$ & Hash del snapshot, bloque certificado y raíz autenticada del conjunto de transacciones. \\
+$\TxRangeSet{u}, \TxRangeRoot{u}, \TxRangeLeaf{u}$ & Conjunto, raíz local y hoja maestra del rango $u$ en \CardanoTransactions \textit{legacy}. \\
+$\MasterProof, \RangeProof, \SelectedIndexSet$ & Pruebas de Merkle del nivel maestro y del nivel por rango, y conjunto final de índices retenidos. \\
+$\PublicInputs, \PrivateInputs$ & Entradas públicas y privadas de los circuitos ligados a \STM y a snapshots. \\
+\STMRelation, \STMLanguage & Relación y lenguaje del circuito \STM formalizado en la tesis. \\
+\TxSetUpdateRelation, \TxSnapshotMembershipRelation & Relaciones de los circuitos de actualización del conjunto y de pertenencia a snapshots. \\
 \bottomrule
 \end{longtable}
 

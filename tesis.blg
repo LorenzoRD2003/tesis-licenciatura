@@ -3,36 +3,36 @@ Capacity: max_strings=200000, hash_size=200000, hash_prime=170003
 The top-level auxiliary file: tesis.aux
 The style file: ieeetr.bst
 Database file #1: tesis.bib
-You've used 80 entries,
+You've used 81 entries,
             1876 wiz_defined-function locations,
-            908 strings with 15503 characters,
-and the built_in function-call counts, 17465 in all, are:
-= -- 1749
-> -- 613
+            914 strings with 15717 characters,
+and the built_in function-call counts, 17601 in all, are:
+= -- 1763
+> -- 617
 < -- 0
-+ -- 246
-- -- 166
-* -- 774
-:= -- 2213
-add.period$ -- 104
-call.type$ -- 80
-change.case$ -- 65
++ -- 248
+- -- 167
+* -- 779
+:= -- 2233
+add.period$ -- 106
+call.type$ -- 81
+change.case$ -- 66
 chr.to.int$ -- 0
-cite$ -- 80
-duplicate$ -- 999
-empty$ -- 1812
-format.name$ -- 166
-if$ -- 4575
+cite$ -- 81
+duplicate$ -- 1003
+empty$ -- 1830
+format.name$ -- 167
+if$ -- 4610
 int.to.chr$ -- 0
-int.to.str$ -- 80
+int.to.str$ -- 81
 missing$ -- 50
-newline$ -- 267
-num.names$ -- 80
-pop$ -- 465
+newline$ -- 271
+num.names$ -- 81
+pop$ -- 471
 preamble$ -- 1
 purify$ -- 0
 quote$ -- 0
-skip$ -- 942
+skip$ -- 945
 stack$ -- 0
 substring$ -- 533
 swap$ -- 503
@@ -41,6 +41,6 @@ text.prefix$ -- 0
 top$ -- 0
 type$ -- 0
 warning$ -- 0
-while$ -- 114
-width$ -- 82
-write$ -- 706
+while$ -- 115
+width$ -- 83
+write$ -- 716

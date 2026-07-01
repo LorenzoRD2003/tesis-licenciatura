@@ -1,7 +1,5 @@
 % !TeX root = tesis.tex
 
-\section{Introducción a Cardano}
-
 Este capítulo introduce las capas de \Cardano que condicionarán y darán forma a cualquier diseño de \zkBridge desplegado sobre él: el modelo \eUTxO, la capa de ejecución de smart contracts (\Plutus/\UPLC y herramientas contemporáneas como Aiken), los límites de recursos a nivel de protocolo (tamaño de transacción/bloque y presupuestos de unidades de ejecución), y el protocolo de consenso (\Praos). El objetivo no es proponer aún un diseño de puente, sino establecer el espacio de diseño técnico y los límites estrictos. Para nuestro proyecto, \Cardano es una blockchain de interés porque:
 
 \begin{enumerate}[noitemsep]
@@ -99,7 +97,7 @@ La Tabla~\ref{tab:cardano-protocol-limits} resume parámetros del protocolo com�
 		\maxTxSize & Límite de una $\tx$ serializada (bytes) & 16,384 \\
 		\maxBlockBodySize & Límite de un block body serializado (bytes) & 90,112 \\
 		\maxBlockHeaderSize & Límite de un block header serializado (bytes) & 1,100 \\
-		\maxTxExUnits & Límite de \ExUnits por $\tx$ & \texttt{(1.65e7, 1e10)} \\
+		\maxTxExUnits & Límite de \ExUnits por $\tx$ & \texttt{(1.4e7, 1e10)} \\
 		\maxBlockExUnits & Límite de \ExUnits por block & \texttt{(5e7, 4e10)} \\
 		\texttt{collateral}\newline\texttt{Percentage} & Colateral necesario como \% de comisiones & 150 \\
 		\texttt{maxCollateral}\newline\texttt{Inputs} & Límite de collateral inputs por $\tx$ & 3 \\
@@ -124,9 +122,9 @@ Aunque posponemos la discusión detallada de las decisiones de diseño para el c
 Además, la verificación ZK puede ser computacionalmente costosa dependiendo del sistema de prueba y de las primitivas criptográficas disponibles en la máquina virtual \Onchain. Si una verificación directa no entra en \maxTxExUnits, un \Bridge debe elegir al menos una de las siguientes alternativas:
 
 \begin{enumerate}[noitemsep]
-	\item Un sistema de pruebas más amigable para verificación. En nuestro caso, se considera \Groth debido a su verificación eficiente y tamaño de prueba constante.
-	\item Reducir el trabajo \Onchain usando proof recursion o proof aggregation.
-	\item Dividir la verificación en múltiples transacciones (y con ello transiciones de estado, lo que complica el análisis de seguridad).
+		\item Un sistema de pruebas más amigable para verificadores auxiliares acotados. En esta tesis, \Groth se usa en relaciones de bajo costo de verificación, como pertenencia a snapshots y actualización del \SMT anti-replay, debido a su verificación eficiente y tamaño de prueba constante.
+		\item Reducir el trabajo \Onchain usando proof recursion o proof aggregation.
+		\item Dividir la verificación en múltiples transacciones cuando el objeto criptográfico completo no entra en presupuesto. Este es el caso de los certificados \Mithril, cuya verificación \STM sigue el camino \HaloTwo/\Midnight y requiere partición en dos fases.
 \end{enumerate}
 
 \section{Praos y el modelo operativo de proof-of-stake}

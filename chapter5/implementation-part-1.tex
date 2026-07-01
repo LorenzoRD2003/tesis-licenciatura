@@ -12,7 +12,7 @@ También es importante aclarar un punto metodológico. En una iteracion intermed
 
 \section{Componentes principales del prototipo}
 
-La implementacion se organiza alrededor de un conjunto pequeno de modulos y validadores, cada uno con una responsabilidad muy puntual. El repertorio central puede resumirse en la Tabla~\ref{tab:chapter6-validators}. La distincion mas importante es entre validadores que gobiernan estado persistente y validadores que gobiernan una accion de aplicacion. En la primera categoria quedan el validador de \StakeDistribution y el actualizador del conjunto de transacciones procesadas. En la segunda categoria queda, para esta etapa, el validador de minting.
+La implementacion se organiza alrededor de un conjunto pequeno de modulos y validadores, cada uno con una responsabilidad muy puntual. El repertorio central puede resumirse en la Tabla~\ref{tab:chapter5-validators}. La distincion mas importante es entre validadores que gobiernan estado persistente y validadores que gobiernan una accion de aplicacion. En la primera categoria quedan el validador de \StakeDistribution y el actualizador del conjunto de transacciones procesadas. En la segunda categoria queda, para esta etapa, el validador de minting.
 
 \begin{table}[ht]
   \centering
@@ -29,7 +29,7 @@ La implementacion se organiza alrededor de un conjunto pequeno de modulos y vali
     \bottomrule
   \end{tabular}
   \caption{Validadores relevantes de la primera etapa de implementación.}
-  \label{tab:chapter6-validators}
+  \label{tab:chapter5-validators}
 \end{table}
 
 Alrededor de esos scripts aparecen tres módulos auxiliares particularmente importantes. El primero define los tipos de dominio compartidos por todo el sistema: el datum del \UTxO generado por la \LockTx, el datum mantenido por el \TxsUpdaterUnlockingValidator y los \textit{redeemers} que transportan identificadores de transacción, argumentos \ZK \Groth y referencias a \UTxOs. El segundo encapsula la verificación generica de argumentos \ZK \Groth en Aiken. El tercero concentra funciones auxiliares para encontrar \UTxOs candidatos válidos, verificar la presencia de NFTs de estado y coordinar la coherencia entre redeemers de distintos scripts. El objetivo es evitar repetir lógica de \eUTxO y deja aisladas las zonas donde luego se reemplazaran \textit{proof stubs} por verificadores reales.
@@ -52,9 +52,9 @@ Además, la decisión tiene consecuencias positivas en terminos de interfaz de t
 
 \section{Flujo transaccional de la primera etapa}
 
-La Figura~\ref{fig:chapter6-transaction-flow} resume el flujo que implementa el prototipo para el caso principal de uso. El orden lógico no es accidental: primero deben haber certificados autenticados de \StakeDistribution; luego puede ocurrir una $\LockTx$ en $\ChainA$; y recien entonces una transaccion de \textit{minting} puede presentar la evidencia necesaria para emitir los \textit{wrapped assets} en $\ChainB$.
+La Figura~\ref{fig:chapter5-transaction-flow} resume el flujo que implementa el prototipo para el caso principal de uso. El orden lógico no es accidental: primero deben haber certificados autenticados de \StakeDistribution; luego puede ocurrir una $\LockTx$ en $\ChainA$; y recien entonces una transaccion de \textit{minting} puede presentar la evidencia necesaria para emitir los \textit{wrapped assets} en $\ChainB$.
 
-\begin{figure}[ht]
+\begin{figure}[!t]
   \centering
   \shorthandoff{>}
   \begin{tikzpicture}[
@@ -92,8 +92,8 @@ La Figura~\ref{fig:chapter6-transaction-flow} resume el flujo que implementa el 
     \draw[->, thick] (mint.north west) -- node[lbl] {actualiza \SMT} (txset.south west);
   \end{tikzpicture}
   \shorthandon{>}
-  \caption{Flujo transaccional de la primera etapa del \zkBridge.}
-  \label{fig:chapter6-transaction-flow}
+  \caption{Flujo transaccional de la primera etapa del \zkBridge para el camino $\LockTx \rightarrow \MintTx$. La \LockTx crea un \UTxO bloqueado en la cadena origen; el \textit{relayer}/\textit{prover} recolecta el identificador, datum, valor y evidencia criptográfica; en la cadena destino, \StakeDistTx actualiza el \UTxO de \StakeDistribution y \MintTx mintea tokens envueltos mientras actualiza el conjunto anti-replay resumido por una raíz \SMT.}
+  \label{fig:chapter5-transaction-flow}
 \end{figure}
 
 \subsection{Actualización de \StakeDistribution mediante \texorpdfstring{\StakeDistTx}{tx\_sd}}
@@ -112,7 +112,7 @@ La $\LockTx$ materializa la intención del usuario de iniciar un traslado de val
 
 La implementación adopta en esta primera etapa una convencion deliberadamente conservadora: el \UTxO bloqueado se toma como la parte semantica relevante de la operacion, y la evidencia presentada en $\MintTx$ se organiza alrededor de ese \UTxO. La información útil para validación queda concentrada en estos campos: referencia del input, direccion de la entrada, datum original, dirección de destino y valor transferido. Esto permite expresar con claridad que propiedades debe preservar el \zkBridge entre la transacción en $\ChainA$ remota y el minting en $\ChainB$, incluso antes de fijar la forma definitiva del circuito de inclusión.
 
-En esta etapa, el prototipo trabaja sobre una formulación isomorfa del problema, donde las cadenas $\ChainA, \ChainB$ son isomorfas. Esto significa que la interfaz de las transacciones en ambas cadenas pueden representarse en Aiken con estructuras suficientemente similares como para chequear localmente la coherencia de la evidencia presentada sobre la \LockTx en el script de \MintingValidator. Entonces, la capa de aplicación del \zkBridge puede validarse antes de introducir las complejidades propias de un circuito completo de inclusión de transacciones de \Cardano. En la segunda etapa de implementación, esta responsabilidad migra hacia el circuito de inclusión de transacciones dentro de un certificado de \Mithril, que pasa a capturar precisamente esas relaciones semanticas entre la \LockTx, su destinatario y el valor transferido; de modo que el chequeo deja de depender principalmente de una reconstrucción \Onchain en Aiken y queda absorbido por el argumento \ZK, manteniendo la misma semántica pero con una interfaz más adecuada para la versión final.
+En esta etapa, el prototipo trabaja sobre una formulación isomorfa del problema, donde las cadenas $\ChainA, \ChainB$ son isomorfas. Esto significa que la interfaz de las transacciones en ambas cadenas pueden representarse en Aiken con estructuras suficientemente similares como para chequear localmente la coherencia de la evidencia presentada sobre la \LockTx en el script de \MintingValidator. Entonces, la capa de aplicación del \zkBridge puede validarse antes de introducir las complejidades propias de un circuito completo de inclusión de transacciones de \Cardano. En la segunda etapa de implementación, esta responsabilidad se separa: el circuito de pertenencia dentro de un certificado de \Mithril fija criptográficamente que el \TxId de la \LockTx pertenece a \CardanoTransactions, pero no prueba por sí solo el destinatario ni el valor transferido. Por eso, la coherencia semántica entre el evento de origen y el minting queda como invariante explícito de la interfaz del \Bridge y de los validadores que consumen esa evidencia.
 
 \subsection{Transaccion de minting en la cadena destino}
 
@@ -125,7 +125,7 @@ La \MintTx es la pieza central de la capa de aplicación. Su trabajo consiste en
   \item La dirección de destino de \LockTx coincide con el receptor efectivo de los \textit{wrapped assets} en $\ChainB$.
 \end{enumerate}
 
-Para verificar esto, el \textit{redeemer} de \MintTx asociado a \MintingValidator transporta dos componentes esenciales. La primera es la evidencia ligada a \Mithril: un certificado de \TransactionSnapshot, un argumento \ZK de que ese certificado es válido respecto del \UTxO de \StakeDistribution recibido como \textit{reference input}, y un argumento \ZK de inclusión de \LockTx dentro del \TransactionSnapshot. La segunda es la información necesaria para reconstruir la \LockTx de $\ChainA$.
+Para verificar esto, el \textit{redeemer} de \MintTx asociado a \MintingValidator transporta dos componentes esenciales. La primera es la evidencia ligada a \Mithril: un certificado de \TransactionSnapshot, un \ProofReceipt del dominio \texttt{cardano\_transactions} que autentica la verificación \STM de ese certificado, y un argumento \Groth de inclusión del \TxId de \LockTx dentro del \TransactionSnapshot. La segunda es la información de aplicación necesaria para ligar ese identificador con el reclamo concreto que se está minteando.
 
 La implementación del \MintingValidator sigue entonces una estrategia de doble chequeo. Por un lado, verifica la coherencia externa de la evidencia: existe un certificado aceptable, el \TransactionSnapshot contiene la transaccion indicada y el conjunto anti-replay sera actualizado en la misma operacion. Por otro lado, verifica la coherencia interna: con los campos provistos en el \textit{redeemer} y con el valor realmente \textit{minteado} por la transacción, reconstruye una version esperada de la \LockTx y comprueba que su identificador coincida con el reclamado. No alcanza con que exista alguna transacción en el \TransactionSnapshot, sino que debe tratarse exactamente de \LockTx.
 
@@ -221,13 +221,13 @@ La expresión anterior vale si y sólo si se satisfacen simultáneamente las sig
 
 \begin{enumerate}[noitemsep]
   \item \tx incluye como \textit{reference input} el \UTxO canónico de \StakeDistribution \StakeDistributionUTxO, del cual se extrae el certificado padre \StakeDistributionCertificate necesario para validar el \TransactionSnapshot.
-  \item \redeemer contiene un certificado \TransactionSnapshotCertificate de \TransactionSnapshot, un argumento \ZK asociado a la validación de \TransactionSnapshotCertificate y un argumento \ZK de inclusión de \LockTx dentro de \TransactionSnapshotCertificate.
-  \item El argumento \ZK de \TransactionSnapshotCertificate es aceptado respecto del \StakeDistributionCertificate consultado como \textit{reference input}.
-  \item El argumento \ZK de inclusión prueba que el identificador reclamado de \LockTx pertenece al \TransactionSnapshotCertificate autenticado.
+  \item \redeemer contiene un certificado \TransactionSnapshotCertificate de \TransactionSnapshot, un \ProofReceipt del dominio \texttt{cardano\_transactions} y un argumento \Groth de inclusión del \TxId de \LockTx dentro de \TransactionSnapshotCertificate.
+  \item El \ProofReceipt autentica que \TransactionSnapshotCertificate fue aceptado por la verificación \STM de fase 2 y que su \texttt{statement\_hash} coincide con el mensaje firmado del certificado.
+  \item El argumento \Groth de inclusión prueba que el identificador reclamado de \LockTx pertenece al \TransactionSnapshotCertificate autenticado.
   \item \tx consume el \UTxO identificado por el NFT del actualizador del conjunto de transacciones procesadas.
   \item El identificador remoto procesado por el actualizador coincide con el identificador reclamado por el \MintingValidator.
-  \item A partir de \redeemer y del valor \textit{minteado} por la transacción, puede reconstruirse y verificarse una versión esperada de \LockTx (esto cambia en la segunda etapa de implementación).
-  \item El valor minteado y la dirección de destino en $\ChainB$ coinciden con el valor bloqueado y el destinatario autorizado por \LockTx.
+  \item En la formulación isomorfa de esta primera etapa, a partir de \redeemer y del valor \textit{minteado} por la transacción puede reconstruirse y verificarse una versión esperada de \LockTx. En la versión final, esta condición debe leerse como un invariante de interfaz: la prueba de pertenencia fija el \TxId, no todos los campos de aplicación.
+  \item El valor minteado y la dirección de destino en $\ChainB$ coinciden con el valor bloqueado y el destinatario autorizado por \LockTx, cuando esos datos forman parte del reclamo de aplicación presentado al validador.
 \end{enumerate}
 
 \subsection{Validador del conjunto de transacciones procesadas}

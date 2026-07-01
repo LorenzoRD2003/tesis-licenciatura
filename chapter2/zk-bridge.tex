@@ -16,7 +16,7 @@ El obstáculo es que ejecutar directamente ese \LightClient dentro de $\ChainB$ 
 
 Conceptualmente, \zkBridge desacopla la verificación del consenso de la cadena remota del uso de sus eventos. Como muestra la Figura~\ref{fig:zkbridge-simplified}, una red de provers genera argumentos criptográficos que certifican el estado de la cadena  $\ChainA$, los cuales son verificados por el contrato $\SmartContract{\Updater}$ en $\ChainB$. Los contratos de aplicación pueden entonces consultar este estado autenticado para ejecutar operaciones cross-chain.
 
-\begin{figure}[ht]
+\begin{figure}[!t]
 	\centering
 	\begin{tikzpicture}[
 		scale=0.82,
@@ -118,7 +118,7 @@ Conceptualmente, \zkBridge desacopla la verificación del consenso de la cadena 
 		{verifica argumento};
 		
 		\end{tikzpicture}
-		\caption{Esquema simplificado de zkBridge.}
+		\caption{Esquema operativo de un \zkBridge entre una cadena origen $\ChainA$ y una cadena destino $\ChainB$. El usuario bloquea activos en $\SmartContract{\Lock}$, una red de provers observa el evento y genera un argumento \ZK sobre el estado de $\ChainA$, el contrato $\SmartContract{\Updater}$ verifica ese argumento en $\ChainB$, y el contrato $\SmartContract{\Mint}$ usa el estado autenticado para emitir los activos envueltos.}
 	\label{fig:zkbridge-simplified}
 \end{figure}
 
@@ -138,6 +138,6 @@ El modelo de seguridad del paper supone que ambas blockchains tienen propiedades
 
 Hasta aquí, la propuesta sería conceptualmente atractiva pero todavía podría ser impracticable. El punto técnico central del paper es justamente mostrar cómo hacer que la generación de estos argumentos sea suficientemente rápida. El cuello de botella aparece porque verificar el consenso de algunas blockchains dentro de un circuito aritmético puede requerir verificar cientos de firmas digitales y otras operaciones costosas. El paper observa, sin embargo, que estos circuitos suelen tener una estructura paralela: contienen muchas copias idénticas de un mismo subcircuito pequeño. A partir de esta observación, los autores diseñan \emph{deVirgo}, un protocolo de argumentos distribuido que explota esa estructura repetitiva para paralelizar la generación de argumentos casi linealmente en la cantidad de máquinas disponibles.
 
-Aunque deVirgo acelera fuertemente al prover, el tamaño de los argumentos sigue siendo demasiado grande para ser verificadas cómodamente \Onchain. Para resolver esto, los autores aplican una capa recursiva adicional: primero generan un argumento grande con deVirgo, y luego demuestran con \Groth que el argumento generado con deVirgo es válido. Así, \Groth se usa para comprimir un argumento ya generado por un sistema más escalable para el prover, lo que se traduce en una verificación \Onchain barata (argumentos de tamaño constante, y tiempo de verificación bajo). Esta idea se conoce como \emph{proof recursion}, y será utilizada más adelante en la segunda etapa de implementación, ya que la red de \Cardano tiene restricciones muy limitantes en cuanto a tiempo de cómputo y unidades de ejecución en sus transacciones.
+Aunque deVirgo acelera fuertemente al prover, el tamaño de los argumentos sigue siendo demasiado grande para ser verificadas cómodamente \Onchain. Para resolver esto, los autores aplican una capa recursiva adicional: primero generan un argumento grande con deVirgo, y luego demuestran con \Groth que el argumento generado con deVirgo es válido. Así, \Groth se usa para comprimir un argumento ya generado por un sistema más escalable para el prover, lo que se traduce en una verificación \Onchain barata (argumentos de tamaño constante, y tiempo de verificación bajo). Esta idea se conoce como \emph{proof recursion}. En esta tesis, sin embargo, esa ruta queda como antecedente conceptual del paper original: el prototipo final no implementa recursión de pruebas, sino que adapta la idea general de verificación sucinta a \Cardano mediante una verificación \STM \HaloTwo/\Midnight particionada en dos transacciones y circuitos \Groth dedicados para pertenencia a snapshots y actualización del \SMT anti-replay.
 
 Finalmente, el paper valida empíricamente esta arquitectura implementando un prototipo: un bridge desde Cosmos hacia \Ethereum. Los resultados muestran que la compresión recursiva reduce drásticamente tanto el tamaño del argumento como el costo de verificación \Onchain, lo que hace viable el uso de este esquema en blockchains programables como \Ethereum.

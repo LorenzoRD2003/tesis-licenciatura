@@ -23,7 +23,7 @@ La condición de no singularidad garantiza que la curva no posee puntos singular
 	\end{enumerate}
 \end{definition}
 
-\begin{figure}[ht]
+\begin{figure}[!t]
 	\centering
 	\begin{tikzpicture}
 		\begin{axis}[
@@ -50,7 +50,7 @@ La condición de no singularidad garantiza que la curva no posee puntos singular
 			\addplot[blue, thick] {-sqrt(x^3 - x + 1)};
 		\end{axis}
 	\end{tikzpicture}
-	\caption{Curva elíptica sobre $\R$ asociada a la ecuación $\E: y^2 = x^3 - x + 1$.}
+	\caption{Curva elíptica real $\E(\mathbb{R})$ dada por $y^2=x^3-x+1$. La figura muestra las dos ramas $y=\pm\sqrt{x^3-x+1}$ en el plano real; la condición de no singularidad garantiza que esta curva pueda equiparse con la operación geométrica de suma de puntos junto con el punto en el infinito $\OO$.}
 	\label{fig:curva-eliptica-real}
 \end{figure}
 
@@ -90,7 +90,7 @@ $$\begin{aligned}
 \end{aligned}$$
 Por lo tanto, $P + Q = (4,17)$.
 
-\begin{figure}[ht]
+\begin{figure}[!t]
 	\centering
 	\begin{tikzpicture}
 		\begin{axis}[
@@ -154,7 +154,7 @@ Por lo tanto, $P + Q = (4,17)$.
 			\node[anchor=south west, text=green!50!black] at (axis cs:4,17) {$P+Q=(4,17)$};
 		\end{axis}
 	\end{tikzpicture}
-	\caption{Puntos racionales de la curva elíptica $\E(\F_{19})$ asociada a la ecuación $y^2 = x^3 - x + 1$, con $P=(2,8)$, $Q=(3,5)$ y el resultado de la suma algebraica $P+Q=(4,17)$ destacados.}
+	\caption{Puntos de $\E(\F_{19})$ para la curva $y^2=x^3-x+1$. Los puntos azules son todas las soluciones sobre $\F_{19}$; se destacan $P=(2,8)$ en rojo, $Q=(3,5)$ en naranja y el resultado de la suma algebraica $P+Q=(4,17)$ en verde, calculado con las fórmulas de grupo sobre cuerpos finitos.}
 	\label{fig:curva-eliptica-f19-suma}
 \end{figure}
 

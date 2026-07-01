@@ -2,7 +2,7 @@
 
 \subsection{El protocolo \Groth}
 
-En esta sección presentamos una descripción simplificada del argumento de conocimiento subyacente al esquema \Groth, pensada para fijar la intuición algebraica principal sin reproducir todos los detalles técnicos de una formalización estándar. Sea $\Relation \subseteq \InstanceSpace \times \WitnessSpace$ una relación en $\NP$. Como en la Sección 2.5, suponemos que la relación ha sido aritmetizada como un \QAP de tamaño $m$ y dimensión $n$ sobre un cuerpo finito $\K = \Fp$, y todo se reduce a argumentar sucintamente una identidad polinomial. Vamos a ligar todos estos nombres de objetos antes de entrar a describir el protocolo propiamente dicho.
+En esta sección presentamos una descripción simplificada del argumento de conocimiento subyacente al esquema \Groth, pensada para fijar la intuición algebraica principal sin reproducir todos los detalles técnicos de una formalización estándar. Sea $\Relation \subseteq \InstanceSpace \times \WitnessSpace$ una relación en $\NP$. Como en la sección dedicada a \QAP, suponemos que la relación ha sido aritmetizada como un \QAP de tamaño $m$ y dimensión $n$ sobre un cuerpo finito $\K = \Fp$, y todo se reduce a argumentar sucintamente una identidad polinomial. Vamos a ligar todos estos nombres de objetos antes de entrar a describir el protocolo propiamente dicho.
 
 En particular, existen $3n$ polinomios $\{A_i(x)\}_{i=1}^n$, $\{B_i(x)\}_{i=1}^n$, $\{C_i(x)\}_{i=1}^n$ en $\poly{\Fp}_{< m}$ tales que, definiendo el vector extendido de asignación
 
@@ -76,7 +76,7 @@ En el caso del \QAP, lo que queremos verificar es: $A(x) \cdot B(x) - C(x) = H(x
 \begin{itemize}[itemsep=0.1cm]
 	\item En \KZG, el compromiso revela implícitamente la evaluación $P(\tau)$, sin soportar separación entre parte pública y privada. En cambio, en \Groth el \textit{input} puede ocultarse, y los \textit{public inputs} deben poder verificarse en forma separada. Es por esto que aparecen los parámetros $\alpha, \beta, \gamma, \delta$, que mezclan algebraicamente los polinomios de forma que $\Verifier$ pueda aislar la parte pública, y el \textit{witness} quede enmascarado.
 	\item En \KZG, necesitaríamos un compromiso para cada uno de $A(x), B(x), C(x), H(x)$, lo que conlleva varias pruebas de divisibilidad con correspondientes ecuaciones de pairing bilineal. \Groth comprime toda la verificación del \QAP en una única ecuación de emparejamiento.
-	\item Dijimos en la sección 2.7 que \KZG por sí solo no era \ZK. La aleatoriedad $r, s$ introducida por \Groth, así como los términos cruzados $(rB(\tau) + sA(\tau) - rs\delta)G_1$ garantizan que la distribución de la prueba sea independiente del witness, y por lo tanto es \ZK.
+	\item Dijimos en la sección sobre \KZG que \KZG por sí solo no era \ZK. La aleatoriedad $r, s$ introducida por \Groth, así como los términos cruzados $(rB(\tau) + sA(\tau) - rs\delta)G_1$ garantizan que la distribución de la prueba sea independiente del witness, y por lo tanto es \ZK.
 \end{itemize}
 
 \subsection{Complejidad de \Groth}

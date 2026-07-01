@@ -20,7 +20,7 @@ Por supuesto, los elementos de la secuencia de datos puede pertenecer a cualquie
 
 Observar que en las imágenes se indica la secuencia de datos por debajo de $\MerkleTree{T}$, pero se recalca que estos no pertenecen directamente a $\MerkleTree{T}$, sino que el nivel inferior de $\MerkleTree{T}$ está compuesto por los $\Hash(\ell_i)$.
 
-\begin{figure}[h]
+\begin{figure}[!t]
 	\centering
 	\begin{tikzpicture}[
 		level 1/.style={level distance=1.5cm, sibling distance=7cm},
@@ -60,7 +60,7 @@ Observar que en las imágenes se indica la secuencia de datos por debajo de $\Me
 		};
 		
 	\end{tikzpicture}
-	\caption{Merkle Tree tradicional}
+	\caption{Merkle Tree binario construido sobre la secuencia ordenada $L=(\ell_1,\ell_2,\ell_3,\ell_4)$. Las hojas del árbol son los hashes $\Hash(\ell_i)$, los nodos internos se obtienen hasheando la concatenación ordenada de sus hijos, y la raíz $\MerkleRoot{\MerkleTree{T}}$ compromete criptográficamente a toda la secuencia.}
 	\label{fig:classic-merkle-tree}
 \end{figure}
 
@@ -79,7 +79,7 @@ Una de las propiedades más importantes de esta estructura es que permite constr
 
 Intuitivamente, una Merkle Proof consiste en los nodos hermanos a lo largo del camino que conecta una hoja con la raíz del Merkle Tree.
 
-\begin{figure}[h]
+\begin{figure}[!t]
 	\centering
 	\begin{tikzpicture}[
 		level 1/.style={level distance=1.5cm, sibling distance=7cm},
@@ -120,7 +120,7 @@ Intuitivamente, una Merkle Proof consiste en los nodos hermanos a lo largo del c
 			}
 		};
 	\end{tikzpicture}
-	\caption{Merkle Proof de pertenencia de $\ell_3$ en $L$}
+	\caption{Merkle Proof de pertenencia de $\ell_3$ respecto de la raíz $\MerkleRoot{\MerkleTree{T}}$. Los nodos azules forman el camino que se recomputa desde $\Hash(\ell_3)$ hasta la raíz, mientras que los nodos rojos son los hashes hermanos que debe aportar la prueba; en este ejemplo, $\MerkleProof=[h_4,h_{12}]$.}
 	\label{fig:verify-merkle-proof}
 \end{figure}
 

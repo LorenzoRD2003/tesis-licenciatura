@@ -16,7 +16,7 @@ Un algoritmo clásico que muestra que esta barrera es alcanzable en el modelo ge
 $$h = g^x = g^{im + j} = (g^m)^i g^j,$$
 y el \DLP equivale a buscar índices $i,j$ tales que $h(g^{-m})^i = g^j$.
 
-\begin{figure}[ht]
+\begin{figure}[!t]
 	\centering
 	\begin{tikzpicture}[
 		scale=1,
@@ -45,7 +45,7 @@ y el \DLP equivale a buscar índices $i,j$ tales que $h(g^{-m})^i = g^j$.
 		
 		\draw[<->, very thick, green!50!black] (bj) -- node[above] {$g^j = h(g^{-m})^i$} (gi);
 	\end{tikzpicture}
-	\caption{Idea del algoritmo \textit{Baby-Step Giant-Step}: buscar una coincidencia entre los \textit{baby steps} $g^j$ y los \textit{giant steps} $h(g^{-m})^i$.}
+	\caption{Idea del algoritmo \textit{Baby-Step Giant-Step} para resolver un \DLP en un grupo cíclico $\GG=\gen{g}$. La tabla de la izquierda enumera los \textit{baby steps} $g^j$, la de la derecha enumera los \textit{giant steps} $h(g^{-m})^i$, y una coincidencia determina un exponente $x=im+j$ tal que $h=g^x$.}
 	\label{fig:bsgs-intuition}
 \end{figure}
 

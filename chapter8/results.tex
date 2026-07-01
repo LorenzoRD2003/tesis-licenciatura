@@ -1,0 +1,45 @@
+% !TeX root = ../tesis.tex
+
+Este capítulo resume el resultado principal de la implementación final: el flujo transaccional del \zkBridge efectivamente entra dentro de los límites de recursos de \Cardano discutidos en el capítulo \emph{Cardano y Modelo \eUTxO}, en particular \maxTxSize y \maxTxExUnits. Para evaluarlo, tomamos las transacciones concretas del flujo final y comparamos su tamaño serializado, su consumo de CPU y su consumo de memoria contra los parámetros de protocolo introducidos en la Tabla~\ref{tab:cardano-protocol-limits}.
+
+La Tabla \ref{tab:bridge-flow-vs-cardano-limits} concentra ese contraste. El resultado más ajustado en tamaño es \PublishPhaseOneReferenceScriptTx, que ocupa el 96.4\% de \maxTxSize. Del lado de \ExUnits, las transacciones más costosas son las dos fases del verificador \STM, con picos de 72.0\% del presupuesto de CPU y 96.5\% del presupuesto de memoria. La \BridgeMintTxTemplate final también queda por debajo del límite, usando 58.5\% del presupuesto de CPU y 18.7\% del de memoria.
+
+\begingroup
+\scriptsize
+\setlength{\abovecaptionskip}{8pt}
+\setlength{\tabcolsep}{3pt}
+\begin{center}
+  \begin{tabular}{p{0.3\linewidth} r r r}
+    \toprule
+    \textbf{Transacción} & \textbf{\% \maxTxSize} & \textbf{\% CPU \maxTxExUnits} & \textbf{\% memory \maxTxExUnits} \\
+    \midrule
+    \texttt{publish\_phase1\_reference\_script} & 96.4 & 0.0 & 0.0 \\
+    \texttt{phase1\_setup\_stake\_dist\_std} & 28.5 & 71.5 & 96.5 \\
+    \texttt{phase2\_verify\_stake\_dist\_std} & 40.2 & 72.0 & 5.7 \\
+    \texttt{phase1\_setup\_cardano\_txs} & 28.5 & 70.5 & 94.0 \\
+    \texttt{phase2\_verify\_cardano\_txs} & 40.2 & 72.0 & 5.7 \\
+    \texttt{stake\_distribution\_genesis\_tx} & 66.3 & 4.5 & 8.4 \\
+    \texttt{stake\_distribution\_standard\_tx} & 37.7 & 4.7 & 11.1 \\
+    \texttt{locking\_txs\_updater\_seed\_tx} & 1.7 & 0.0 & 0.0 \\
+    \texttt{publish\_minting\_updater\_ref\_script} & 41.6 & 0.0 & 0.0 \\
+    \texttt{publish\_bridge\_minting\_ref\_script} & 52.0 & 0.0 & 0.0 \\
+    \texttt{minting\_txs\_updater\_seed\_tx} & 7.7 & 0.2 & 0.4 \\
+    \texttt{bridge\_mint\_tx} & 14.7 & 58.5 & 18.7 \\
+    \bottomrule
+  \end{tabular}
+  
+  \vspace{8pt}
+  \refstepcounter{table}\label{tab:bridge-flow-vs-cardano-limits}
+  {\textbf{Tabla \thetable.} Comparación entre las transacciones del flujo final del \zkBridge y los límites de recursos de \Cardano. El porcentaje de CPU se calcula respecto del segundo componente de \maxTxExUnits ($1 \times 10^{10}$), mientras que el de memoria se calcula respecto del primero ($1.4 \times 10^{7}$), que coincide con el límite práctico considerado en este trabajo.}
+\end{center}
+\endgroup
+
+La implementación se encuentra en el repositorio de GitHub \texttt{eryxcoop/zk-bridge} \cite{EryxZkBridgeRepo}. Allí se encuentran los componentes de implementación que sostienen las mediciones anteriores: los validadores Aiken, los circuitos, el operador \Offchain, los scripts de ejecución y demás objetos auxiliares usados para reproducir el flujo final.
+
+Además, ese repositorio aporta tres resultados complementarios que ayudan a delimitar el alcance del proyecto:
+
+\begin{enumerate}[noitemsep]
+  \item El flujo integrado del prototipo se ejecuta de punta a punta mediante \texttt{./scripts/bridge.sh run --strict}, encadenando construcción del bundle de \Mithril, \textit{preflight}, \texttt{aiken check} y corrida completa sobre un nodo local \Dolos.
+  \item La suite de \texttt{aiken check} cubre los validadores principales del sistema: \textit{minting}, \StakeDistribution, actualizador de transacciones usadas, pertenencia al \Snapshot, \texttt{phase1}, \texttt{phase2} y \textit{fixtures} de integración.
+  \item La validación es reproducible porque el flujo local se apoya en \textit{fixtures} canónicos versionados, en un bundle derivado de manera determinística y en chequeos previos que detectan \textit{drift} entre pruebas, certificados y datos auxiliares antes de enviar transacciones.
+\end{enumerate}

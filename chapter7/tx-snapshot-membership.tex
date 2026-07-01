@@ -1,8 +1,8 @@
 % !TeX root = ../tesis.tex
 
-%TODO: mejorar la explicacion en esta seccion
-
 \section{El circuito de pertenencia a una \texorpdfstring{\TransactionSnapshot}{TransactionSnapshot}}
+
+Para orientar la lectura, esta sección separa tres niveles de la misma verificación. Primero fija la relación matemática que se quiere probar: que un \TxId pertenece al conjunto de transacciones comprometido por una raíz \TxSetRoot certificada por \Mithril. Luego distingue qué datos deben quedar como \textit{public inputs} del argumento \Groth, concretamente \TxId, \SnapshotSubRoot y \TxSetRoot, y qué datos permanecen como \textit{witness}, principalmente los caminos Merkle y la cadena ASCII que identifica el rango de bloques. Finalmente, muestra cómo esos valores públicos se empaquetan para el verificador \Onchain y cómo el \MintingValidator los enlaza con el \TransactionSnapshotCertificate ya validado.
 
 Este circuito resuelve cómo convencer a la cadena destino \ChainB de que la \LockTx de \ChainA efectivamente pertenece al \TransactionSnapshot de \Cardano autenticado por un certificado de \Mithril. Es decir, argumenta la pertenencia respecto de la Merkle Root de \CardanoTransactions que un \TransactionSnapshotCertificate expone en su \ProtocolMsg. Esto importa porque el \MintingValidator no solamente valida un \TransactionSnapshotCertificate contra el \ProofReceipt que dejó la fase 2 del verificador \STM, sino que además consume un argumento \Groth generado por \TxSnapshotMembershipCircuit para verificar que el \TxId de la \LockTx pertenece al snapshot autenticado por \TransactionSnapshotCertificate.
 
@@ -26,7 +26,7 @@ El argumento completo de pertenencia queda descompuesto en:
 
 \subsection{\textit{Public inputs} y \textit{witness} del circuito}
 
-Para este circuito, tenemos $\PublicInputs = (\TxId,\SnapshotSubRoot,\TxSetRoot) \in \InstanceSpace$, donde $\TxId \in \Bytes{32}$ es el identificador de transacción de \Cardano cuya pertenencia queremos demostrar, $\SnapshotSubRoot \in \Bytes{32}$ es la Merkle Root del \textit{sub-tree} que contiene a \TxId, y $\TxSetRoot \in \Bytes{32}$ es la Merkle Root certificada de por el \TransactionSnapshotCertificate de \Mithril.
+Para este circuito, tenemos $\PublicInputs = (\TxId,\SnapshotSubRoot,\TxSetRoot) \in \InstanceSpace$, donde $\TxId \in \Bytes{32}$ es el identificador de transacción de \Cardano cuya pertenencia queremos demostrar, $\SnapshotSubRoot \in \Bytes{32}$ es la Merkle Root del \textit{sub-tree} que contiene a \TxId, y $\TxSetRoot \in \Bytes{32}$ es la Merkle Root certificada por el \TransactionSnapshotCertificate de \Mithril.
 
 Por otra parte, el \textit{witness} está dado por $\PrivateInputs = (\SubPrefixWitness, \SubUpperWitness, \alpha, \MasterPrefixWitness, \MasterUpperWitness) \in \WitnessSpace,$ donde:
 \begin{itemize}[noitemsep]
@@ -119,6 +119,6 @@ Junto con el circuito \textit{legacy} integrado hoy al operador, el repositorio 
 \end{enumerate}
 Y expone exactamente las mismas seis salidas públicas que el circuito \textit{legacy}.
 
-Si notamos $\widetilde{H}_{\mathsf{Mid}}$ a la función hash \emph{mockeada} que hoy reemplaza provisionalmente a \MidnightPoseidonHash, la relación $\NP$ tentativa de ese circuito puede enunciarse así: existen un índice $j$ y un camino de hermanos tales que el digest hoja $\widetilde{\ell} = \widetilde{H}_{\mathsf{Mid}}(\TxId)$ reconstruye, mediante el Merkle Path determinado por por los bits de $j$, una Merkle Root igual a $\LagrangeTxSetRoot$.
+Si notamos $\widetilde{H}_{\mathsf{Mid}}$ a la función hash \emph{mockeada} que hoy reemplaza provisionalmente a \MidnightPoseidonHash, la relación $\NP$ tentativa de ese circuito puede enunciarse así: existen un índice $j$ y un camino de hermanos tales que el digest hoja $\widetilde{\ell} = \widetilde{H}_{\mathsf{Mid}}(\TxId)$ reconstruye, mediante el Merkle Path determinado por los bits de $j$, una Merkle Root igual a $\LagrangeTxSetRoot$.
 
 Este carril debe leerse hoy como trabajo futuro y no como una alternativa lista para usar, ya que la función hash todavía no es la variante definitiva de \MidnightPoseidonHash que \Mithril planea usar en producción, y el contrato de \textit{witness} del circuito experimental todavía no coincide con la forma de prueba que hoy entrega la API real del \MithrilAggregator, que se encuentra en la era \Pythagoras.

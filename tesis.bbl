@@ -67,6 +67,13 @@ I.~O. Global, ``Unlocking more opportunities with plutus v3,'' 2024.
 M.-P. contributors, ``ak-381: A snark verification library using bls12-381
   (aiken),'' 2024--2026.
 
+\bibitem{Risc0Recursion}
+R.~Zero, ``Recursive proving and stark-to-snark wrapping documentation,''
+  2025--2026.
+
+\bibitem{SP1TestnetLaunch}
+S.~Labs, ``Sp1 testnet launch (recursion + stark-to-snark wrapper),'' 2024.
+
 \bibitem{EryxProofOfInnocenceSurvey}
 E.~contributors, ``Technical survey / research notes on groth16 verification
   cost on cardano,'' 2024--2026.
@@ -76,13 +83,6 @@ E.~contributors, ``Technical survey / research notes on groth16 verification
 \bibitem{CardanoCourseProtocolParams}
 C.~C. (community), ``Protocol parameters (cardano-cli query protocol-parameters
   --mainnet example),'' 2024.
-
-\bibitem{Risc0Recursion}
-R.~Zero, ``Recursive proving and stark-to-snark wrapping documentation,''
-  2025--2026.
-
-\bibitem{SP1TestnetLaunch}
-S.~Labs, ``Sp1 testnet launch (recursion + stark-to-snark wrapper),'' 2024.
 
 \bibitem{MithrilDocsClient}
 M.~Team, ``Mithril client and certificate chain verification (mithril
@@ -147,6 +147,11 @@ C.~Foundation, ``Cip-0031: Reference inputs,'' 2021.
 \bibitem{DolosDocsOverview}
 {TxPipe}, ``{Dolos} quickstart and operation modes.''
   \url{https://docs.txpipe.io/dolos}, 2026.
+
+\bibitem{EryxZkBridgeRepo}
+E.~Coop, ``zk-bridge.'' \url{https://github.com/eryxcoop/zk-bridge}, 2026.
+\newblock Repositorio público con los artefactos de implementación del
+  \zkBridge para \Cardano, consultado el 1 de julio de 2026.
 
 \bibitem{hac}
 A.~J. Menezes, P.~C. van Oorschot, and S.~A. Vanstone, {\em Handbook of Applied

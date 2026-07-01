@@ -1,6 +1,6 @@
 % !TeX root = ../tesis.tex
 
-Si el protocolo \STM de \Mithril solo produjera una evidencia agregada sobre un mensaje aislado $\ProtocolMsg$, todavía tendríamos un problema fundamental: cómo confiar en la \StakeDistribution con la que fue construida la \AVK que autentica al registro cerrado \AuthReg y con la que se verifica esa evidencia. La respuesta de \Mithril es la cadena de certificados (\CertificateChain), cuyo objetivo es certificar precisamente la evolución autentica de \AuthReg de una época a la siguiente y evitar ataques en los que un \MithrilAggregator deshonesto genere certificados formalmente bien construidos pero anclados en una vision falsa del sistema \cite{MithrilDocsCertChain,MithrilDocsThreatModel}. Para nuestro \zkBridge, la \CertificateChain otorga autenticidad al estado publicado \Onchain. De otro modo, la evidencia agregada de un certificado \TransactionSnapshotCertificate no basta.
+Si el protocolo \STM de \Mithril solo produjera una evidencia agregada sobre un mensaje aislado $\ProtocolMsg$, todavía tendríamos un problema fundamental: cómo confiar en la \StakeDistribution con la que fue construida la \AVK que autentica al registro cerrado \AuthReg y con la que se verifica esa evidencia. La respuesta de \Mithril es la cadena de certificados (\CertificateChain), cuyo objetivo es certificar precisamente la evolución auténtica de \AuthReg de una época a la siguiente y evitar ataques en los que un \MithrilAggregator deshonesto genere certificados formalmente bien construidos pero anclados en una visión falsa del sistema \cite{MithrilDocsCertChain,MithrilDocsThreatModel}. Para nuestro \zkBridge, la \CertificateChain otorga autenticidad al estado publicado \Onchain. De otro modo, la evidencia agregada de un certificado \TransactionSnapshotCertificate no basta.
 
 \paragraph{Advertencia de alcance.}
 La estructura de la \CertificateChain descrita en esta sección es común a las eras \Pythagoras y \Lagrange: en ambos casos, cada certificado enlaza con uno previo, fija la época actual y compromete la clave y los parámetros de la época siguiente. Lo que cambia entre eras no es la lógica de encadenamiento, sino el tipo criptográfico de la agregación. En \Pythagoras es una \textit{multisignature} basada en \BLS, mientras que en \Lagrange, es un argumento sucinto construido en \HaloTwo sobre firmas Schnorr individuales, su pertenencia a $J^*$ con $|J^*| = k$ respecto de la \AVK y del \ProtocolMsg asociados al certificado.
@@ -34,7 +34,7 @@ $$
 $$
 Por eso la documentación afirma que, aunque puedan existir muchos certificados en una misma época, no hace falta encadenarlos linealmente: alcanza con preservar una senda válida con al menos un certificado por época y con la transición correcta entre épocas consecutivas \cite{MithrilDocsCertChain}.
 
-\begin{figure}[ht]
+\begin{figure}[!t]
   \centering
   \begin{tikzpicture}[
     scale=0.70,
@@ -66,7 +66,7 @@ Por eso la documentación afirma que, aunque puedan existir muchos certificados 
     \node[note] at (8.4,-2.1) {certificados distintos\\misma época, mismo ancestro};
     \node[note] at (17.0,-2.1) {la \CertificateChain sigue por\\los \FirstCertificate};
   \end{tikzpicture}
-  \caption{Estructura conceptual de una \CertificateChain por epocas.}
+  \caption{Estructura conceptual de una \CertificateChain de \Mithril por épocas. El \GenesisCertificate actúa como raíz de autenticidad y firma la información que habilita la época 1; cada $\FirstCertificate_n$ habilita la \AVK y los parámetros de la época siguiente; otros certificados de la misma época pueden compartir ancestro sin ser parte del camino mínimo que conecta épocas consecutivas.}
   \label{fig:mithril-certificate-chain}
 \end{figure}
 
@@ -95,6 +95,6 @@ En esta descomposición:
 	mientras que en caso contrario se debe preservar la misma $\AVK$ y los mismos $\ProtocolParams$ de su predecesor.
 \end{itemize}
 
-\subsection{Relación con \texorpdfstring{\StakeDistTx}{tx\_sd}}
+\subsection{Relación con el flujo de \texorpdfstring{\StakeDistribution}{StakeDistribution}}
 
-La formulación anterior coincide directamente con el flujo descrito para nuestro $\zkBridge$ en el capítulo anterior. En la fase de \textit{bootstrap}, \StakeDistTx crea el \UTxO canonico de \StakeDistribution con un \GenesisCertificate. En las actualizaciones recurrentes, la misma transaccion consume el \UTxO que contiene el certificado padre y produce otro con el mismo NFT y un certificado nuevo, imponiendo invariantes que garantizan la \CertificateChain de \Mithril.
+La formulación anterior refina el flujo descrito para nuestro $\zkBridge$ en el capítulo anterior. En la fase de \textit{bootstrap}, \StakeDistributionGenesisTxTemplate crea el \UTxO canónico de \StakeDistribution con un \GenesisCertificate autenticado por \GenesisVerificationKey. En las actualizaciones recurrentes, \StakeDistributionStandardTxTemplate consume el \UTxO que contiene el certificado padre junto con un \ProofReceipt del dominio \texttt{stake\_distribution\_standard}, y produce otro \UTxO con el mismo NFT y un certificado nuevo, imponiendo invariantes que garantizan la \CertificateChain de \Mithril.

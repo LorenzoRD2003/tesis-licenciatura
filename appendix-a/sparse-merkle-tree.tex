@@ -26,7 +26,7 @@ Para superar estas limitaciones se introducen los \SMT. La idea de una estructur
 
 Cada default hash $\defaultHash{i}$ es un valor que representa un subárbol completamente vacío de altura $i$, cuyos nodos hoja contienen únicamente el valor por defecto. Entonces, la raíz de un \SMT vacío $\MerkleTree{T}_\emptyset$ de altura $k$ es exactamente $\defaultHash{k}$. Esto provee a los \SMT de una estructura algebraica bien definida.
 
-\begin{figure}[ht]
+\begin{figure}[!t]
 	\centering
 	\begin{tikzpicture}[
 		scale=0.9,
@@ -75,7 +75,7 @@ Cada default hash $\defaultHash{i}$ es un valor que representa un subárbol comp
 			}
 		};
 	\end{tikzpicture}
-		\caption{Sparse Merkle Tree - Nodos implícitos con valor por defecto}
+		\caption{Sparse Merkle Tree de altura 3 con hojas ocupadas $001$, $110$ y $111$. Los nodos sólidos son los que deben almacenarse explícitamente, mientras que los nodos punteados representan subárboles vacíos reemplazables por \textit{default hashes}; por eso el árbol completo de $2^3$ hojas puede representarse sin materializar todos sus nodos.}
 	\label{fig:sparse-merkle-tree}
 \end{figure}
 
@@ -138,7 +138,7 @@ Nada impide combinar una Sparse Merkle Proof de exclusión con una de inclusión
 
 Hasta ahora, los \SMT resultan demasiado similares a los Merkle Tree tradicionales. Pero lo que es diferente es la función de actualización de los \SMT, ya que idealmente es usado como una estructura de datos dinámica: al agregar un nuevo elemento $\ell \in \Strings{k}$, se deben añadir nuevos nodos al árbol, correspondientes al Merkle Path de $\ell$ en $\MerkleTree{T}$ (la parte que no haya sido creada antes). El algoritmo \ref{alg:update-sparse-merkle-tree} explica cómo hacer esto en tiempo $O(k)$.
 
-% TODO: Probablemente lo más útil en este caso es proveer un link a una implementación ya hecha. https://github.com/nervosnetwork/sparse-merkle-tree/tree/master/src
+En una implementación concreta no se materializa el árbol disperso completo: se almacenan únicamente los nodos no triviales y los caminos de autenticación necesarios para recomputar la raíz luego de cada inserción o eliminación.
 
 \begin{algorithm}[ht]
 	\caption{Actualización de una hoja en un Sparse Merkle Tree}
@@ -196,7 +196,7 @@ Si la prueba original era de exclusión ($b = 0$), el algoritmo anterior primero
 
 En la figura \ref{fig:update-sparse-merkle-tree-100-path}, podemos ver la actualización de un Sparse Merkle Tree de altura $3$ luego de agregarle el elemento $100 \in \{0,1\}^3$. Observar que se encuentra coloreado su Merkle Path asociado, en donde los nodos marcados como $\Hash(0)$ y $h_5$ no existían antes, mientras que los nodos marcados con $h_6$ y $r^*(\MerkleTree{T})$ vieron actualizado su hash.
 
-\begin{figure}[ht]
+\begin{figure}[!t]
 	\centering
 	\begin{tikzpicture}[
 		scale=0.9,
@@ -250,7 +250,7 @@ En la figura \ref{fig:update-sparse-merkle-tree-100-path}, podemos ver la actual
 			}
 		};
 	\end{tikzpicture}
-		\caption{Sparse Merkle Tree con el nodo $100$. Camino de $100$ en azul.}
+		\caption{Actualización de un \SMT de altura 3 al insertar la clave $100$. El camino azul muestra los nodos que se crean o recomputan desde la nueva hoja $\Hash(100)$ hasta la nueva raíz $r^*(\MerkleTree{T})$; las ramas no afectadas, como el subárbol de $001$, $110$ y $111$, se reutilizan sin cambios.}
 	\label{fig:update-sparse-merkle-tree-100-path}
 \end{figure}
 

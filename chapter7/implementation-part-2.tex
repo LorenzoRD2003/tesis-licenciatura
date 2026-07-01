@@ -1,0 +1,10 @@
+% !TeX root = ../tesis.tex
+
+Retomamos la arquitectura fijada en el Capítulo 5 y nos concentramos ahora en la segunda etapa de implementación: los circuitos \ZK concretos, su integración con Aiken y las decisiones necesarias para llegar a una versión viable del \zkBridge. En esta etapa ya no alcanza con describir el estado persistente del protocolo o la forma abstracta de sus validadores. Hay que mostrar cómo se materializa la verificación criptográfica real dentro de las restricciones de \Cardano, cómo se encadenan los artefactos de \Mithril con la lógica \Onchain y qué compromisos de ingeniería fueron necesarios para que el flujo final entre efectivamente en presupuesto.
+
+La sección siguiente se concentra en el caso más exigente de esa traducción: el pasaje del circuito \HaloTwo de \Mithril al entorno transaccional de \Cardano. Allí veremos que la dificultad principal no fue sólo extraer un verificador correcto, sino rediseñar el flujo de verificación y de consumo de certificados para respetar límites de CPU, memoria y tamaño de transacción sin perder \textit{binding} criptográfico entre pruebas, certificados y \UTxOs de estado.
+
+\input{chapter7/mithril-a-cardano}
+\input{chapter7/tx-set-update}
+\input{chapter7/tx-snapshot-membership}
+\input{chapter7/final-bridge-flow}

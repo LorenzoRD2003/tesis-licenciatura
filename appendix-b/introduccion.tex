@@ -29,7 +29,7 @@ Vamos a ganar intuición sobre esta definición, apoyados también en el protoco
 
 En la imagen \ref{fig:interactive-zk-protocol}, el protocolo de ejemplo muestra una interacción de tres pasos entre $\Prover$ y $\Verifier$. En este caso, el objeto relevante no es una prueba aislada sino el \textit{transcript} completo de la interacción, formado por todos los mensajes intercambiados.
 
-\begin{figure}[h]
+\begin{figure}[!t]
 	\centering
 	\begin{tikzpicture}[font=\small]
 		
@@ -60,7 +60,7 @@ En la imagen \ref{fig:interactive-zk-protocol}, el protocolo de ejemplo muestra 
 		
 	\end{tikzpicture}
 	
-\caption{Prototipo de un protocolo ZK interactivo, donde el objeto verificable es el \textit{transcript} completo}
+\caption{Prototipo de un protocolo \ZK interactivo entre $\Prover$ y $\Verifier$ sobre una instancia pública $x$ y un witness privado $w$. Las flechas $r_i$ representan desafíos del verifier, las flechas $\pi_i$ representan respuestas del prover, y el objeto verificable final es el \textit{transcript} completo $(r_1,\pi_1,r_2,\pi_2,r_3,\pi_3)$.}
 \label{fig:interactive-zk-protocol}
 \end{figure}
 

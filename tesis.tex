@@ -23,13 +23,24 @@
 \usepackage[textsize=scriptsize]{todonotes}
 \usepackage{xspace}
 \usepackage{xcolor}
-\usepackage{hyperref}
 \hypersetup{
 	colorlinks,
 	linkcolor={black},
 	citecolor={blue!50!black},
 	urlcolor={blue!80!black}
 }
+
+% En una tesis/libro, las figuras se colocan arriba de la página. La
+% redefinición ignora placements locales como [h] o [ht] y fuerza [!t].
+\makeatletter
+\renewenvironment{figure}[1][!t]{\@float{figure}[!t]}{\end@float}
+\setlength{\@fptop}{0pt}
+\setlength{\@fpsep}{8pt plus 2fil}
+\setlength{\@fpbot}{0pt plus 1fil}
+\setlength{\@dblfptop}{0pt}
+\setlength{\@dblfpsep}{8pt plus 2fil}
+\setlength{\@dblfpbot}{0pt plus 1fil}
+\makeatother
 
 
 \setlength{\emergencystretch}{3em}
@@ -101,78 +112,78 @@
 
 \chapter{Introducción}
 
-\input{chapter0-introduction}
+\input{chapter1/introduction}
 
 \chapter{Bridges y \zkBridge}
 \section{Bridges en la Blockchain}
 
-\input{chapter3/bridges}
+\input{chapter2/bridges}
 
 \section{Problemas de seguridad en \Bridges}
 
-\input{chapter3/security-issues}
+\input{chapter2/security-issues}
 
 \section{Resumen del paper \zkBridge}
 
-\input{chapter3/zk-bridge}
+\input{chapter2/zk-bridge}
 
 \chapter{Cardano y Modelo \eUTxO}
 
-\input{chapter4/motivation}
+\input{chapter3/motivation}
 
 \chapter{Decisiones de Diseño}
 
-\input{chapter5/design-decisions}
+\input{chapter4/design-decisions}
 
-\chapter{Implementación parte 1}
+\chapter{Implementación (parte 1)}
 
-\input{chapter6/implementation-part-1}
+\input{chapter5/implementation-part-1}
 
 \chapter{Mithril}
 
 \section{Introducción y motivación}
 
-\input{chapter7/introduccion-y-motivacion}
+\input{chapter6/introduccion-y-motivacion}
 
 \section{Protocolo \STM y esquemas de firma}
 
-\input{chapter7/protocolo-stm-y-esquemas-de-firma}
+\input{chapter6/protocolo-stm-y-esquemas-de-firma}
 
 \section{Cadena de certificados}
 
-\input{chapter7/cadena-de-certificados}
+\input{chapter6/cadena-de-certificados}
 
 \section{Entidades, certificados y versiones}
 
-\input{chapter7/artefactos-certificados-y-versiones}
+\input{chapter6/artefactos-certificados-y-versiones}
 
 \section{API del \MithrilAggregator e integración}
 
-\input{chapter7/aggregator-api-e-integracion}
+\input{chapter6/aggregator-api-e-integracion}
 
 \section{Relación \texorpdfstring{\(\NP\)}{NP} del circuito \STM}
 
-\input{chapter7/stm-relacion-np-y-chequeos}
+\input{chapter6/stm-relacion-np-y-chequeos}
 
 \section{\HaloTwo y complejidad}
 
-\input{chapter7/stm-halo2-y-complejidad}
+\input{chapter6/stm-halo2-y-complejidad}
 
 \section{Puente a la implementación final}
 
-\input{chapter7/puente-a-la-implementacion-final}
+\input{chapter6/puente-a-la-implementacion-final}
 
-\chapter{Implementación parte 2}
+\chapter{Implementación (parte 2)}
 
-\input{chapter8/implementation-part-2}
+\input{chapter7/implementation-part-2}
 
 \chapter{Resultados}
 
-\input{chapter9/results}
+\input{chapter8/results}
 
 \chapter{Conclusiones y trabajo futuro}
 
-\input{chapter10/conclusions-and-future-work}
+\input{chapter9/conclusions-and-future-work}
 
 %%%% BIBLIOGRAFIA
 \backmatter
@@ -192,35 +203,35 @@ Este apéndice reúne herramientas algebraicas y criptográficas que el cuerpo p
 
 \section{Cuerpos Finitos}
 
-\input{chapter1/cuerpos-finitos}
+\input{appendix-a/cuerpos-finitos}
 
 \section{Problema del logaritmo discreto (\DLP)}
 
-\input{chapter1/dlp}
+\input{appendix-a/dlp}
 
 \section{Polinomios}
 
-\input{chapter1/polinomios}
+\input{appendix-a/polinomios}
 
 \section{Curvas Elípticas}
 
-\input{chapter1/curvas-elipticas}
+\input{appendix-a/curvas-elipticas}
 
 \section{Pairings bilineales}
 
-\input{chapter1/pairings}
+\input{appendix-a/pairings}
 
 \section{Hashes}
 
-\input{chapter1/hashes}
+\input{appendix-a/hashes}
 
 \section{Merkle Trees}
 
-\input{chapter1/merkle_tree}
+\input{appendix-a/merkle_tree}
 
 \section{Sparse Merkle Trees (\SMT)}
 
-\input{chapter1/sparse-merkle-tree}
+\input{appendix-a/sparse-merkle-tree}
 
 
 %% ...
@@ -232,38 +243,38 @@ Puede leerse de dos maneras. Una lectura lineal, de principio a fin, reconstruye
 
 \section{Introducción a pruebas \ZK}
 
-\input{chapter2/introduccion}
+\input{appendix-b/introduccion}
 
 \section{SNARKs}
 
-\input{chapter2/snark}
+\input{appendix-b/snark}
 
 \section{Circuitos Aritméticos}
 
-\input{chapter2/arithmetic-circuits}
+\input{appendix-b/arithmetic-circuits}
 
 \section{Sistemas de Restricciones \ROneCS (Rank-1 Constraint Systems)}
 
-\input{chapter2/r1cs}
+\input{appendix-b/r1cs}
 
 \section{\QAP: Quadratic Arithmetic Programs}
 
-\input{chapter2/qap}
+\input{appendix-b/qap}
 
 \section{Esquemas de Compromiso (Commitment Schemes)}
 
-\input{chapter2/commitment-schemes}
+\input{appendix-b/commitment-schemes}
 
 \section{\KZG}
 
-\input{chapter2/kzg}
+\input{appendix-b/kzg}
 
 \section{Protocolo \FiatShamir y No-Interactividad}
 
-\input{chapter2/fiat-shamir}
+\input{appendix-b/fiat-shamir}
 
 \section{\Groth}
 
-\input{chapter2/groth16}
+\input{appendix-b/groth16}
 
 \end{document}
