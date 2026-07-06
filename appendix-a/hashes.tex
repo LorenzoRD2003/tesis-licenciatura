@@ -48,7 +48,7 @@ En la práctica, estas funciones no se construyen directamente, sino mediante tr
 
 \begin{enumerate}[noitemsep]
 	\item Expandir la entrada mediante una función de hash convencional.
-	\item Interpretar la salida como uno o más elementos del cuerpo base $\Fq$ de la curva.
+		\item Interpretar el \textit{output} como uno o más elementos del cuerpo base $\Fq$ de la curva.
 	\item Aplicar un mapeo algebraico hacia la curva \cite{Wahby2019, cryptoeprint:2013/325}, es decir una función $f: \Fq \to \E(\Fq)$.
 	\item (Opcionalmente) Forzar la pertenencia al subgrupo de orden primo deseado mediante multiplicación por el cofactor de la curva.
 \end{enumerate}

@@ -90,7 +90,7 @@ La relación anterior es implementada en \Circom para ser convertida a un circui
 	\item La derivación determinista de la hoja en ASCII, para que el \textit{prover} no pueda sustituir la transacción real por una alternativa.
 	\item Garantizar que los \textit{flags} \texttt{enabled} sean contiguos. Con esto, no se puede ``saltar'' un nivel intermedio y reactivar luego otro más alto.
 	\item En cada paso tipado, un bit \texttt{kind} determina si el hermano relevante es una cadena de bytes o un hash. Se garantiza además que el slot inactivo quede anulado.
-	\item Cuando un paso está deshabilitado, el circuito impone que tanto sus selectores como sus datos sean cero y que la salida propague exactamente el valor de entrada.
+		\item Cuando un paso está deshabilitado, el circuito impone que tanto sus selectores como sus datos sean cero y que el \textit{output} propague exactamente el valor de entrada.
 	\item \texttt{TypedPrefixFirstStep}, \texttt{TypedPrefixHashedStep} y \texttt{MerkleUpperPathBlake2s} son componentes que implementan la reconstrucción desde \(\mathsf{hex}_{\mathsf{lc}}(\TxId)\) hasta \SnapshotSubRoot.
 	\item El componente \texttt{MasterLeafHash} selecciona la longitud efectiva \texttt{range\_ascii\_len}, obliga a cero todos los bytes fuera de esa longitud y luego computa $\BLAKETwoSTwoFiveSix(\alpha \concat \SnapshotSubRoot)$. De esta forma, dos witnesses con el mismo prefijo activo no pueden diferir sólo en bytes ``de relleno'' fuera de la longitud declarada.
 	\item Se recompone la \TxSetRoot a partir de la hoja $\BLAKETwoSTwoFiveSix(\alpha \concat \SnapshotSubRoot)$.
@@ -100,7 +100,7 @@ La relación anterior es implementada en \Circom para ser convertida a un circui
 
 \subsection{Vínculo exacto con \MintingValidator}
 
-La utilidad del circuito en el protocolo aparece al mirar la interfaz del \MintingValidator, cuyas condiciones de aceptación fueron formalizadas en la primera etapa de implementación y forman parte de las condiciones necesarias de \MintTx. El mapeo entre la matemática del argumento \Groth y la validación \Onchain es el siguiente:
+La utilidad del circuito en el protocolo aparece al mirar la interfaz del \MintingValidator, cuyas condiciones de aceptación fueron formalizadas en las secciones iniciales de este capítulo y forman parte de las condiciones necesarias de \MintTx. El mapeo entre la matemática del argumento \Groth y la validación \Onchain es el siguiente:
 \begin{enumerate}[noitemsep]
 	\item El validador construye un \texttt{ReducedMithril\allowbreak Certificate} a partir de los campos planos del \textit{redeemer}.
 	\item Inspecciona los inputs de la transacción para recuperar el \texttt{statement\_hash} persistido en el \ProofReceipt de fase 2 y, con eso, ejecuta la verificación del certificado contra el certificado padre autenticado por el \StakeDistributionUTxO de referencia.
@@ -117,7 +117,7 @@ Junto con el circuito \textit{legacy} integrado hoy al operador, el repositorio 
   \item \texttt{siblings[MAX\_DEPTH][2]};
   \item \texttt{expected\_root[2]}.
 \end{enumerate}
-Y expone exactamente las mismas seis salidas públicas que el circuito \textit{legacy}.
+Y expone exactamente los mismos seis \textit{outputs} públicos que el circuito \textit{legacy}.
 
 Si notamos $\widetilde{H}_{\mathsf{Mid}}$ a la función hash \emph{mockeada} que hoy reemplaza provisionalmente a \MidnightPoseidonHash, la relación $\NP$ tentativa de ese circuito puede enunciarse así: existen un índice $j$ y un camino de hermanos tales que el digest hoja $\widetilde{\ell} = \widetilde{H}_{\mathsf{Mid}}(\TxId)$ reconstruye, mediante el Merkle Path determinado por los bits de $j$, una Merkle Root igual a $\LagrangeTxSetRoot$.
 

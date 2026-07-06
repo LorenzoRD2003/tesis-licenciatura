@@ -25,7 +25,7 @@
 	\end{itemize}
 \end{definition}
 
-Para relacionarlo con las definición general dada en la sección anterior, observamos la instancia específica utilizada para cada uno de los conjuntos:
+Para relacionarlo con la definición general dada en la sección anterior, observamos la instancia específica utilizada para cada uno de los conjuntos:
 	\begin{itemize}[itemsep=0.1cm]
 		\item El espacio de polinomios $\PolynomialSpace$ es $ \Fp[x]_{\leq d}$.
 		\item El espacio de compromisos $\CommitmentSpace$ es $\GOne$.
@@ -67,7 +67,7 @@ Para \SNARK pequeños, suelen ser miles de elementos de la curva. Pero para sist
 
 \subsection{Aperturas múltiples y GWC19}
 
-El esquema \KZG presentado hasta ahora resuelve el problema de abrir \emph{un} polinomio en \emph{un} punto. Sin embargo, los sistemas de pruebas reales rara vez necesitan una sola evaluación aislada. En protocolos \PLONKish (que veremos en el Capítulo 7), por ejemplo, el verifier debe chequear simultáneamente evaluaciones de muchos polinomios. Verificar cada \Open por separado sería prohibitivo, porque implicaría una ecuación de pairing independiente por cada evaluación. El objetivo de \GWCNineteen, introducido en el paper de \PLONK \cite{cryptoeprint:2019/953}, es precisamente colapsar estos \Open en una verificación sucinta conservando la estructura algebraica de \KZG. El número total de polinomios consultados puede ser grande, pero si los puntos de evaluación distintos son pocos, el esquema logra mantener pruebas cortas y verificación sucinta. Esta es precisamente la situación que aparece en protocolos \PLONKish como \HaloTwo.
+El esquema \KZG presentado hasta ahora resuelve el problema de abrir \emph{un} polinomio en \emph{un} punto. Sin embargo, los sistemas de pruebas reales rara vez necesitan una sola evaluación aislada. En protocolos \PLONKish, como \HaloTwo, el verifier debe chequear simultáneamente evaluaciones de muchos polinomios. Verificar cada \Open por separado sería prohibitivo, porque implicaría una ecuación de pairing independiente por cada evaluación. El objetivo de \GWCNineteen, introducido en el paper de \PLONK \cite{cryptoeprint:2019/953}, es precisamente colapsar estos \Open en una verificación sucinta conservando la estructura algebraica de \KZG. El número total de polinomios consultados puede ser grande, pero si los puntos de evaluación distintos son pocos, el esquema logra mantener pruebas cortas y verificación sucinta. Esta es precisamente la situación que aparece en protocolos \PLONKish como \HaloTwo.
 
 La idea central es separar dos fuentes de redundancia: varios polinomios se abren en el mismo punto, y aún habiendo más de un punto de evaluación, el número de puntos distintos sigue siendo pequeño. \GWCNineteen explota estas observaciones mediante combinaciones lineales aleatorias. Para cada punto, combina todos los polinomios abiertos en él. Luego, agrega los distintos puntos en una sola ecuación de pairing. El costo del \textit{verifier} pasa a depender del número de puntos distintos consultados.
 

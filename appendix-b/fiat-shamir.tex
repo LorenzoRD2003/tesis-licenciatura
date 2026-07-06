@@ -2,13 +2,13 @@
 
 \subsection{De protocolos interactivos a no interactivos}
 
-Los protocolos de argumentos de conocimiento suelen ser interactivos entre el prover y el verifier. Sin ir más lejos, el argumento sucinto desarrollado en la sección anterior requiere de que el verifier envíe un valor aleatorio como challenge al prover.
+Los protocolos de argumentos de conocimiento suelen ser interactivos entre el prover y el verifier. Sin ir más lejos, el argumento sucinto desarrollado en la sección anterior requiere que el verifier envíe un valor aleatorio como challenge al prover.
 
 Sin embargo, en entornos como blockchains, donde la verificación debe ocurrir en un único mensaje publicado onchain, la interactividad es un obstáculo. En 1986, Amos Fiat y Adi Shamir propusieron una transformación que convierte muchos de estos protocolos interactivos en protocolos no interactivos (\NIZK) sin pérdida significativa del valor de seguridad, cuando se modela la función de desafío como un oráculo aleatorio \cite{Fiat, Bellare1993}.
 
 La idea central es la siguiente: en lugar de que el \textit{verifier} genere un desafío aleatorio y se lo envíe al \textit{prover}, el \textit{prover} calcula el desafío como el resultado de aplicar una función de hash criptográfica a la transcripción parcial del protocolo y utiliza ese resultado como si fuera el desafío.
 
-Para que esta transformación sea segura, se necesita trabajar en el \ROM, de modo que la función de hash $\Hash$ se comporte como una función aleatoria. Este enfoque es central para la mayoría de construcciones de \zkSNARK modernas: aunque no existen funciones hash verdaderamente aleatorias en la práctica, asumiendo que una función criptográfica modelada como oráculo aleatorio permite demostrar seguridad de las construcciones de manera formal y luego instanciarlas con hashes como \SHATwoFiveSix, \BLAKETwo o \PoseidonHash bajo heurísticas de seguridad razonables. Para formalizar esta transformación, primero planteamos formalmente un protocolo interactivo público genérico de tres mensajes (lo cual puede trivialmente generalizarse a un número arbitrario de mensajes), conocido como \SigmaProtocol.
+Para que esta transformación sea segura, se necesita trabajar en el \ROM, de modo que la función de hash $\Hash$ se comporte como una función aleatoria. Este enfoque es central para la mayoría de construcciones de \zkSNARK modernas. Aunque no existen funciones hash verdaderamente aleatorias en la práctica, modelar una función criptográfica como oráculo aleatorio permite demostrar seguridad de manera formal y luego instanciar la construcción con hashes como \SHATwoFiveSix, \BLAKETwo o \PoseidonHash bajo heurísticas de seguridad razonables. Para formalizar esta transformación, primero planteamos formalmente un protocolo interactivo público genérico de tres mensajes (lo cual puede trivialmente generalizarse a un número arbitrario de mensajes), conocido como \SigmaProtocol.
 
 \begin{definition}[\SigmaProtocol]
 	Decimos que $\Pi = (\Commit, \Open, \Verify)$ es un \SigmaProtocol para una relación $\Relation \subseteq \InstanceSpace \times \WitnessSpace$ con public inputs $x$ y witness $w$ tales que $(x,w) \in \Relation$, entre un prover $\Prover$ y un verifier $\Verifier$, si consiste de los siguientes tres mensajes:
@@ -21,7 +21,7 @@ Para que esta transformación sea segura, se necesita trabajar en el \ROM, de mo
 \end{definition}
 
 \begin{definition}[Transformación \FiatShamir]
-	Sea $\Pi = (\Commit, \Open, \Verify)$ un \SigmaProtocol para una relación $\Relation \subseteq \InstanceSpace \times \WitnessSpace$, y supongamos que su espacio de desafíos es compatible con la salida de una función hash criptográfica $\Hash: \Strings{*} \to \Strings{n}$. La \emph{transformación \FiatShamir} es un protocolo no interactivo $\Pi_{FS} = (\Prove_{FS}, \Verify_{FS})$ definido como:
+	Sea $\Pi = (\Commit, \Open, \Verify)$ un \SigmaProtocol para una relación $\Relation \subseteq \InstanceSpace \times \WitnessSpace$, y supongamos que su espacio de desafíos es compatible con el \textit{output} de una función hash criptográfica $\Hash: \Strings{*} \to \Strings{n}$. La \emph{transformación \FiatShamir} es un protocolo no interactivo $\Pi_{FS} = (\Prove_{FS}, \Verify_{FS})$ definido como:
 	\begin{itemize}[noitemsep]
 		\item $\Prove_{FS}(x,w)$, ejecutado por el prover:
 		\begin{itemize}[noitemsep]

@@ -9,7 +9,7 @@ Este capítulo introduce las capas de \Cardano que condicionarán y darán forma
 
 \Cardano es una blockchain donde los bloques son producidos por \emph{stake pools} en nombre de los delegadores, bajo la familia de protocolos de consenso \Ouroboros. Los \emph{stake pools} proporcionan alta disponibilidad y conectividad; los delegadores aportan stake y comparten recompensas, mientras que un \emph{stake pool operator} ejecuta la infraestructura que participa en la producción de bloques.
 
-A nivel de libro contable, \Cardano sigue un paradigma \UTxO (\emph{Unspent Transaction Output}, como \Bitcoin): las transacciones consumen salidas previamente no gastadas y crean nuevas salidas que podrán gastarse en el futuro. Cada \UTxO puede consumirse \emph{una sola vez y en su totalidad}. \Cardano extiende este modelo mediante \eUTxO, permitiendo que las salidas lleven datos y que las direcciones estén respaldadas por \textit{scripts}, lo que habilita contratos inteligentes expresivos sin adoptar un modelo global de estado completamente basado en cuentas (como el de \Ethereum).
+A nivel de libro contable, \Cardano sigue un paradigma \UTxO (\emph{Unspent Transaction Output}, como \Bitcoin): las transacciones consumen \textit{outputs} previamente no gastados y crean nuevos \textit{outputs} que podrán gastarse en el futuro. Cada \UTxO puede consumirse \emph{una sola vez y en su totalidad}. \Cardano extiende este modelo mediante \eUTxO, permitiendo que los \textit{outputs} lleven datos y que las direcciones estén respaldadas por \textit{scripts}, lo que habilita contratos inteligentes expresivos sin adoptar un modelo global de estado completamente basado en cuentas (como el de \Ethereum).
 
 En \Cardano, la validación de transacciones es determinista. Intuitivamente: si una transacción está bien formada y hace referencia a un conjunto válido de entradas, su resultado de validación (éxito/fracaso) y sus comisiones pueden saberse de forma exacta antes de enviarla \Onchain. Esto es gracias a tener scripts puros que devuelven \True/\False, argumentos explícitos fijados dentro de la transacción, y presupuestos explícitos de recursos que limitan la ejecución de scripts.
 
@@ -19,16 +19,16 @@ Para un \zkBridge, el determinismo es valioso porque los \Bridge operators puede
 
 \subsection{De \UTxO a \eUTxO: validadores, datums, redeemers, contexto}
 
-En el modelo \UTxO tradicional, una salida es principalmente un par \emph{(dirección, valor)}. Gastar un output requiere proporcionar el witness necesario para desbloquear esa dirección (usualmente una firma). \Cardano generaliza esto en dos direcciones clave: las direcciones pueden incorporar lógica arbitraria (scripts), y los outputs pueden transportar datos específicos interpretables por los scripts.
+En el modelo \UTxO tradicional, un \textit{output} es principalmente un par \emph{(dirección, valor)}. Gastar un \textit{output} requiere proporcionar el witness necesario para desbloquear esa dirección (usualmente una firma). \Cardano generaliza esto en dos direcciones clave: las direcciones pueden incorporar lógica arbitraria (scripts), y los \textit{outputs} pueden transportar datos específicos interpretables por los scripts.
 
 Esto es formalizado \cite{Chakravarty2020} como una extensión donde cada \textit{output} contiene un \textit{script} de validación (o su hash) y un \textit{datum}, y para poder gastarlo se proporciona un \textit{redeemer}. Los validadores reciben información adicional sobre la transacción en la que se gasta el \textit{output} (\emph{contexto de transacción}, por ejemplo, otros \textit{outputs} gastados en esa misma transacción). Se puede pensar a los \textit{scripts} de validación como contratos. Hay dos características necesarias para codificar máquinas de estados como \textit{scripts} de validación de \Cardano:
 
 \begin{itemize}[noitemsep]
-	\item \textbf{Transporte de estado:} las incluyen un datum $\delta$ para almacenar datos específicos del contrato (estado).
+	\item \textbf{Transporte de estado:} los \textit{outputs} incluyen un datum $\delta$ para almacenar datos específicos del contrato (estado).
 	\item \textbf{Continuidad del contrato:} los validadores pueden inspeccionar una transacción para asegurar que el script continúa con la lógica de validación prevista.
 \end{itemize}
 
-Una forma compacta de expresar la idea central de validación en \eUTxO para \textit{spending validators} (como se presenta en el artículo) es: \SpendValidatorSchema donde $\validator$ es el validador, $\datum$ es el datum, $\redeemer$ es el redeemer, y $\txcontext$ es la transacción que gasta la salida (o un contexto derivado de ella).
+Una forma compacta de expresar la idea central de validación en \eUTxO para \textit{spending validators} (como se presenta en el artículo) es: \SpendValidatorSchema donde $\validator$ es el validador, $\datum$ es el datum, $\redeemer$ es el redeemer, y $\txcontext$ es la transacción que gasta el \textit{output} (o un contexto derivado de ella).
 
 En el caso de \textit{minting validators}, la interfaz local cambia porque el script no valida el gasto de un \UTxO concreto sino una política de acuñación. En ese caso, usaremos la notación \MintValidatorSchema donde el parámetro \textsf{policyId} identifica la política que autoriza la operación de \textit{minting}.
 
@@ -85,7 +85,7 @@ Para un \zkBridge, esto tiene una consecuencia operativa: cualquier transacción
 
 Una transacción de actualización de un \zkBridge típicamente necesita incluir (directa o indirectamente) pruebas de conocimiento cero, entradas públicas y referencias al estado actual del \Bridge. Por lo tanto, tanto los límites de \emph{tamaño en bytes} como los de \ExUnits son restricciones de diseño de los validadores.
 
-La Tabla~\ref{tab:cardano-protocol-limits} resume parámetros del protocolo comúnmente citados que acotan el rendimiento y la complejidad. Los valores numéricos exactos pueden cambiar mediante actualizaciones del protocolo; el punto clave para el diseño es que estos son \emph{límites duros} impuestos por las reglas de consenso. Los valores pueden ser modificados mediante el mecanismo de gobernanza del protocolo.
+La Tabla~\ref{tab:cardano-protocol-limits} resume parámetros del protocolo comúnmente citados que acotan el rendimiento y la complejidad. Los valores numéricos exactos pueden cambiar mediante actualizaciones del protocolo; el punto clave para el diseño es que estos son \emph{límites duros} impuestos por las reglas de consenso. Los valores pueden ser modificados mediante el mecanismo de gobernanza del protocolo. En los límites de \ExUnits, Cardano distingue dos componentes: unidades de memoria y pasos de CPU.
 
 \begin{table}[t]
 	\centering
@@ -97,8 +97,16 @@ La Tabla~\ref{tab:cardano-protocol-limits} resume parámetros del protocolo com�
 		\maxTxSize & Límite de una $\tx$ serializada (bytes) & 16,384 \\
 		\maxBlockBodySize & Límite de un block body serializado (bytes) & 90,112 \\
 		\maxBlockHeaderSize & Límite de un block header serializado (bytes) & 1,100 \\
-		\maxTxExUnits & Límite de \ExUnits por $\tx$ & \texttt{(1.4e7, 1e10)} \\
-		\maxBlockExUnits & Límite de \ExUnits por block & \texttt{(5e7, 4e10)} \\
+		\maxTxExUnits & Límite de \ExUnits por $\tx$ &
+		\begin{tabular}[t]{@{}l@{}}
+			memoria: \texttt{1.4e7} \\
+			CPU: \texttt{1e10}
+		\end{tabular} \\
+		\maxBlockExUnits & Límite de \ExUnits por block &
+		\begin{tabular}[t]{@{}l@{}}
+			memoria: \texttt{5e7} \\
+			CPU: \texttt{4e10}
+		\end{tabular} \\
 		\texttt{collateral}\newline\texttt{Percentage} & Colateral necesario como \% de comisiones & 150 \\
 		\texttt{maxCollateral}\newline\texttt{Inputs} & Límite de collateral inputs por $\tx$ & 3 \\
 		\hline
@@ -136,7 +144,7 @@ El proceso de recompensas es estocástico porque la producción de bloques es pr
 \subsection{Estructura temporal: slots y épocas}
 \Praos \cite{cryptoeprint:2017/573} es un protocolo \textit{proof of stake} que divide el tiempo en \emph{slots} agrupados en \emph{épocas}. En cada \Slot, puede haber uno o más líderes elegibles, y muchos \Slot pueden estar vacíos (sin líder). Esto difiere de los esquemas deterministas de selección de líderes y es clave para las suposiciones de seguridad y red de \Praos.
 
-En el paper de \Praos, la elección de líderes se describe como una \emph{prueba local privada} utilizando una \VRF sobre el timestamp actual y un \Nonce específico de la época. Solo la parte elegida sabe que es líder hasta que produce un bloque que contiene la prueba.
+En el paper de \Praos, la elección de líderes se describe como una \emph{prueba local privada} utilizando una \VRF (\textit{Verifiable Random Function}, o función aleatoria verificable) sobre el timestamp actual y un \Nonce específico de la época. Solo la parte elegida sabe que es líder hasta que produce un bloque que contiene la prueba.
 
 El coeficiente de slot activo de \Cardano (denotado $\ActiveSlotCoeff$) controla con qué frecuencia se espera que los slots contengan un bloque. En los parámetros públicos usuales, se apunta a producir un bloque cada aproximadamente veinte segundos.
 

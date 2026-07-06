@@ -2,7 +2,7 @@
 
 \section{Flujo final del \zkBridge}
 
-Esta sección se enfoca en describir el flujo operacional completo que efectivamente une las partes descritas en la secciones anteriores en un protocolo de transacciones. Cómo se ensamblan las transacciones, qué errores de tooling fue necesario corregir para que el flujo fuera reproducible, cómo hicimos \textit{testing}, etc.
+Esta sección describe el flujo operacional completo que une las partes presentadas en las secciones anteriores en un protocolo transaccional ejecutable. En particular, explica cómo se ensamblan las transacciones, qué ajustes de tooling fueron necesarios para volver reproducible el flujo y cómo se organizó la validación mediante tests.
 
 \subsection{El ecosistema \texorpdfstring{\TxThree/\Trix/\CShell/\Dolos}{Tx3/Trix/cshell/dolos}}
 
@@ -16,7 +16,7 @@ Sobre esa interfaz opera \Trix, la CLI principal del ecosistema \TxThree \cite{T
 
 \Dolos provee el entorno local de datos y de \textit{devnet} sobre el que se apoyan \Trix y \CShell \cite{DolosDocsOverview}. \Dolos sincroniza estado, expone servicios y permite que el resto de herramientas resuelvan \UTxOs y observen confirmaciones en un nodo local \cite{DolosDocsOverview}. En nuestro prototipo, \Dolos fue la pieza necesaria para tener una reproducción completa del \zkBridge sin depender de un nodo remoto de \Cardano cada vez que se reejecutaba el flujo.
 
-La Tabla~\ref{tab:bridge-toolchain-versions} resume las versiones de las herramientas usadas durante el desarrollo del \zkBridge y que volvieron operable su lógica criptográfico. \TxThree no tiene una versión, mientras que las herramientas que lo interpretan y ejecutan sí.
+La Tabla~\ref{tab:bridge-toolchain-versions} resume las versiones de las herramientas usadas durante el desarrollo del \zkBridge y que volvieron operable su lógica criptográfica. \TxThree no tiene una versión, mientras que las herramientas que lo interpretan y ejecutan sí.
 
 \begin{table}[t]
   \centering
@@ -46,7 +46,7 @@ La estrategia de tests del repositorio está organizada alrededor de \texttt{aik
   \item Finalmente, la capa más costosa la forman los \textit{runtime probes} con pruebas reales. Estos casos intentan recrear de la forma más fiel posible los argumentos criptográficos o estados intermedios que el flujo integrado realmente consumirá.
 \end{enumerate}
 
-Además, integramos \texttt{aiken check} al mismo mismo flujo principal del \zkBridge. En particular, \BridgeRunStrictCommand ejecuta primero un \textit{preflight} que valida la coherencia del estado actual del repositorio para poder llevar a cabo las mediciones y ejecutar validadores, y sólo después corre \texttt{aiken check}. Del mismo modo, si \texttt{aiken check} falla, tampoco vale la pena arrancar \Dolos ni construir la secuencia completa de transacciones.
+Además, integramos \texttt{aiken check} al mismo flujo principal del \zkBridge. En particular, \BridgeRunStrictCommand ejecuta primero un \textit{preflight} que valida la coherencia del estado actual del repositorio para poder llevar a cabo las mediciones y ejecutar validadores, y sólo después corre \texttt{aiken check}. Del mismo modo, si \texttt{aiken check} falla, tampoco vale la pena arrancar \Dolos ni construir la secuencia completa de transacciones.
 
 \subsection{El flujo principal del \zkBridge}
 

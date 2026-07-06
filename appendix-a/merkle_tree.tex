@@ -16,7 +16,7 @@ Los Merkle Trees son estructuras de datos basadas en árboles binarios y funcion
 
 La propiedad clave de un Merkle Tree $\MerkleRoot{\MerkleTree{T}}$ es que cualquier modificación en un dato $\ell_i$ provoca un cambio en su hoja asociada $\Hash(\ell_i)$, y se propaga hasta $\MerkleRoot{\MerkleTree{T}}$ de una forma impredecible. Esto permite verificar la integridad de un elemento específico sin necesidad de recorrer o almacenar toda la secuencia de datos. Cualquier modificación en un dato (incluso en un solo bit) permite detectar alteraciones de forma inmediata solamente verificando si cambió el valor de $\MerkleRoot{\MerkleTree{T}}$.
 
-Por supuesto, los elementos de la secuencia de datos puede pertenecer a cualquier conjunto arbitrario $X$ mientras todos sus datos sean finitos, y transformarlos a tiras de bits, replicando lo que hicimos en la sección anterior.
+Por supuesto, los elementos de la secuencia de datos pueden pertenecer a cualquier conjunto arbitrario $X$ mientras todos sus datos sean finitos, y transformarse a tiras de bits, replicando lo que hicimos en la sección anterior.
 
 Observar que en las imágenes se indica la secuencia de datos por debajo de $\MerkleTree{T}$, pero se recalca que estos no pertenecen directamente a $\MerkleTree{T}$, sino que el nivel inferior de $\MerkleTree{T}$ está compuesto por los $\Hash(\ell_i)$.
 

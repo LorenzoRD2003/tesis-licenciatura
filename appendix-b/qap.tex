@@ -2,11 +2,11 @@
 
 \subsection{Equivalencia entre \ROneCS y \QAP}
 
-Un \QAP puede entenderse como un mecanismo algebraico que codifica simultáneamente todas las restricciones de un \ROneCS en una única relación polinómica global. La idea fundamental es que los polinomios "recuerden" cada restricción. Daremos la definición formal ahora mismo.
+Un \QAP puede entenderse como un mecanismo algebraico que codifica simultáneamente todas las restricciones de un \ROneCS en una única relación polinómica global. La idea fundamental es que los polinomios "recuerden" cada restricción. Usaremos aquí la interpolación polinómica introducida en el Apéndice A: dados valores sobre un conjunto de puntos distintos, existe un único polinomio de grado acotado que interpola esos valores. En un \QAP, esta herramienta permite reemplazar las columnas de las matrices de un \ROneCS por polinomios. Daremos la definición formal ahora mismo.
 
 \begin{definition}[\QAP, Polinomio objetivo]
 	Sea $\K$ un cuerpo finito, y sean $m, n \in \N$. Un \emph{Quadratic Arithmetic Program} (\QAP) sobre $\K$ de tamaño $m$ y dimensión $n$ está dado por:
-	\begin{itemize}[no]
+	\begin{itemize}[noitemsep]
 		\item Tres familias de $n$ polinomios en $\poly{\K}$:
 		$$\PolyA = \{A_i(x)\}^n_{i=1}, \quad \PolyB = \{B_i(x)\}^n_{i=1}, \quad \PolyC = \{C_i(x)\}^n_{i=1},$$
 		cada uno de grado a lo sumo $m - 1$.

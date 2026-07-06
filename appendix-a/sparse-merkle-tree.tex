@@ -94,7 +94,7 @@ Los \SMT permiten definir pruebas de exclusión eficientes: para demostrar que $
 	Nos referimos a $\MerkleProof$ como una prueba de inclusión si $\ell \in L$, y como una prueba de exclusión si $\ell \not\in L$.
 \end{definition}
 
-Se puede dar una función de verificación (y su algoritmo correspondiente) para una Sparse Merkle Proof, así como hicimos con la Merkle Proof tradicional. Nuevamente, vamos reconstruyendo el camino $\MerklePath$ de $\ell$ en un vector $x$, y la prueba es válida si y solo si el valor obtenido al final del camino es consistente con la raíz: $x_k = \MerkleRoot{\MerkleTree{T}}$. Si los hermanos no estuvieran almacenados explícitamente en $\MerkleTree{T}$, hay que usar los default hashes del nivel correspondientes.
+Se puede dar una función de verificación (y su algoritmo correspondiente) para una Sparse Merkle Proof, así como hicimos con la Merkle Proof tradicional. Nuevamente, vamos reconstruyendo el camino $\MerklePath$ de $\ell$ en un vector $x$, y la prueba es válida si y solo si el valor obtenido al final del camino es consistente con la raíz: $x_k = \MerkleRoot{\MerkleTree{T}}$. Si los hermanos no estuvieran almacenados explícitamente en $\MerkleTree{T}$, hay que usar los default hashes de los niveles correspondientes.
 
 \begin{definition}[Función de verificación de una Sparse Merkle Proof]
 	Sea $\MerkleTree{T}$ un Sparse Merkle Tree de altura $k$ con raíz $\MerkleRoot{\MerkleTree{T}}$ y función de hash criptográfica asociada $\Hash$ y valor por defecto $\EmptyNode$, y sea $\MerkleProof$ una Sparse Merkle Proof para un elemento $\ell = (b_1, \ldots, b_k) \in \Strings{k}$. La función de verificación de $\MerkleProof$ se define como:

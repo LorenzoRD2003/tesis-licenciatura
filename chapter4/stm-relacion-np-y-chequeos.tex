@@ -1,6 +1,6 @@
 % !TeX root = ../tesis.tex
 
-Retomando la sección anterior, el \MithrilAggregator normaliza la evidencia como un \textit{witness} $\SnarkWitness = (w_1, \ldots, w_k) \in \WitnessSpace$. El circuito \HaloTwo de la era \Lagrange argumenta que existen $k$ participantes legítimos del comité autenticado por $\SnarkAVK$, cada uno con una firma Schnorr válida sobre $\RigidDigest$, un Merkle correcto e índice de lotería ganador. Los objetos
+Retomando la sección anterior, el \MithrilAggregator normaliza la evidencia como un \textit{witness} $\SnarkWitness = (w_1, \ldots, w_k) \in \WitnessSpace$. En la ruta \texttt{Snark} de la era \Lagrange, el circuito \HaloTwo argumenta que existen $k$ participantes legítimos del comité autenticado por $\SnarkAVK$, cada uno con una firma Schnorr válida sobre $\RigidDigest$, un Merkle correcto e índice de lotería ganador. Los objetos
 $$\SnarkAuthReg = \left\{\SnarkLeaf{1},\ldots,\SnarkLeaf{n}\right\}, \qquad \SnarkAVK = (\SnarkRoot, S), \qquad \RigidDigest = \RigidHash(\ProtocolMsg),$$
 ya quedaron fijados en dicha sección.
 

@@ -1,6 +1,6 @@
 % !TeX root = tesis.tex
 
-Entre los distintos tipos de argumentos de conocimiento introducidos en la sección anterior, los \textit{\SNARK (Succinct Non-Interactive ARgument of Knowledge)} ocupan un lugar central por su eficiencia y aplicabilidad práctica. Fueron introducidos por primera vez en \cite{Bitansky2012}. Estos sistemas permiten demostrar la corrección de cómputos arbitrariamente complejos mediante pruebas extremadamente cortas y verificables en tiempo reducido. La combinación de no interactividad, sucintez y solidez convierte a los \SNARK en una herramienta fundamental en criptografía moderna, particularmente en contextos donde la verificación eficiente resulta crítica, como sistemas distribuidos, protocolos de privacidad y blockchain.
+Entre los distintos tipos de argumentos de conocimiento introducidos en la sección anterior, los \textit{\SNARK (Succinct Non-Interactive ARgument of Knowledge)} ocupan un lugar central por su eficiencia y aplicabilidad práctica. Fueron introducidos por primera vez en \cite{Bitansky2012}. Estos sistemas permiten demostrar la correctitud de cómputos arbitrariamente complejos mediante pruebas extremadamente cortas y verificables en tiempo reducido. La combinación de no interactividad, sucintez y solidez convierte a los \SNARK en una herramienta fundamental en criptografía moderna, particularmente en contextos donde la verificación eficiente resulta crítica, como sistemas distribuidos, protocolos de privacidad y blockchain.
 
 \begin{definition}[\SNARK, \zkSNARK]
 	Sea $\Relation \subseteq \InstanceSpace \times \WitnessSpace$ una relación en la clase de complejidad $\NP$. Un \SNARK para $\Relation$ es una tripla de algoritmos en tiempo polinomial
@@ -8,8 +8,8 @@ Entre los distintos tipos de argumentos de conocimiento introducidos en la secci
 	definidos como:
 	\begin{itemize}
 		\item $\Setup(1^\securityparam)$ es un algoritmo aleatorio que genera un conjunto de parámetros públicos $\CRS$, conocido como \textit{Common Reference String}, que es usado tanto por el prover como por el verifier. Es decir, $\Setup(1^\securityparam) \to \CRS$. Aquí $\securityparam$ es un parámetro de seguridad.
-		\item $\Prover_{\CRS}: \InstanceSpace \times \WitnessSpace \to \ProofSpace$ es un algoritmo aleatorio que produce una prueba $\pi$.
-		\item $\Verifier_\CRS: \InstanceSpace \times \ProofSpace \to \{0,1\}$ es un algoritmo determinístico.
+		\item $\Prover_{\CRS}: \InstanceSpace \times \WitnessSpace \to \ProofSpace$ es un algoritmo aleatorio que, a partir de una instancia pública $x$ y un \textit{witness} $w$, produce una prueba $\pi$.
+		\item $\Verifier_\CRS: \InstanceSpace \times \ProofSpace \to \{0,1\}$ es un algoritmo determinístico que, dada una instancia pública $x$ y una prueba $\pi$, acepta si $\pi$ certifica que existe un \textit{witness} $w$ tal que $(x,w) \in \Relation$.
 	\end{itemize}
 	
 	La tripla de algoritmos $\mathcal{S}$ debe, además, cumplir con las siguientes propiedades:
@@ -18,7 +18,7 @@ Entre los distintos tipos de argumentos de conocimiento introducidos en la secci
 		$$\Prob[\Verifier_\CRS(x,\Prover_\CRS(x,w)) = 1] = 1.$$
 		\item Solidez por extracción: Sea
 		$$\Language_\Relation := \{x \in \InstanceSpace : \exists w \in \WitnessSpace,\ (x,w) \in \Relation\}.$$
-		Para todo prover probabilístico en tiempo polinomial $\Prover^\star$, existe un extractor probabilístico en tiempo polinomial $\Extractor^{\Prover^\star}$ tal que, para toda instancia $x \in \InstanceSpace$, si
+		Para todo prover probabilístico en tiempo polinomial $\Prover^\star$, existe un extractor probabilístico en tiempo polinomial $\Extractor^{\Prover^\star}$, entendido como un algoritmo teórico con acceso a $\Prover^\star$ que intenta recuperar un \textit{witness} válido a partir de su capacidad de producir pruebas aceptadas, tal que, para toda instancia $x \in \InstanceSpace$, si
 		$$\Prob\left[\Verifier_\CRS(x, \Prover^\star(x)) = 1\right]$$
 		es no negligible, entonces
 		$$\Prob\left[(x,\Extractor^{\Prover^\star}(x)) \in \Relation\right]$$
@@ -34,11 +34,11 @@ Entre los distintos tipos de argumentos de conocimiento introducidos en la secci
 	
 		Si además $\mathcal{S}$ satisface la siguiente propiedad, decimos que es un \zkSNARK.
 	\begin{itemize}
-		\item Conocimiento cero: Para todo $x \in \InstanceSpace$, existe un simulador probabilístico en tiempo polinomial $\Simulator(\CRS,x)$ tal que la distribución de las pruebas simuladas $\Simulator(\CRS,x)$ es computacionalmente indistinguible de la distribución de pruebas reales $\Prover_\CRS(x,w)$, para cualquier $w \in \WitnessSpace$ tal que $(x,w) \in \Relation$. Intuitivamente, esto implica que el verifier podría haber generado por sí mismo una prueba indistinguible de la real, sin conocer el witness.
+		\item Conocimiento cero: Para todo $x \in \InstanceSpace$, existe un simulador probabilístico en tiempo polinomial $\Simulator(\CRS,x)$, en el mismo sentido de simulación indistinguible discutido para protocolos \ZK interactivos, tal que la distribución de las pruebas simuladas $\Simulator(\CRS,x)$ es computacionalmente indistinguible de la distribución de pruebas reales $\Prover_\CRS(x,w)$, para cualquier $w \in \WitnessSpace$ tal que $(x,w) \in \Relation$. Intuitivamente, esto implica que el verifier podría haber generado por sí mismo una prueba indistinguible de la real, sin conocer el witness.
 	\end{itemize}
 \end{definition}
 
-La definición de sucintez que dimos es informal. Para acercarnos a la formalidad, consideramos toda familia de instancias $(x_n,w_n) \in \Relation$ tales que el tamaño mínimo de $w_n$ para verificar $\Relation$ con $x_n$ crece de forma no acotada, el costo de verificación es asintóticamente menor que el costo de verificar explícitamente la pertenencia de $(x_n, w_n)$ a $\Relation$. Es decir, el verifier no debe volver a ejecutar el cómputo implícito en el witness.
+La definición de sucintez que dimos es informal. Para acercarnos a la formalidad, consideramos familias de instancias $(x_n,w_n) \in \Relation$ para las cuales el tamaño mínimo de $w_n$ necesario para verificar $\Relation$ con $x_n$ crece de forma no acotada. En ese régimen, el costo de verificación debe ser asintóticamente menor que el costo de verificar explícitamente la pertenencia de $(x_n, w_n)$ a $\Relation$. Es decir, el verifier no debe volver a ejecutar el cómputo implícito en el witness.
 
 Recordar que, como $\Relation$ está en $\NP$, entonces existe una máquina de Turing determinística $M_\Relation$ que decide si $(x,w) \in \Relation$ en tiempo polinomial respecto de $|x| + |w|$. Lo que no necesariamente admite una decisión eficiente a partir sólo de la instancia pública es el lenguaje inducido
 $$\Language_\Relation = \{x \in \InstanceSpace : \exists w \in \WitnessSpace,\ (x,w) \in \Relation\},$$
@@ -48,9 +48,9 @@ Ahora, vamos a hablar más informalmente de \SNARK y \zkSNARK para ganar mayor i
 
 La propiedad de solidez computacional asegura que ningún \textit{prover} eficiente puede convencer al \textit{verifier} de una afirmación falsa, salvo con probabilidad negligible. La noción de solidez por extracción formaliza rigurosamente la intuición presentada en la sección anterior: una prueba válida no sólo convence al \textit{verifier} de la veracidad de una afirmación, sino que además certifica que el \textit{prover} posee efectivamente el conocimiento subyacente. La existencia de un extractor eficiente implica que cualquier \textit{prover} capaz de generar pruebas aceptadas con probabilidad no negligible debe, implícitamente, contener suficiente información como para reconstruir un \textit{witness} válido. En este sentido, la prueba actúa como una evidencia criptográfica de conocimiento.
 
-La sucintez es la característica distintiva de los \SNARK. Intuitivamente, esta propiedad establece que el costo de verificación depende únicamente del tamaño del \textit{input} público $x$, y no de la complejidad del cómputo de $\Relation$. En particular, el \textit{verifier} no vuelve a ejecutar el algoritmo implícito en el \textit{witness} $w$, sino que se limita a verificar una prueba corta de la corrección del cómputo. Este desacople entre el costo de probar y el costo de verificar es lo que permite utilizar los \SNARK para la verificación de cómputos arbitrariamente grandes.
+La sucintez es la característica distintiva de los \SNARK. Intuitivamente, esta propiedad establece que el costo de verificación depende únicamente del tamaño del \textit{input} público $x$, y no de la complejidad del cómputo de $\Relation$. En particular, el \textit{verifier} no vuelve a ejecutar el algoritmo implícito en el \textit{witness} $w$, sino que se limita a verificar una prueba corta de la correctitud del cómputo. Este desacople entre el costo de probar y el costo de verificar es lo que permite utilizar los \SNARK para la verificación de cómputos arbitrariamente grandes.
 
-Finalmente, los \zkSNARK tienen la propiedad adicional de conocimiento cero, que garantiza que la prueba $\pi$ no revela información adicional sobre el \textit{witness} $w$ más allá de su existencia. Conceptualmente, podemos separar completamente la corrección del cómputo de la confidencialidad de los datos involucrados.
+Finalmente, los \zkSNARK tienen la propiedad adicional de conocimiento cero, que garantiza que la prueba $\pi$ no revela información adicional sobre el \textit{witness} $w$ más allá de su existencia. Conceptualmente, podemos separar completamente la correctitud del cómputo de la confidencialidad de los datos involucrados.
 
 Para concluir con esta sección, hablaremos sobre el parámetro de seguridad $\securityparam$, que es una abstracción en sistemas criptográficos. Intuitivamente, $\securityparam$ mide el nivel de protección del sistema criptográfico frente a ataques. A mayor $\securityparam$, menor probabilidad de que un algoritmo adversario logre romper las garantías de seguridad del sistema. En la práctica, $\securityparam$ se relaciona en forma directa con el número de bits de seguridad del sistema: si decimos que ofrece $128$ bits de seguridad, significa que el mejor ataque conocido requiere del orden de $2^{128}$ operaciones para tener éxito, lo cual es computacionalmente inviable con la tecnología actual (y por eso $128$ suele ser el nivel deseado). Incrementar el valor de $\securityparam$ aumenta la dificultad de los ataques, pero también incrementa el tiempo de ejecución de los algoritmos, así como el tamaño de los argumentos y los parámetros públicos.
 

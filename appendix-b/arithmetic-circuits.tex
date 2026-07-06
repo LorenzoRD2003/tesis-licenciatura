@@ -2,7 +2,7 @@
 
 \subsection{Introducción a los circuitos aritméticos}
 
-Hasta ahora, tratamos a las relaciones $\Relation \subseteq \InstanceSpace \times \WitnessSpace$ de forma abstracta, asumiendo únicamente su pertenencia a la clase $\NP$. Sin embargo, para construir \SNARK concretos es necesario describir explícitamente el algoritmo/cómputo (polinomial) que define a $\Relation$, de modo que su corrección pueda ser verificada eficientemente sin tener que volver a ejecutar dicho cómputo. En este contexto, resulta fundamental contar con una representación estructurada y algebraica de los algoritmos que se desean verificar.
+Hasta ahora, tratamos a las relaciones $\Relation \subseteq \InstanceSpace \times \WitnessSpace$ de forma abstracta, asumiendo únicamente su pertenencia a la clase $\NP$. Sin embargo, para construir \SNARK concretos es necesario describir explícitamente el algoritmo/cómputo (polinomial) que define a $\Relation$, de modo que su correctitud pueda ser verificada eficientemente sin tener que volver a ejecutar dicho cómputo. En este contexto, resulta fundamental contar con una representación estructurada y algebraica de los algoritmos que se desean verificar.
 
 Una forma natural de modelar un cómputo es mediante un circuito, en el cual cada operación elemental se representa como una puerta y el flujo de datos se describe mediante conexiones entre ellas. En general conocemos a los circuitos booleanos, que son adecuados para describir computación a nivel lógico, y estamos acostumbrados a trabajar con ellos.
 
@@ -13,12 +13,12 @@ Pero también sabemos que en el contexto de la construcción de \SNARK, resulta 
 	\begin{itemize}[noitemsep]
 		\item \textbf{Nodos de entrada}, que reciben valores en $\K$. Estos nodos representan tanto los \textit{public inputs} como el \textit{witness} privado del cómputo.
 		\item \textbf{Nodos de constante}, etiquetados con un elemento fijo de $\K$.
-		\item \textbf{Puertas aritméticas}, que computan operaciones de suma o multiplicación en $\K$. Cada puerta aritmética tiene grado de entrada 2, grado de salida 1, y está etiquetada por una operación en $\{+, \times\}$.
+			\item \textbf{Puertas aritméticas}, que computan operaciones de suma o multiplicación en $\K$. Cada puerta aritmética tiene grado de entrada 2, grado de \textit{output} 1, y está etiquetada por una operación en $\{+, \times\}$.
 	\end{itemize}
 	
-		El valor de un nodo se obtiene evaluando el circuito en orden topológico, comenzando por los nodos de entrada. Uno o más nodos del circuito se designan como \textbf{nodos de salida}, y su valor define el resultado del cómputo. Entonces, si hay $n \in \N$ nodos de entrada y $m \in \N$ nodos de salida, el circuito induce una función $f_\Circuit : \K^n \to \K^m$.
+			El valor de un nodo se obtiene evaluando el circuito en orden topológico, comenzando por los nodos de entrada. Uno o más nodos del circuito se designan como \textbf{nodos de \textit{output}}, y su valor define el resultado del cómputo. Entonces, si hay $n \in \N$ nodos de entrada y $m \in \N$ nodos de \textit{output}, el circuito induce una función $f_\Circuit : \K^n \to \K^m$.
 	
-	El \textbf{tamaño} $|\Circuit|$ de un circuito aritmético se define como el número total de nodos que contiene, mientras que su \textbf{profundidad} se define como la longitud máxima de un camino dirigido desde un nodo de entrada hasta un nodo de salida.
+	El \textbf{tamaño} $|\Circuit|$ de un circuito aritmético se define como el número total de nodos que contiene, mientras que su \textbf{profundidad} se define como la longitud máxima de un camino dirigido desde un nodo de entrada hasta un nodo de \textit{output}.
 \end{definition}
 
 Como primera aclaración, si bien los \textit{public inputs} y el \textit{witness} forman parte de los nodos de entrada, la diferencia no es ahora en el circuito, sino en la información que $\Prover$ va a revelar a partir del cómputo. Es seguro que revelará los \textit{public inputs}, e idealmente revelará lo menos posible del \textit{witness}.
@@ -36,7 +36,7 @@ existe un circuito aritmético $\Circuit_\Relation$ sobre un cuerpo finito $\K$ 
 Consideramos el cuerpo finito $\Fp$. Supongamos que queremos verificar la siguiente relación (trivial) $\Relation \subseteq \Fp^4 \times \Fp^3$:
 $$\Relation = \{((x_1, x_2, x_3, y), (w_1, w_2, w_3)) \mid y = (w_1 + x_1) \cdot (w_2 + x_2 + 1) + w_3 \cdot x_3\}.$$
 
-En la relación anterior, interpretamos a $x_1, x_2, x_3, y$ como \textit{inputs} públicos y a $w_1, w_2, w_3$ como el \textit{witness}. El valor $y$ representa la salida pública esperada del cómputo, mientras que el circuito calcula explícitamente un valor $y'$ a partir de $(x,w)$. La relación exige entonces que ambos coincidan. Podemos observar un circuito aritmético $\Circuit$ para la relación $\Relation$ en la figura \ref{fig:arith-circuit-example}.
+En la relación anterior, interpretamos a $x_1, x_2, x_3, y$ como \textit{inputs} públicos y a $w_1, w_2, w_3$ como el \textit{witness}. El valor $y$ representa el \textit{output} público esperado del cómputo, mientras que el circuito calcula explícitamente un valor $y'$ a partir de $(x,w)$. La relación exige entonces que ambos coincidan. Podemos observar un circuito aritmético $\Circuit$ para la relación $\Relation$ en la figura \ref{fig:arith-circuit-example}.
 
 \begin{figure}[!t]
 	\centering
@@ -85,7 +85,7 @@ En la relación anterior, interpretamos a $x_1, x_2, x_3, y$ como \textit{inputs
 		
 		\draw[->] (y) -> (9, 0.375);
 		
-		% Salida final
+		% Output final
 		\node[draw=none, below=0.01cm of y] (yval) {$y'$};
 		
 		% Etiquetas variables debajo de cada nodo suma/multiplicación
@@ -95,7 +95,7 @@ En la relación anterior, interpretamos a $x_1, x_2, x_3, y$ como \textit{inputs
 		\node[draw=none, below=0.01cm of mul1] {$m_1$};
 		\node[draw=none, below=0.01cm of mul2] {$m_2$};
 	\end{tikzpicture}
-		\caption{Circuito aritmético sobre $\Fp$ para la relación $y=(w_1+x_1)(w_2+x_2+1)+w_3x_3$. Los nodos de entrada mostrados son $x_1,x_2,x_3$ como entradas públicas, $w_1,w_2,w_3$ como witness y la constante $1$; las puertas $+$ y $\times$ calculan valores intermedios $s_i,m_i$, y la salida $y'$ debe coincidir con el valor público $y$.}
+		\caption{Circuito aritmético sobre $\Fp$ para la relación $y=(w_1+x_1)(w_2+x_2+1)+w_3x_3$. Los nodos de entrada mostrados son $x_1,x_2,x_3$ como entradas públicas, $w_1,w_2,w_3$ como witness y la constante $1$; las puertas $+$ y $\times$ calculan valores intermedios $s_i,m_i$, y el \textit{output} $y'$ debe coincidir con el valor público $y$.}
 	\label{fig:arith-circuit-example}
 \end{figure}
 
@@ -116,7 +116,7 @@ Introducimos explícitamente todas las variables del circuito, incluyendo las va
 	\end{itemize}
 \end{itemize}
 
-Al final, se realiza un chequeo de la salida, es decir se verifica $y' = y$. Esto no es una puerta booleana adicional dentro del circuito, sino una condición externa de aceptación que expresa la correctitud del cómputo respecto de la salida pública declarada. Aquí $y'$ es la evaluación del circuito, mientras que $y$ es el \textit{input} público esperado.
+Al final, debe chequearse que el \textit{output} calculado coincida con el valor público declarado, es decir, que $y' = y$. En esta primera presentación lo mantenemos separado del dibujo para distinguir pedagógicamente entre el cómputo que produce $y'$ y la condición de aceptación de la relación. Esta condición no debe pensarse necesariamente como una puerta booleana adicional: al pasar a un sistema de restricciones, se incorporará como una igualdad algebraica sobre las variables del sistema. Aquí $y'$ es la evaluación del circuito, mientras que $y$ es el \textit{input} público esperado.
 
 En el ejemplo anterior, el circuito aritmético $\Circuit$ que representa la relación $\Relation$ permite separar de manera clara el cómputo de su verificación. El \textit{prover} evalúa el circuito completo, calculando los valores intermedios asociados a cada puerta, mientras que conceptualmente la corrección del circuito puede descomponerse en verificaciones locales y la consistencia final con el \textit{witness} declarado. Este esquema es consistente con la noción de cómputo verificable introducida previamente: el costo de verificación no depende de ejecutar nuevamente el algoritmo subyacente, sino de validar una prueba estructurada de su correcta ejecución.
 

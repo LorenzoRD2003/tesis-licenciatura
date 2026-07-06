@@ -47,15 +47,36 @@ I.~O. G. .~M. Team, ``Mithril documentation (overview, protocol, certificates,
   client),'' 2024--2026.
 \newblock Documentación oficial del protocolo y la red Mithril.
 
+\bibitem{MithrilDocsCertChain}
+M.~Team, ``Certificate chain design (mithril documentation),'' 2024--2026.
+
+\bibitem{MithrilDocsClient}
+M.~Team, ``Mithril client and certificate chain verification (mithril
+  documentation),'' 2024--2026.
+
+\bibitem{MithrilDocsProtocol}
+M.~Team, ``Protocol phases (mithril documentation),'' 2024--2026.
+
+\bibitem{MithrilSTMRepo}
+I.~O. G. .~M. Team, ``mithril-stm crate readme and implementation notes,''
+  2024--2026.
+
+\bibitem{MithrilDocsThreatModel}
+M.~Team, ``Threat model analysis (mithril documentation),'' 2024--2026.
+
+\bibitem{MithrilDocsTransactions}
+M.~Team, ``Cardano transactions certification (mithril documentation),''
+  2024--2026.
+
+\bibitem{MithrilDocsAggregator}
+M.~Team, ``Mithril aggregator node and rest api documentation,'' 2024--2026.
+
 \bibitem{PerasFAQ}
 C.~S. .~P. team, ``Ouroboros peras faq,'' 2024--2026.
 
 \bibitem{LeiosSite}
 C.~S. .~L. team, ``Ouroboros leios (specification and design materials),''
   2024--2026.
-
-\bibitem{MithrilDocsCertChain}
-M.~Team, ``Certificate chain design (mithril documentation),'' 2024--2026.
 
 \bibitem{CIP0381}
 C.~Foundation, ``Cip-0381: Plutus support for pairings over bls12-381,'' 2022.
@@ -83,27 +104,6 @@ E.~contributors, ``Technical survey / research notes on groth16 verification
 \bibitem{CardanoCourseProtocolParams}
 C.~C. (community), ``Protocol parameters (cardano-cli query protocol-parameters
   --mainnet example),'' 2024.
-
-\bibitem{MithrilDocsClient}
-M.~Team, ``Mithril client and certificate chain verification (mithril
-  documentation),'' 2024--2026.
-
-\bibitem{MithrilDocsProtocol}
-M.~Team, ``Protocol phases (mithril documentation),'' 2024--2026.
-
-\bibitem{MithrilSTMRepo}
-I.~O. G. .~M. Team, ``mithril-stm crate readme and implementation notes,''
-  2024--2026.
-
-\bibitem{MithrilDocsThreatModel}
-M.~Team, ``Threat model analysis (mithril documentation),'' 2024--2026.
-
-\bibitem{MithrilDocsTransactions}
-M.~Team, ``Cardano transactions certification (mithril documentation),''
-  2024--2026.
-
-\bibitem{MithrilDocsAggregator}
-M.~Team, ``Mithril aggregator node and rest api documentation,'' 2024--2026.
 
 \bibitem{PlutusHalo2VerifierGenRepo}
 I.~O. Global, ``plutus-halo2-verifier-gen,'' 2025--2026.

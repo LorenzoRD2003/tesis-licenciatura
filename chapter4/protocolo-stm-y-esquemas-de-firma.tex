@@ -1,34 +1,49 @@
 % !TeX root = ../tesis.tex
 
-El núcleo criptográfico de \Mithril es un esquema de \textit{stake-based threshold multisignatures} (\STM), cuya meta es convencer a un \textit{verifier} de que una fracción suficiente del stake del sistema firmó un mensaje dado \cite{cryptoeprint:2021/916}. No queremos pedir firmas a todos los participantes activos de la red, sino seleccionar una subcolección de ellos mediante una lotería ponderada por \textit{stake} y luego agregar las firmas individuales ganadoras. En esta sección conviene distinguir dos planos. Para la verificación \STM de certificados, la ruta \Lagrange/Schnorr es conceptualmente central, porque produce la interfaz más natural para circuitos, \textit{public inputs} estructurados y pruebas \ZK. Para la pertenencia de transacciones en \CardanoTransactions, en cambio, el flujo integrado de esta tesis conserva el camino \Pythagoras/\textit{legacy} que hoy expone el \MithrilAggregator productivo.
+El núcleo criptográfico de \Mithril es un esquema de \textit{stake-based threshold multisignatures} (\STM), cuya meta es convencer a un \textit{verifier} de que una fracción suficiente del \textit{stake} del sistema firmó un mensaje dado \cite{cryptoeprint:2021/916}. No queremos pedir firmas a todos los participantes activos de la red, sino obtener una evidencia agregada a partir de una lotería ponderada por \textit{stake}. En esta sección primero describimos esa lotería en términos conceptuales; luego distinguimos las eras y rutas criptográficas relevantes; después fijamos la notación básica del protocolo; y recién al final pasamos al detalle de la ruta más útil para circuitos, \textit{public inputs} estructurados y pruebas \ZK.
+
+\subsection{Intuición de la lotería y del umbral}
+
+En una primera lectura, \STM puede pensarse como una lotería pública ponderada por \textit{stake}. Cada participante registra material criptográfico y una cantidad de \textit{stake}; al cerrar el registro, \Mithril obtiene un comité autenticado para una época. Cuando luego aparece un mensaje $M$ a certificar, cada participante intenta demostrar que, para ese mensaje y ese comité, ganó una o más posiciones de una familia finita de loterías.
+
+La unidad que se cuenta es \textit{la cantidad de índices de lotería ganadores distintos}. En particular, \textbf{no} es simplemente la cantidad de participantes que enviaron firmas. El protocolo tiene un parámetro $m$, que fija el conjunto de índices posibles $\LotteryIndexSet = \{0,\ldots,m-1\}$, y un parámetro $k$, que indica cuántos de esos índices deben quedar justificados para aceptar la agregación. El parámetro $\phi_f$ controla la probabilidad de elegibilidad y se combina con el peso relativo de cada participante: a mayor \textit{stake}, mayor probabilidad de ganar índices, pero no se reemplaza el chequeo de umbral por un simple conteo de firmas.
+
+Así, para un mensaje $M$, un participante $i$ puede ganar cero, uno o varios índices. Si no gana ninguno, no aporta evidencia útil para esa ronda. Si gana al menos uno, envía una firma individual junto con la información necesaria para justificar esos índices. El \textit{aggregator} reúne firmas, descarta las inválidas, resuelve colisiones cuando varios participantes justifican el mismo índice y sólo puede producir una evidencia agregada válida cuando alcanza al menos $k$ índices distintos.
+
+Esta distinción es importante para el \zkBridge: no alcanza con decir que se acumularon muchas firmas si todas explican las mismas posiciones de lotería. Lo que el certificado \STM debe expresar es que un subconjunto autenticado del comité firmó el mensaje y que, bajo la lotería ponderada por \textit{stake}, quedaron cubiertos al menos $k$ índices válidos y distintos.
+
+\subsection{Eras y rutas criptográficas en Mithril}
+
+Antes de pasar al detalle matemático conviene separar tres niveles de vocabulario. En la implementación de \Mithril, una \emph{era} identifica una versión del protocolo soportada por el software. En la copia local revisada del repositorio, las eras explícitas son \Pythagoras y \Lagrange. Una \emph{ruta criptográfica}, en cambio, describe cómo se representa y verifica la evidencia agregada dentro de una era. Finalmente, un esquema de firma como Schnorr o \BLS no es una era por sí mismo, sino una primitiva usada por alguna ruta.
+
+En esta tesis, \Pythagoras designa el camino productivo pre-\Lagrange que consume el prototipo integrado. A efectos de la exposición, cuando hablemos del camino \textit{legacy} de \Mithril para \CardanoTransactions, lo identificamos con \Pythagoras: es el carril disponible hoy para el flujo real del \MithrilAggregator y usa agregación de tipo \texttt{Concatenation}, basada en una \BLS \textit{multisignature}. El término \LegacyHashScheme queda reservado para el detalle de compatibilidad del \ProtocolMsg, es decir, el esquema de hash pre-\Lagrange que aparece en la implementación.
+
+Por contraste, \Lagrange nombra la transición \textit{SNARK-friendly}. En esa ruta, la agregación se modela como una evidencia de tipo \SNARK: el registro conserva claves y umbrales compatibles con circuitos, el mensaje firmado se organiza mediante una preimagen rígida, y las firmas individuales relevantes son firmas Schnorr sobre curvas aptas para la aritmetización. Por lo tanto, Schnorr debe leerse como el esquema de firma usado por la ruta \Lagrange/\SNARK, no como una tercera era de \Mithril.
+
+Con esta convención, el resto del capítulo usa \Pythagoras para referirse al camino productivo \textit{legacy}/pre-\Lagrange, \Lagrange para la ruta \textit{SNARK-friendly}, \texttt{Concatenation} y \texttt{Snark} para los tipos de agregación, y Schnorr o \BLS para las primitivas de firma correspondientes.
 
 \subsection{Fases del protocolo}
 
 La documentación oficial organiza \Mithril en tres fases: establecimiento, inicialización y operación \cite{MithrilDocsProtocol}. Consideremos un conjunto fijo de participantes $P = \{1,\ldots,n\}$, donde cada participante $i \in P$ tiene un \textit{stake} $s_i \in \N$. El stake total del sistema es
 $$S = \sum_{i=1}^{n} s_i,$$
-y el peso relativo del participante $1 \leq i \leq n$ viene dado por $w_i = \frac{s_i}{S}$. El protocolo queda parametrizado por una tripla $(k,m,\phi_f)$, donde $m$ es el número de loterías evaluadas por participante, $k$ es el mínimo de índices ganadores distintos requeridos para la firma agregada y $\phi_f \in (0,1]$ controla la probabilidad de elegibilidad \cite{cryptoeprint:2021/916,MithrilDocsProtocol}.
+y el peso relativo del participante $1 \leq i \leq n$ viene dado por $w_i = s_i/S$. El protocolo queda parametrizado por una tripla $(k,m,\phi_f)$, donde $m$ es el número de loterías evaluadas por participante, $k$ es el mínimo de índices ganadores distintos requeridos para la firma agregada y $\phi_f \in (0,1]$ controla la probabilidad de elegibilidad \cite{cryptoeprint:2021/916,MithrilDocsProtocol}.
 
 \paragraph{Fase de establecimiento.}
 
 Se fijan el grupo criptográfico subyacente, los algoritmos de firma, las funciones de hash relevantes y los parámetros $(k,m,\phi_f)$. El resultado de esta fase es una instancia del protocolo
 $$\Pi_{\mathsf{Mithril}} = (\mathcal{G}, \Sign, \Verify, k, m, \phi_f),$$
-donde $\mathcal{G}$ está compuesto por la familia de grupos y curvas elegidas. En el caso \Lagrange, esta fase fija explícitamente una interfaz Schnorr/\textit{SNARK-friendly}: claves de verificación sobre Jubjub, mensajes de protocolo estructurados y una semántica de elegibilidad diseñada para ser reusada por circuitos.
+donde $\mathcal{G}$ está compuesto por la familia de grupos y curvas elegidas. Esta descripción todavía es independiente de si la evidencia agregada se materializa por la ruta de concatenación o por la ruta SNARK.
 
 \paragraph{Fase de inicialización.}
 
-Cada participante $i$ genera material criptográfico propio y registra una entrada asociada a su \textit{stake}. Para la ruta \Lagrange, la información relevante no se agota en una clave pública, sino en una entrada cerrada que ya incorpora la clave Schnorr y el umbral de lotería correspondiente.
-$$\ClosedReg_i = \left(\SchnorrVK_i,\LotteryTarget_i,s_i\right)$$
-donde $\SchnorrVK_i$ es la clave Schnorr del participante y $\LotteryTarget_i \in \Fq$ es su \texttt{lottery\_target\_value}. Como $\LotteryTarget_i$ depende de $S$, sólo queda bien definido una vez cerrado el registro:
-$$\LotteryTarget_i \approx p \left(1-(1-\phi_f)^{w_i}\right),$$
-
-Una vez reunidas todas las entradas cerradas, el registro pasa a un estado autenticado
+Cada participante $i$ genera material criptográfico propio y registra una entrada asociada a su \textit{stake}. Una vez reunidas todas las entradas, el registro se cierra y pasa a un estado autenticado
 $$\AuthReg = \{\ClosedReg_1,\ldots,\ClosedReg_n\},$$
-del que se deriva una clave de verificación agregada $\AVK = \MerkleRoot{\MerkleTree{R}}$, donde las hojas del árbol de Merkle condensan la información relevante para la ruta SNARK. Esto quiere decir que las hojas de $\MerkleTree{R}$ tienen la forma $\SnarkLeaf{i} = \left(\SchnorrVK_i,\LotteryTarget_i\right)$, y que la \AVK es un \textit{commitment} del comité autenticado para la ronda actual de \STM contra el cual después se verifican las firmas y el Merkle Path asociados.
+del que se deriva una clave de verificación agregada \AVK. En términos conceptuales, esa \AVK actúa como un \textit{commitment} al comité autenticado y al \textit{stake} con el que se evaluará la lotería. Los detalles de qué campos exactos entran en cada hoja dependen de la ruta criptográfica elegida; para la ruta \Lagrange/SNARK se desarrollan en la subsección siguiente.
 
 \paragraph{Fase de operación.}
 
-Dado un mensaje $M$, cada participante $i$ computa una firma individual y evalúa su elegibilidad sobre los índices $\LotteryIndexSet = \{0,\ldots,m-1\}$. La salida local del \textit{signer} puede modelarse como un par
-$(\sigma_i, \WonIndexSet_i)$, donde $\WonIndexSet_i \subseteq \LotteryIndexSet$ es el conjunto de índices ganadores para el par $(i, M)$. En el caso \Lagrange, la firma es la \UniqueSchnorrSignature $\sigma_i = (C_i, r_i, c_i)$, pero la implementación no firma directamente una tupla informal compuesta por una raíz de Merkle Tree y el resto del mensaje: primero se deriva $\RigidDigest = \RigidHash(\ProtocolMsg)$, a partir del mensaje \ProtocolMsg usando \ProtocolMessageComputeHash, y recién sobre ese valor se computa la firma. La elegibilidad se determina comparando una evaluación derivada de esa firma contra el \texttt{lottery\_target\_value} $\LotteryTarget_i$ ya comprometido en el registro cerrado.
+Dado un mensaje $M$, cada \textit{signer} $i$ computa una firma individual y evalúa su elegibilidad sobre los índices $\LotteryIndexSet$. El \textit{output} local del \textit{signer} puede modelarse como un par
+$(\sigma_i, \WonIndexSet_i)$, donde $\WonIndexSet_i \subseteq \LotteryIndexSet$ es el conjunto de índices ganadores para el par $(i, M)$.
 
 La condición de elegibilidad para cada índice $j \in \LotteryIndexSet$ puede escribirse como un predicado $\mathsf{Win}(i,j,M) \in \{0,1\}$, y entonces $\WonIndexSet_i = \{j \in \LotteryIndexSet: \mathsf{Win}(i, j, M) = 1 \}$. El \textit{aggregator} recibe los pares $(\sigma_i, \WonIndexSet_i)$, descarta aquellos que no verifican, deduplica índices repetidos y únicamente puede producir una firma agregada válida si el conjunto total de índices ganadores distintos satisface
 
@@ -36,12 +51,12 @@ $$\left| \bigcup_{i=1}^{n} \WonIndexSet_i \right| \geq k$$.
 
 Observamos entonces que no alcanza con acumular muchas firmas si en realidad están justificando los mismos índices. El protocolo \STM produce una firma agregada que certifica que un subconjunto autenticado del comité, firmó el mensaje $M$ con al menos $k$ índices válidos y distintos.
 
-\subsection{Registro cerrado y clave de verificacion agregada SNARK}
+\subsection{Registro cerrado y clave de verificación agregada SNARK}
 
-Una vez fijado el stake total $S$, cada participante queda representado por una entrada cerrada que incorpora, ademas del \textit{stake}, una clave Schnorr y el umbral de lotería correspondiente. Si denotamos esa entrada por $\ClosedReg_i$, la parte relevante para la \AVK es $\SnarkLeaf{i} = \bigl(\SchnorrVK_i,\LotteryTarget_i\bigr)$,
+Una vez fijado el stake total $S$, cada participante queda representado por una entrada cerrada que incorpora, además del \textit{stake}, una clave Schnorr y el umbral de lotería correspondiente. Si denotamos esa entrada por $\ClosedReg_i$, la parte relevante para la \AVK de la ruta \Lagrange/\texttt{Snark} es $\SnarkLeaf{i} = \bigl(\SchnorrVK_i,\LotteryTarget_i\bigr)$,
 donde $\SchnorrVK_i$ es la clave de verificación Schnorr del participante y $\LotteryTarget_i$ es el \texttt{lottery\_target\_value} derivado de $(\phi_f,s_i,S)$. El código calcula $\LotteryTarget_i$ durante el cierre del registro como una aproximación (en el cuerpo base de Jubjub $\Fq$), de
 $$p \cdot \left(1-(1-\phi_f)^{w_i}\right),$$
-donde $w_i = \frac{s_i}{S}$. La serialización de la hoja es
+donde $w_i = \frac{s_i}{S}$ y $p$ es la escala entera ya mencionada. Para pasar esta hoja al Merkle Tree, usamos $\mathsf{enc}$ para denotar una serialización canónica a bytes; en particular, $\mathsf{enc}_{64}$ y $\mathsf{enc}_{32}$ denotan serializaciones canónicas de 64 y 32 bytes, respectivamente. La serialización de la hoja es
 $$\mathsf{enc}(\SnarkLeaf{i}) = \mathsf{enc}_{64}(\SchnorrVK_i) \concat \mathsf{enc}_{32}(\LotteryTarget_i),$$
 de donde se obtiene la hoja $\ell_i = \SnarkLeafDigest(\mathsf{enc}(\SnarkLeaf{i}))$. Entonces, la \AVK está dada por la raíz del Merkle Tree del conjunto de hojas así como el \textit{stake} total:
 $$\mathsf{AVK} = \left(\SnarkRoot, S \right), \qquad \mathcal{L} = \{\ell_i\}_{i=1}^{n},$$
@@ -49,9 +64,9 @@ donde las hojas se ordenan canónicamente antes de armar el árbol, primero por 
 
 \subsection{Esquema de firmas en \Lagrange}
 
-En esta era de \Mithril, se produce para cada participante una clave de firmado $\SchnorrSK_i$ y su correspondiente clave de verificación $\SchnorrVK_i$. Este es el camino más importante para la verificación \STM de certificados del \zkBridge, ya que para obtener argumentos sucintos verificables \Onchain en \ChainB no alcanza con transportar la \BLS \textit{multisignature} de la era \textit{legacy}/\Pythagoras. Esto no significa que toda la evidencia del bridge haya migrado a \Lagrange: la pertenencia de \CardanoTransactions en el prototipo integrado se trata por separado mediante el camino \Pythagoras actualmente disponible.
+En esta era de \Mithril, se produce para cada participante una clave de firmado $\SchnorrSK_i$ y su correspondiente clave de verificación $\SchnorrVK_i$. Este es el camino más importante para la verificación \STM de certificados del \zkBridge, ya que para obtener argumentos sucintos verificables \Onchain en \ChainB no alcanza con transportar la \BLS \textit{multisignature} del camino \Pythagoras. Esto no significa que toda la evidencia del bridge haya migrado a \Lagrange: la pertenencia de \CardanoTransactions en el prototipo integrado se trata por separado mediante el camino \Pythagoras actualmente disponible.
 
-Dentro de este camino, aparecen dos variantes de firma Schnorr. La primera es la \StandardSchnorrSignature, formada solo por un \textit{challenge} $c$ y su correspondiente respuesta $r$. Según la propia implementación, esta variante se usa en el \SNARK \GenesisCertificate. Su desafio se recomputa como un hash \PoseidonHash del \textit{domain separation tag}, la clave de verificación, el punto aleatorio y el mensaje. La segunda es la \UniqueSchnorrSignature, que agrega un \CommitmentPoint determinista dependiente solo del mensaje y de la clave Schnorr \SchnorrSK. Ese punto permite evitar \textit{grinding attacks} sobre la lotería de \MithrilAggregator, y por lo tanto es la forma que el circuito \HaloTwo reutiliza después \cite{MithrilSTMRepo}.
+Dentro de este camino, aparecen dos variantes de firma Schnorr. La primera es la \StandardSchnorrSignature, formada solo por un \textit{challenge} $c$ y su correspondiente respuesta $r$. Según la propia implementación, esta variante se usa en el \SNARK \GenesisCertificate. Su desafío se recomputa como un hash \PoseidonHash del \textit{domain separation tag}, la clave de verificación, el punto aleatorio y el mensaje. La segunda es la \UniqueSchnorrSignature, que agrega un \CommitmentPoint determinista dependiente solo del mensaje y de la clave Schnorr \SchnorrSK. Ese punto permite evitar \textit{grinding attacks} sobre la lotería de \MithrilAggregator, y por lo tanto es la forma que el circuito \HaloTwo reutiliza después \cite{MithrilSTMRepo}.
 
 \begin{algorithm}[ht]
 	\caption{\StandardSchnorrSignature en la era \Lagrange}
@@ -107,9 +122,9 @@ El Algoritmo \ref{alg:mithril-lagrange-snark-signer-sign} está formulado para r
 
 \subsection{Firmas individuales y agregación}
 
-Durante la fase de operación, cada participante evalúa para un mensaje \ProtocolMsg y para cada índice $j \in \LotteryIndexSet=\{0,\ldots,m-1\}$ si gana la lotería correspondiente a ese índice. Si resulta elegible para uno o mas indices, genera y envía firmas individuales asociadas a esos índices. La agregacion posterior no presupone honestidad del \textit{aggregator}: cualquier tercero con acceso a las firmas individuales puede verificar que son correctas y filtrar aquellas que no satisfacen los chequeos de elegibilida, así como hacer la agregación \cite{MithrilDocsProtocol}. Esta propiedad es útil para el \zkBridge, porque evita introducir un supuesto adicional de confianza sobre el \MithrilAggregator.
+Durante la fase de operación, cada participante evalúa para un mensaje \ProtocolMsg y para cada índice $j \in \LotteryIndexSet=\{0,\ldots,m-1\}$ si gana la lotería correspondiente a ese índice. Si resulta elegible para uno o más índices, genera y envía firmas individuales asociadas a esos índices. La agregación posterior no presupone honestidad del \textit{aggregator}: cualquier tercero con acceso a las firmas individuales puede verificar que son correctas y filtrar aquellas que no satisfacen los chequeos de elegibilidad, así como hacer la agregación \cite{MithrilDocsProtocol}. Esta propiedad es útil para el \zkBridge, porque evita introducir un supuesto adicional de confianza sobre el \MithrilAggregator.
 
-\paragraph{Agregacion en \Lagrange.}
+\paragraph{Agregación en \Lagrange.}
 En la ruta SNARK, el \MithrilAggregator recibe un conjunto de firmas
 $$\SnarkSignatureSet = \{(\sigma_i^{\mathsf{sch}}, \WonIndexSet_i, i)\}_{i \in P'},$$
 del conjunto de participantes $P' \subseteq P$ que le enviaron firmas sobre el mensaje hasheado $\RigidDigest = \RigidHash(\ProtocolMsg).$
@@ -118,19 +133,19 @@ El primer paso consiste en descartar las firmas que no verifiquen respecto de la
 
 Recordemos que en \STM el umbral se mide en índices de lotería distintos, no en cantidad de firmas, para poder cubrir al menos $k$ valores distintos de $\LotteryIndexSet$. Si definimos
 $$\CandidateIndexSet = \bigcup_{(\sigma_i^{\mathsf{sch}},\WonIndexSet_i,i)\in \SnarkValidSignatureSet} \WonIndexSet_i,$$
-la agregación solo puede avanzar cuando \(|\CandidateIndexSet| \ge k\). Una vez superado ese umbral, el código debe elegir qué índices utilizar, pero sin beneficiar o perjudicar a ningún participante específico. Primero, deriva una \textit{seed} pública $\SnarkSeed = \SHATwoFiveSix(\texttt{DST}_{\mathsf{seed}} \concat \RigidDigest)$. Para seleccionar que indices sobreviven, calcula para cada índice candidato $j$ un puntaje
+la agregación solo puede avanzar cuando \(|\CandidateIndexSet| \ge k\). Una vez superado ese umbral, el código debe elegir qué índices utilizar, pero sin beneficiar o perjudicar a ningún participante específico. Primero, deriva una \textit{seed} pública $\SnarkSeed = \SHATwoFiveSix(\texttt{DST}_{\mathsf{seed}} \concat \RigidDigest)$. Para seleccionar qué índices sobreviven, calcula para cada índice candidato $j$ un puntaje
 $$h_{\mathsf{idx}}(j) =
 \SHATwoFiveSix(\texttt{DST}_{\mathsf{idx}} \concat \SnarkSeed \concat j),$$
-y conserva exactamente los $k$ indices con menor valor. Denotamos por $\SelectedIndexSet $ a ese conjunto, con
+y conserva exactamente los $k$ índices con menor valor. Denotamos por $\SelectedIndexSet$ a ese conjunto, con
 $|\SelectedIndexSet| = k$ y $\SelectedIndexSet \subseteq \CandidateIndexSet$.
 
 Como para cada $j \in \SelectedIndexSet$ puede haber varios participantes que lo hayan ganado, el \MithrilAggregator hace un desempate, que depende de una segunda familia de hashes:
 $$h_{\mathsf{dedup}}(j,i) =
 \SHATwoFiveSix(\texttt{DST}_{\mathsf{dedup}} \concat \SnarkSeed \concat j \concat i),$$
-de modo que el participante retenido para el indice $j$ es
+de modo que el participante retenido para el índice $j$ es
 $$i^{\star}(j) = \arg\min\{h_{\mathsf{dedup}}(j,i) : j \in \WonIndexSet_i\}.$$
 
-Esta selección deja un mapa ordenado $\SnarkSelectionMap : \SelectedIndexSet \to P'$, con exactamente un participante por índice y exactamente $k$ indices retenidos.
+Esta selección deja un mapa ordenado $\SnarkSelectionMap : \SelectedIndexSet \to P'$, con exactamente un participante por índice y exactamente $k$ índices retenidos.
 
 El paso final produce un \textit{witness} $w \in \WitnessSpace$ para el circuito de \HaloTwo de \Mithril. Para cada $j \in \SelectedIndexSet$, el \MithrilAggregator construye
 $$\SnarkWitness_j = \left(\SnarkLeaf{i^{\star}(j)}, \mathsf{Path}_{i^{\star}(j)}, \sigma^{\mathsf{sch}}_{i^{\star}(j)}, j\right),$$
