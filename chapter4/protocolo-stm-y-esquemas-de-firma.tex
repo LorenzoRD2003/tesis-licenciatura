@@ -45,9 +45,9 @@ del que se deriva una clave de verificación agregada \AVK. En términos concept
 Dado un mensaje $M$, cada \textit{signer} $i$ computa una firma individual y evalúa su elegibilidad sobre los índices $\LotteryIndexSet$. El \textit{output} local del \textit{signer} puede modelarse como un par
 $(\sigma_i, \WonIndexSet_i)$, donde $\WonIndexSet_i \subseteq \LotteryIndexSet$ es el conjunto de índices ganadores para el par $(i, M)$.
 
-La condición de elegibilidad para cada índice $j \in \LotteryIndexSet$ puede escribirse como un predicado $\mathsf{Win}(i,j,M) \in \{0,1\}$, y entonces $\WonIndexSet_i = \{j \in \LotteryIndexSet: \mathsf{Win}(i, j, M) = 1 \}$. El \textit{aggregator} recibe los pares $(\sigma_i, \WonIndexSet_i)$, descarta aquellos que no verifican, deduplica índices repetidos y únicamente puede producir una firma agregada válida si el conjunto total de índices ganadores distintos satisface
+La condición de elegibilidad para cada índice $j \in \LotteryIndexSet$ puede escribirse como un predicado $\mathsf{Win}(i,j,M) \in \{0,1\}$, y entonces $\WonIndexSet_i = \{j \in \LotteryIndexSet: \mathsf{Win}(i, j, M) = 1 \}$. El \textit{aggregator} recibe los pares $(\sigma_i, \WonIndexSet_i)$, descarta aquellos que no verifican, deduplica índices repetidos y únicamente puede producir una firma agregada válida si el conjunto total de índices ganadores distintos satisface:
 
-$$\left| \bigcup_{i=1}^{n} \WonIndexSet_i \right| \geq k$$.
+$$\left| \bigcup_{i=1}^{n} \WonIndexSet_i \right| \geq k$$
 
 Observamos entonces que no alcanza con acumular muchas firmas si en realidad están justificando los mismos índices. El protocolo \STM produce una firma agregada que certifica que un subconjunto autenticado del comité, firmó el mensaje $M$ con al menos $k$ índices válidos y distintos.
 
@@ -67,6 +67,8 @@ donde las hojas se ordenan canónicamente antes de armar el árbol, primero por 
 En esta era de \Mithril, se produce para cada participante una clave de firmado $\SchnorrSK_i$ y su correspondiente clave de verificación $\SchnorrVK_i$. Este es el camino más importante para la verificación \STM de certificados del \zkBridge, ya que para obtener argumentos sucintos verificables \Onchain en \ChainB no alcanza con transportar la \BLS \textit{multisignature} del camino \Pythagoras. Esto no significa que toda la evidencia del bridge haya migrado a \Lagrange: la pertenencia de \CardanoTransactions en el prototipo integrado se trata por separado mediante el camino \Pythagoras actualmente disponible.
 
 Dentro de este camino, aparecen dos variantes de firma Schnorr. La primera es la \StandardSchnorrSignature, formada solo por un \textit{challenge} $c$ y su correspondiente respuesta $r$. Según la propia implementación, esta variante se usa en el \SNARK \GenesisCertificate. Su desafío se recomputa como un hash \PoseidonHash del \textit{domain separation tag}, la clave de verificación, el punto aleatorio y el mensaje. La segunda es la \UniqueSchnorrSignature, que agrega un \CommitmentPoint determinista dependiente solo del mensaje y de la clave Schnorr \SchnorrSK. Ese punto permite evitar \textit{grinding attacks} sobre la lotería de \MithrilAggregator, y por lo tanto es la forma que el circuito \HaloTwo reutiliza después \cite{MithrilSTMRepo}.
+
+En lo que sigue, las etiquetas \texttt{DST\_*} denotan etiquetas fijas de separación de dominio; el subíndice identifica el contexto criptográfico. En particular, $\texttt{DST}_{\mathsf{seed}}$ se concatena con el \textit{digest} del mensaje para derivar la semilla pública $\SnarkSeed$.
 
 \begin{algorithm}[ht]
 	\caption{\StandardSchnorrSignature en la era \Lagrange}

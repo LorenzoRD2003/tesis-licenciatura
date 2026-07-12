@@ -49,17 +49,17 @@ El costo algebraico del circuito no queda determinado únicamente por las column
 
 La descripción anterior corresponde a \HaloTwo/\KZG en abstracto. En \Mithril, sin embargo, la aritmetización concreta no se escribe directamente contra una API mínima de columnas y \textit{gates}, sino a través de las crates \texttt{midnight\_proofs} y \texttt{midnight\_zk\_stdlib}. Este detalle importa matemáticamente porque fija una transformación intermedia
 $$\mathcal{C}_{\mathsf{Mid}}: \STMRelation \to \Circuit_{\mathsf{Halo2/KZG}},$$
-que no es neutra: determina el \textit{backend}, la forma de los chips disponibles, la reutilización de columnas y el grado mínimo del dominio necesario para sintetizar el circuito.
+que no es neutra: determina el \textit{backend}, la forma de los componentes especializados del circuito disponibles, la reutilización de columnas y el grado mínimo del dominio necesario para sintetizar el circuito.
 
 En la implementación, la relación \STM se expresa como un objeto del tipo \texttt{Relation}, y luego se compila mediante $\texttt{MidnightCircuit::from\_relation(\&circuit)}$. Si denotamos por \MidnightSTMCircuit al circuito resultante, entonces su tamaño mínimo de dominio viene dado por un parámetro $\MinDomainK = \texttt{min\_k()}$, de modo que el dominio \EvalDomain efectivamente usado tiene cardinalidad $n = 2^{\MinDomainK}$.
 
 Aún si formulamos $\STMRelation$ sin hacer referencia a columnas concretas, la complejidad real del sistema queda determinada por la compilación que hace \Midnight de esa relación a un \textit{layout} \HaloTwo.
 
-La particularidad más importante de esa compilación es que los distintos gadgets no necesariamente aportan columnas disjuntas. Si denotamos por $\ArithCols, \EccCols, \PoseidonCols, \RangeCols$ a las necesidades de columnas de cada subchip principal, la arquitectura de \Midnight no toma en general la suma
-$$\ArithCols+\EccCols+\PoseidonCols+\RangeCols$$,
+La particularidad más importante de esa compilación es que los distintos componentes no necesariamente aportan columnas disjuntas. Si denotamos por $\ArithCols, \EccCols, \PoseidonCols, \RangeCols$ a las necesidades de columnas de cada componente principal, la arquitectura de \Midnight no toma en general la suma
+$$\ArithCols+\EccCols+\PoseidonCols+\RangeCols,$$
 sino un \textit{pool} de columnas común cuyo tamaño $\AdviceCols$ denota la cantidad de columnas \textit{advice} reservadas por la configuración, y cumple
 $$\AdviceCols \approx \max\{\ArithCols, \EccCols, \PoseidonCols, \RangeCols \},$$
-más algunos recursos adicionales de soporte. Esto justifica por qué no es correcto estimar el costo del \textit{prover} sumando ingenuamente columnas ``por gadget''.
+más algunos recursos adicionales de soporte. Esto justifica por qué no es correcto estimar el costo del \textit{prover} sumando ingenuamente columnas ``por componente''.
 
 \subsection{Grado algebraico del circuito}
 
@@ -69,12 +69,14 @@ Esto es así porque la parte dominante del grado viene de \MidnightPoseidonHash.
 $$\mathbf{s}^{(r+1)} = \mathbf{M} \cdot \left((s^{(r)}_1)^5, \ldots, (s^{(r)}_t)^5 \right) + \mathbf{c}^{(r)},$$
 donde $\mathbf{M}$ es una matriz $MDS$ y $\mathbf{c}^{(r)}$ es un vector de constantes de ronda.
 
-Como consecuencia, $\ConstraintNumerator$ hereda ese grado máximo local, junto con los términos adicionales de permutación y \textit{lookup}. En la práctica, esto obliga a fragmentar \QuotientPoly en varios \textit{chunks} cuando su grado excede el rango soportado por la \SRS. Por eso, ``el circuito \MidnightSTMCircuit es de grado 5'' debe leerse como una propiedad algebraica concreta del sistema de restricciones.
+En consecuencia, las restricciones que implementan esta transición pueden alcanzar grado local $5$. Por eso, cuando afirmamos que ``el circuito \MidnightSTMCircuit es de grado $5$'', nos referimos a la cota algebraica dominante de su sistema de restricciones, determinada en este caso por la S-box de \MidnightPoseidonHash.
+
+La compilación concreta en \HaloTwo incorpora además restricciones auxiliares, como las asociadas a permutaciones y \textit{lookups}. Estas restricciones pertenecen a la representación del circuito y no forman parte de la definición de la S-box. En la práctica, la representación resultante puede requerir fragmentar \QuotientPoly en varios \textit{chunks} cuando su grado excede el rango soportado por la \SRS; esta es una consecuencia del \textit{backend} y de la configuración de la prueba, no una modificación de la S-box.
 
 \subsection{Costo estructural del \textit{prover}}
 
 Denotamos por \BaseCols al número de polinomios correspondientes a columnas visibles, y por $\AuxCols = \PermCols + \LookupCols + \QuotCols$ al número de polinomios auxiliares inducidos por permutación, \textit{lookups} y \textit{quotient}. Una cota heurística razonable para el costo del \textit{prover} es
 $$\ProverCost = \BigO\left((\BaseCols + \AuxCols) \, n \log n\right) +  \BigO\left(\CommitCols \cdot \MSM(n)\right),$$
-donde $\CommitCols$ es el número de compromisos \KZG efectivamente producidos. Esta fórmula no es un teorema, pero sí es un resumen razonable del costo: transformaciones tipo \FFT sobre dominios de tamaño $n$, construcción de polinomios auxiliares y \MSM grandes sobre la \SRS para \textit{batch commitments} en \KZG.
+donde $\CommitCols$ es el número de compromisos \KZG efectivamente producidos. Esta fórmula no es un teorema, pero sí es un resumen razonable del costo: transformaciones tipo \FFT sobre dominios de tamaño $n$, construcción de polinomios auxiliares y \MSM grandes sobre la \SRS para \textit{batch commitments} en \KZG. La operación \MSM se define y analiza en el Apéndice B.
 
 El circuito \MidnightSTMCircuit parece estar dominado por aritmética de curva elíptica sobre \Jubjub, así como evaluaciones repetidas de \PoseidonHash.

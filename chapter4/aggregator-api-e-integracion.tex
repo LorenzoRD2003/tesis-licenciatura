@@ -9,17 +9,17 @@ La implementación local del operador del \zkBridge (\ZkBridgeOperator) consume 
 \begin{table}[ht]
   \centering
   \small
-  \begin{tabular}{p{3.7cm}p{4.2cm}p{5cm}}
+  \begin{tabular}{p{4.8cm}p{3.8cm}p{4.8cm}}
     \toprule
-    \textbf{Endpoint} & \textbf{Respuesta principal} & \textbf{Uso en \ZkBridgeOperator} \\
+    \textbf{Ruta (GET)} & \textbf{Respuesta principal} & \shortstack[l]{\textbf{Uso en}\\[-1pt]\textbf{\ZkBridgeOperator}} \\
     \midrule
-    \path{GET/} & capacidades del \MithrilAggregator & detectar entidades firmadas soportadas y versionado \\
-    \path{GET/status} & estado actual & registrar contexto operativo del \MithrilAggregator \\
-    \path{GET/certificate/genesis} & \GenesisCertificate & ancla inicial para sincronizar la \CertificateChain \\
-    \path{GET/certificates} & certificados recientes & obtener certificados recientes \\
-    \path{GET/certificate/{hash}} & certificado individual & reconstruir la \CertificateChain y obtener mensajes concretos \\
-    \path{GET/artifact/cardano-transaction/{hash}} & detalle de un \Snapshot de transacciones & obtener el certificado de un \Snapshot \\
-    \path{GET/proof/cardano-transaction} & transacciones certificadas & obtener una Merkle Proof para un conjunto de transacciones concreto  \\
+    \texttt{/} & capacidades del \MithrilAggregator & detectar entidades firmadas soportadas y versionado \\
+    \texttt{/status} & estado actual & registrar contexto operativo del \MithrilAggregator \\
+    \texttt{/certificate/genesis} & \GenesisCertificate & ancla inicial para sincronizar la \CertificateChain \\
+    \texttt{/certificates} & certificados recientes & obtener certificados recientes \\
+    \texttt{/certificate/\{hash\}} & certificado individual & reconstruir la \CertificateChain y obtener mensajes concretos \\
+    \shortstack[l]{\scriptsize\texttt{/artifact/cardano-transaction/}\\[-1pt]\texttt{\{hash\}}} & detalle de un \Snapshot de transacciones & obtener el certificado de un \Snapshot \\
+    \texttt{/proof/cardano-transaction} & transacciones certificadas & obtener una Merkle Proof para un conjunto de transacciones concreto  \\
     \bottomrule
   \end{tabular}
   \caption{Endpoints del \MithrilAggregator utilizados por el \ZkBridgeOperator}
