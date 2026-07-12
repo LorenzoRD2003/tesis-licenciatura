@@ -7,7 +7,7 @@ No todos los artefactos certificados por \Mithril cumplen el mismo rol dentro de
 	\item Una entidad firmada \CardanoTransactions certifica una Merkle Root obtenida de un conjunto de transacciones de \Cardano. Colabora en respaldar argumentos de pertenencia de \LockTx en \ChainA para autorizar \MintTx en \ChainB.
 \end{itemize}
 
-En esta sección, \CardanoTransactions denota una entidad firmada de \Mithril que certifica un conjunto de transacciones de \Cardano, representado mediante una raíz de Merkle y asociado a un intervalo de bloques. No se refiere a una transacción individual. Por otra parte, \Concatenation denota el tipo de agregación de firmas utilizado por la ruta productiva \Pythagoras: la evidencia combina las firmas individuales \BLS de los participantes elegibles en una firma agregada verificable bajo la \AVK correspondiente.
+En esta sección, \CardanoTransactions denota una entidad firmada de \Mithril que certifica un conjunto de transacciones de \Cardano, representado mediante una raíz de Merkle y asociado a un intervalo de bloques. No se refiere a una transacción individual. Por otra parte, \Concatenation denota el tipo de agregación de firmas utilizado por la ruta productiva \Pythagoras: la evidencia combina las firmas individuales \BLS de los participantes elegibles en una firma agregada verificable bajo la \AVK correspondiente \cite{MithrilDocsTransactions,MithrilSTMRepo}.
 
 Desde el punto de vista del \zkBridge, la diferencia central entre \MithrilStakeDistribution y \CardanoTransactions es operacional. El primero fija el estado autenticado que la capa de actualización mantiene en \ChainB; mientras que el segundo respalda una prueba efímera de pertenencia sobre un compromiso global de transacciones. No conviene persistir esta segunda evidencia en el datum cuando lo que realmente debe sobrevivir entre transacciones es el certificado que autentica el comité y los parámetros con los que luego se valida un \TransactionSnapshotCertificate.
 
@@ -15,7 +15,73 @@ La documentación oficial refuerza la asimetría del lado transaccional. Un cert
 
 \subsection{\Pythagoras y el camino \textit{legacy}}
 
-En la versión del repositorio de \Mithril evaluada en esta tesis ---commit \texttt{bd24b9d48}, de mayo de 2026---, el \zkBridge consume el camino \Pythagoras con agregación de tipo \Concatenation, que aparece integrado de punta a punta en el flujo real del \MithrilAggregator \cite{MithrilDocsAggregator}. El operador del \zkBridge trabaja contra esa interfaz al ejecutar \texttt{tx prove} sobre respuestas reales de la API del \MithrilAggregator.
+En la ruta \Pythagoras, el conjunto certificado de transacciones no se representa mediante un único Merkle Tree plano. Se utiliza una estructura de dos niveles, que puede verse como un Merkle tree de Merkle trees.
+
+Primero, cada rango contiguo de 15 bloques tiene un Merkle Tree local cuyas hojas son las transacciones del rango. La raíz local se combina con la identificación del rango para formar una hoja maestra. Luego, las hojas maestras se organizan en un segundo Merkle Tree; la raíz de este árbol maestro es la \TxSetRoot firmada por \Mithril.
+
+\begin{figure}[!b]
+	\centering
+	\begin{tikzpicture}[
+		scale=0.92,
+		transform shape,
+		every node/.style={font=\small, align=center},
+		active/.style={draw, rounded corners=4pt, thick, fill=blue!10, minimum width=1.2cm, minimum height=0.75cm},
+		sibling/.style={draw, rounded corners=4pt, dashed, fill=gray!10, minimum width=1.2cm, minimum height=0.72cm},
+		boxrange/.style={draw, rounded corners=6pt, dashed, thick, orange!80!black},
+		boxmaster/.style={draw, rounded corners=6pt, dashed, thick, teal!70!black},
+		arr/.style={thick},
+		note/.style={font=\footnotesize\itshape}
+		]
+		\node[active] (root) at (0,0) {\(\TxSetRoot\)};
+		
+		\node[active] (masterleft) at (-3.0,-1.7) {\(\mathsf{m}_L\)};
+		\node[sibling] (masterright) at (3.0,-1.7) {\(\mathsf{m}_R\)};
+		
+		\node[sibling] (masterleafprev) at (-5,-3.5) {\(\TxRangeLeaf{u-1}\)};
+		\node[active] (masterleaf) at (-1,-3.5) {\(\TxRangeLeaf{u}\)};
+		\node[sibling] (masterleafnext) at (1,-3.5) {\(\TxRangeLeaf{u+1}\)};
+		\node[sibling] (mastersib) at (5,-3.5) {otras hojas\\maestras};
+		
+		\node[active] (rangeroot) at (-1,-5.3) {\(\TxRangeRoot{u}\)};
+		\node[sibling] (rangekey) at (2,-5.3) {\(\RangeKey(R_u)\)};
+		
+		\node[active] (rangeleft) at (-4,-7.1) {\(\mathsf{q}_L\)};
+		\node[sibling] (rangeright) at (2,-7.1) {\(\mathsf{q}_R\)};
+		
+		\node[sibling] (txleafprev) at (-5.5,-8.9) {\(\lambda(\tx_{u,j-1})\)};
+		\node[active] (txleaf) at (-2.5,-8.9) {\(\lambda(\tx_{u,j})\)};
+		\node[sibling] (txleafnext) at (0.5,-8.9) {\(\lambda(\tx_{u,j+1})\)};
+		\node[sibling] (txsib) at (3.5,-8.9) {otras\\transacciones};
+		
+		\draw[arr] (masterleft) -- (root);
+		\draw[arr] (masterright) -- (root);
+		\draw[arr] (masterleafprev) -- node[midway, fill=white, inner sep=1pt] {\(\cdots\)} (masterleft);
+		\draw[arr] (masterleaf) -- node[midway, fill=white, inner sep=1pt] {\(\cdots\)} (masterleft);
+		\draw[arr] (masterleafnext) -- node[midway, fill=white, inner sep=1pt] {\(\cdots\)} (masterright);
+		\draw[arr] (mastersib) -- node[midway, fill=white, inner sep=1pt] {\(\cdots\)} (masterright);
+		\draw[arr] (rangeroot) -- (masterleaf);
+		\draw[arr] (rangekey) -- (masterleaf);
+		\draw[arr] (rangeleft) -- (rangeroot);
+		\draw[arr] (rangeright) -- (rangeroot);
+		\draw[arr] (txleafprev) -- node[midway, fill=white, inner sep=1pt] {\(\cdots\)} (rangeleft);
+		\draw[arr] (txleaf) -- node[midway, fill=white, inner sep=1pt] {\(\cdots\)} (rangeleft);
+		\draw[arr] (txleafnext) -- node[midway, fill=white, inner sep=1pt] {\(\cdots\)} (rangeright);
+		\draw[arr] (txsib) -- node[midway, fill=white, inner sep=1pt] {\(\cdots\)} (rangeright);
+		
+		\draw[boxrange] (-7.0,-9.6) rectangle (7,-4.75);
+		\node[note, text=orange!80!black] at (6,-5.15) {\(\RangeProof\)};
+		
+		\draw[boxmaster] (-7.0,-4.15) rectangle (7.0,0.7);
+		\node[note, text=teal!70!black] at (6, 0.3) {\(\MasterProof\)};
+	\end{tikzpicture}
+	\caption{Estructura de dos niveles de \CardanoTransactions \textit{legacy}: un Merkle Tree local agrupa las transacciones de un rango de bloques $R_u$ y produce \(\TxRangeRoot{u}\); esta raíz, combinada con \(\RangeKey(R_u)\), forma la hoja maestra \(\TxRangeLeaf{u}\) de un segundo Merkle Tree cuya raíz firmada es \(\TxSetRoot\). La prueba completa de pertenencia combina una \RangeProof local y una \MasterProof del árbol maestro.}
+	\label{fig:mithril-recursive-merkle-proofs}
+\end{figure}
+
+
+Por eso, demostrar que una transacción pertenece al conjunto certificado requiere dos pruebas complementarias: una \RangeProof, que demuestra su pertenencia al árbol local de su rango, y una \MasterProof, que demuestra que la raíz local pertenece al árbol maestro cuya raíz final es \TxSetRoot. La Figura~\ref{fig:mithril-recursive-merkle-proofs} resume esta composición antes de introducir la notación formal.
+
+En la versión del repositorio de \Mithril evaluada en esta tesis (commit \texttt{bd24b9d48}, de mayo de 2026) el \zkBridge consume el camino \Pythagoras con agregación de tipo \Concatenation, que aparece integrado de punta a punta en el flujo real del \MithrilAggregator \cite{MithrilDocsAggregator}. El operador del \zkBridge trabaja contra esa interfaz al ejecutar \texttt{tx prove} sobre respuestas reales de la API del \MithrilAggregator.
 
 Para esta sección, $\Bytes{\ell}$ denota el conjunto de cadenas de bytes de longitud $\ell$. En particular, $\Bytes{32}$ representa un digest binario de 32 bytes, mientras que la codificación hexadecimal ASCII correspondiente pertenece a $\Bytes{64}$.
 
@@ -35,69 +101,10 @@ El segundo nivel vuelve a comprometer estas raíces por rango. Si
 $$\RangeKey(R_u) = \mathrm{ascii} \left(\texttt{15u - 15(u + 1)}\right)$$
 denota la clave serializada del rango, entonces la \textit{hoja maestra} asociada a $R_u$ es $\TxRangeLeaf{u} = \BLAKETwoSTwoFiveSix \left(\RangeKey(R_u)\concat \TxRangeRoot{u} \right)$.
 
-Ordenando los rangos por su cota inferior, la Merkle Root firmada por el certificado es $\TxSetRoot$ del árbol $\mathcal{T}_{\mathcal{L}, \BLAKETwoSTwoFiveSix}$ para $\mathcal{L} = \{\TxRangeLeaf{u_i}\}_{1\leq i \leq s}$, con $u_1 < \cdots < u_s$, $u_i \in I(\SnapshotBlockNumber)$ donde solamente intervienen los rangos no vacíos. Ésta es la formalización precisa de la intuición de ``Merkle forest'' usada en la documentación oficial: cada Merkle Tree de rango comprime las transacciones de $15$ bloques contiguos y el Merkle Tree maestro comprime las raíces de esos subárboles \cite{MithrilDocsTransactions,MithrilSTMRepo}.
+Ordenando los rangos por su cota inferior, la Merkle Root firmada por el certificado es $\TxSetRoot$ del árbol maestro $\mathcal{T}_{\mathcal{L}, \BLAKETwoSTwoFiveSix}$ para $\mathcal{L} = \{\TxRangeLeaf{u_i}\}_{1\leq i \leq s}$, con $u_1 < \cdots < u_s$, $u_i \in I(\SnapshotBlockNumber)$ donde solamente intervienen los rangos no vacíos. Esta es la formalización precisa de la estructura de dos niveles mostrada en la Figura~\ref{fig:mithril-recursive-merkle-proofs}: cada Merkle Tree local comprime las transacciones de $15$ bloques contiguos y el Merkle Tree maestro comprime las hojas formadas a partir de las raíces de esos subárboles \cite{MithrilDocsTransactions,MithrilSTMRepo}.
 
 La prueba que devuelve el endpoint de transacciones refleja exactamente esta estructura. Para un subconjunto $Q \subseteq \bigcup_{u \in I(\SnapshotBlockNumber)} \TxRangeSet{u}$, tenemos
 $$\MerkleProof_Q = \left(\MasterProof, \left\{(u, \RangeProof)\right\}_{u \in \CertifiedRangeIndexSet} \right), \qquad \CertifiedRangeIndexSet = \{u: Q \cap \TxRangeSet{u} \neq \emptyset\},$$
-
-\begin{figure}[!t]
-  \centering
-  \begin{tikzpicture}[
-    scale=0.92,
-    transform shape,
-    every node/.style={font=\small, align=center},
-    active/.style={draw, rounded corners=4pt, thick, fill=blue!10, minimum width=1.2cm, minimum height=0.75cm},
-    sibling/.style={draw, rounded corners=4pt, dashed, fill=gray!10, minimum width=1.2cm, minimum height=0.72cm},
-    boxrange/.style={draw, rounded corners=6pt, dashed, thick, orange!80!black},
-    boxmaster/.style={draw, rounded corners=6pt, dashed, thick, teal!70!black},
-    arr/.style={thick},
-    note/.style={font=\footnotesize\itshape}
-  ]
-    \node[active] (root) at (0,0) {\(\TxSetRoot\)};
-
-    \node[active] (masterleft) at (-3.0,-1.7) {\(\mathsf{m}_L\)};
-    \node[sibling] (masterright) at (3.0,-1.7) {\(\mathsf{m}_R\)};
-
-    \node[sibling] (masterleafprev) at (-5,-3.5) {\(\TxRangeLeaf{u-1}\)};
-    \node[active] (masterleaf) at (-1,-3.5) {\(\TxRangeLeaf{u}\)};
-    \node[sibling] (masterleafnext) at (1,-3.5) {\(\TxRangeLeaf{u+1}\)};
-    \node[sibling] (mastersib) at (5,-3.5) {otras hojas\\maestras};
-
-    \node[active] (rangeroot) at (-1,-5.3) {\(\TxRangeRoot{u}\)};
-    \node[sibling] (rangekey) at (2,-5.3) {\(\RangeKey(R_u)\)};
-
-    \node[active] (rangeleft) at (-4,-7.1) {\(\mathsf{q}_L\)};
-    \node[sibling] (rangeright) at (2,-7.1) {\(\mathsf{q}_R\)};
-
-    \node[sibling] (txleafprev) at (-5.5,-8.9) {\(\lambda(\tx_{u,j-1})\)};
-    \node[active] (txleaf) at (-2.5,-8.9) {\(\lambda(\tx_{u,j})\)};
-    \node[sibling] (txleafnext) at (0.5,-8.9) {\(\lambda(\tx_{u,j+1})\)};
-    \node[sibling] (txsib) at (3.5,-8.9) {otras\\transacciones};
-
-    \draw[arr] (masterleft) -- (root);
-    \draw[arr] (masterright) -- (root);
-    \draw[arr] (masterleafprev) -- node[midway, fill=white, inner sep=1pt] {\(\cdots\)} (masterleft);
-    \draw[arr] (masterleaf) -- node[midway, fill=white, inner sep=1pt] {\(\cdots\)} (masterleft);
-    \draw[arr] (masterleafnext) -- node[midway, fill=white, inner sep=1pt] {\(\cdots\)} (masterright);
-    \draw[arr] (mastersib) -- node[midway, fill=white, inner sep=1pt] {\(\cdots\)} (masterright);
-    \draw[arr] (rangeroot) -- (masterleaf);
-    \draw[arr] (rangekey) -- (masterleaf);
-    \draw[arr] (rangeleft) -- (rangeroot);
-    \draw[arr] (rangeright) -- (rangeroot);
-    \draw[arr] (txleafprev) -- node[midway, fill=white, inner sep=1pt] {\(\cdots\)} (rangeleft);
-    \draw[arr] (txleaf) -- node[midway, fill=white, inner sep=1pt] {\(\cdots\)} (rangeleft);
-    \draw[arr] (txleafnext) -- node[midway, fill=white, inner sep=1pt] {\(\cdots\)} (rangeright);
-    \draw[arr] (txsib) -- node[midway, fill=white, inner sep=1pt] {\(\cdots\)} (rangeright);
-
-    \draw[boxrange] (-7.0,-9.6) rectangle (7,-4.75);
-    \node[note, text=orange!80!black] at (6,-5.15) {\(\RangeProof\)};
-
-    \draw[boxmaster] (-7.0,-4.15) rectangle (7.0,0.7);
-    \node[note, text=teal!70!black] at (6, 0.3) {\(\MasterProof\)};
-  \end{tikzpicture}
-  \caption{Estructura de una prueba de pertenencia en \CardanoTransactions \textit{legacy}. La \RangeProof certifica que una transacción concreta pertenece al Merkle Tree de un rango de bloques $R_u$; la \MasterProof certifica que la hoja maestra \(\TxRangeLeaf{u}\), formada por \(\RangeKey(R_u)\) y \(\TxRangeRoot{u}\), pertenece al Merkle Tree maestro cuya raíz firmada es \(\TxSetRoot\).}
-  \label{fig:mithril-recursive-merkle-proofs}
-\end{figure}
 
 donde cada \RangeProof es una Merkle Proof en el árbol de $R_u$, mientras que $\MasterProof$ es una Merkle Proof de las hojas $\TxRangeLeaf{u}$ en el Merkle Tree maestro con raíz $\TxSetRoot$. En la implementación, este objeto aparece como \texttt{CardanoTransactionsSetProof}, cuyo campo \texttt{transactions\_proof} es un \texttt{MKMapProof<BlockRange>} que primero verifica las Merkle Proofs por rango, luego la Merkle Proof maestra y finalmente la pertenencia de cada hash al conjunto certificado \cite{MithrilSTMRepo}. En consecuencia,
 $$\Verify_{\mathsf{tx-set}}(Q, \MerkleProof_Q, \TxSetRoot) = 1$$

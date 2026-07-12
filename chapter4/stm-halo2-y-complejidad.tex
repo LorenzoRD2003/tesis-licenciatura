@@ -1,8 +1,26 @@
 % !TeX root = ../tesis.tex
 
+\subsection{Qué aporta \HaloTwo en este capítulo}
+
+En este capítulo, \HaloTwo se utiliza como un sistema de aritmetización \textit{PLONKish}: transforma la relación abstracta $\STMRelation$ en un circuito organizado en filas, columnas y restricciones locales \cite{cryptoeprint:2019/953}. Las columnas contienen valores asignados por el \textit{prover}, constantes del circuito o entradas públicas; las restricciones locales verifican operaciones del circuito, mientras que los argumentos de permutación y los \textit{lookups} permiten expresar igualdades entre celdas y pertenencia a tablas. La prueba se construye mediante compromisos polinomiales, cuya instancia concreta utiliza \KZG.
+
+La definición abstracta de \SNARK, la relación entre circuitos y restricciones algebraicas, y el funcionamiento de \KZG se presentan en el Apéndice B. Esta sección se concentra únicamente en cómo la aritmetización concreta representa los cuatro chequeos de $\STMRelation$ y en las consecuencias estructurales de esa compilación para el circuito STM.
+
+\subsection{Del protocolo \SNARK al circuito STM}
+
+Como se explica en el Apéndice B, un \SNARK recibe una instancia pública $x$, un \textit{witness} $w$ y produce una prueba $\pi$ que el verificador puede comprobar sin reconstruir el cómputo completo. En este capítulo, la instancia pública está formada por los parámetros de la época, el mensaje y los compromisos publicados; el \textit{witness} contiene las evidencias de los firmantes, sus caminos de Merkle y los valores auxiliares necesarios para verificarlas.
+
+El objetivo de esta sección no es volver a definir el protocolo \SNARK, sino describir cómo la relación $\STMRelation$ se traduce a las restricciones del circuito que luego procesa \HaloTwo.
+
+\subsection{Representación del circuito en \HaloTwo}
+
+En \HaloTwo, un circuito se organiza como un \Layout: una disposición tabular de filas y columnas que permite reutilizar la misma estructura de restricciones a lo largo del dominio de evaluación. Cada fila representa una instancia local del cálculo, mientras que las columnas almacenan los valores que participan de esas restricciones.
+
+Las columnas \Advice contienen valores asignados por el \textit{prover}; las columnas \Fixed contienen constantes determinadas por la configuración del circuito; y las columnas \Instance contienen las entradas públicas que recibe el verificador. Esta distinción es relevante para el circuito STM, porque las evidencias de los firmantes forman parte del \textit{witness}, mientras que el mensaje, los parámetros de época y los compromisos forman parte de la instancia pública.
+
 \subsection{De la relación \texorpdfstring{\(\NP\)}{NP} a una aritmetización \textit{PLONKish}}
 
-Sea $\EvalDomain = \{\omega^0,\omega^1,\ldots,\omega^{n-1}\} \subseteq \Fq$ un subgrupo multiplicativo de orden $n$, y sea $\VanishingPoly(X) = \prod_{h \in \EvalDomain} (X - h) = X^n - 1 \in \poly{\Fq}$ su \textit{vanishing polynomial}. En esta sección, el \Layout es la disposición concreta de filas, columnas y restricciones con la que \HaloTwo representa el circuito. La aritmetización de \HaloTwo consiste en asociar a cada columna del \Layout un polinomio de grado menor que $n$ interpolado sobre \EvalDomain. En la terminología de \HaloTwo, las columnas \Advice contienen valores asignados por el \textit{prover}; las columnas \Fixed contienen constantes determinadas por la configuración del circuito; y las columnas \Instance representan las entradas públicas que recibe el verificador. En lo que sigue usamos estos nombres sólo para describir la aritmetización concreta, mientras que la relación abstracta continúa expresándose mediante $\PublicInputs$ y $\PrivateInputs$. Notamos:
+Sea $\EvalDomain = \{\omega^0,\omega^1,\ldots,\omega^{n-1}\} \subseteq \Fq$ un subgrupo multiplicativo de orden $n$, y sea $\VanishingPoly(X) = \prod_{h \in \EvalDomain} (X - h) = X^n - 1 \in \poly{\Fq}$ su \textit{vanishing polynomial}. La aritmetización de \HaloTwo consiste en asociar a cada columna del \Layout un polinomio de grado menor que $n$ interpolado sobre \EvalDomain. En lo que sigue usamos estos nombres sólo para describir la aritmetización concreta, mientras que la relación abstracta continúa expresándose mediante $\PublicInputs$ y $\PrivateInputs$. Notamos:
 \begin{itemize}[noitemsep]
 	\item $\AdvicePoly{1}(X), \ldots, \AdvicePoly{a}(X)$ a los polinomios de columnas \Advice,
 	\item $\FixedPoly{1}(X), \ldots, \FixedPoly{f}(X)$ a los polinomios de columnas \Fixed,
@@ -13,6 +31,8 @@ Entonces, cada fila $0 \leq r < n$ impone identidades locales de la forma
 $$G_j \left(\AdvicePoly{1}(\omega^r), \ldots, \AdvicePoly{a}(\omega^r), \FixedPoly{1}(\omega^r), \ldots, \FixedPoly{f}(\omega^r), \InstancePoly{1}(\omega^r), \ldots, \InstancePoly{u}(\omega^r)\right) = 0,$$
 donde cada $G_j$ es un polinomio multivariado de bajo grado.
 
+\subsection{Restricciones específicas de la relación STM}
+
 Aplicado al circuito \STM, esto significa que los cuatro chequeos ya introducidos en $\STMRelation(\PublicInputs, \PrivateInputs) = 1$ deben reescribirse como igualdades locales sobre filas del \Layout. En particular:
 \begin{itemize}[noitemsep]
     \item los chequeos de Merkle Path se traducen a iteraciones de $\Hash$ entre filas consecutivas;
@@ -21,29 +41,22 @@ Aplicado al circuito \STM, esto significa que los cuatro chequeos ya introducido
     \item la unicidad de índices se traduce a una cadena de desigualdades estrictas entre filas adyacentes.
 \end{itemize}
 
+\subsection{Compilación algebraica y verificación global}
+
 Todas estas familias de restricciones se agregan luego en una única identidad global. Más precisamente, si notamos \ConstraintNumerator a la combinación aleatorizada de \textit{gates}, condiciones de borde, consistencia con \textit{public inputs}, permutaciones y \textit{lookups}, entonces el \textit{prover} debe exhibir un polinomio $\QuotientPoly \in \poly{\Fq}$ tal que $\ConstraintNumerator(X) = \QuotientPoly(X) \cdot \VanishingPoly(X)$.
 
 Se debe verificar que $\ConstraintNumerator(x) = 0$ para todo $x \in \EvalDomain$. Se utiliza \KZG como \PCS para los polinomios involucrados, de modo que esa identidad se pueda verificar mediante $\Open$ en pocos puntos aleatorios derivados con \FiatShamir.
 
 \subsection{Argumentos de permutación, \textit{lookups} y columnas auxiliares}
 
-\HaloTwo separa dos tipos de consistencia. La primera es la consistencia algebraica local, expresada por las \textit{gates}. La segunda es la consistencia de igualdad entre celdas ubicadas en distintas posiciones del \Layout. Esta última no se impone copiando valores, sino mediante un argumento de permutación. Si dos celdas $c$ y $c'$ deben representar el mismo valor lógico, la configuración del circuito las inserta en una misma clase de equivalencia, y el protocolo prueba algebraicamente que la asignación de $\PrivateInputs$ respeta esa permutación.
-
-Formalmente, si $\sigma$ es la permutación inducida por todas las restricciones de igualdad, el protocolo incorpora un polinomio auxiliar (\textit{grand product polynomial}), que denotaremos por $\PermutationPoly \in \poly{\Fq}$, que certifica que las columnas habilitadas con \texttt{enable\_equality} son compatibles con $\sigma$. Este polinomio no suele escribirse a mano en la descripción de alto nivel del circuito, pero forma parte del costo real del \textit{prover}.
-
-Por otra parte, los \textit{lookups} resuelven el siguiente problema. Sea $T \subseteq \Fq^s$ una tabla fija. Un argumento de \textit{lookup} permite exigir que una tupla de $\Fq^s$ computada por el circuito pertenezca a $T$. La condición impuesta en una fila $r$ puede escribirse como $\LookupExpr(\omega^r) \in T$, donde \LookupExpr representa la tupla de expresiones consultadas. También aquí aparecen polinomios auxiliares adicionales, que podemos resumir informalmente como $\LookupPoly$, encargados de argumentar que el multiconjunto de valores consultados coincide con el multiconjunto codificado por la tabla.
+\HaloTwo utiliza argumentos de permutación y de \textit{lookup} para expresar igualdades entre celdas y pertenencia a tablas, respectivamente. El tratamiento general de estos mecanismos pertenece a la descripción del protocolo y se remite al Apéndice B. En el circuito STM sólo nos interesa su consecuencia concreta: las permutaciones garantizan la consistencia entre valores reutilizados en distintas filas del \Layout, mientras que los \textit{lookups} permiten implementar los \textit{range checks} de la lotería.
 
 En el circuito \STM, los \textit{lookups} se usan para \textit{range checks}. La comparación de lotería $e_t \le \LotteryTarget_{i_t}$ se interpreta sobre una representación en $\Fq$, y no sobre $\Fr$. Como $\Fq$ no tiene un orden total compatible con $\Fr$, el circuito compara representantes canónicamente elegidos en \([0,q)\). Cada elemento $x \in \Fq$ se descompone como $x = \LowPart{x} + 2^{127}\HighPart{x}$, con $0 \le \LowPart{x} < 2^{127}$, y $0 \le \HighPart{x} < 2^{128}$.
 
 Estas cotas se fuerzan mediante \textit{lookups} sobre tablas de potencias de dos. Una vez validada la descomposición, la comparación entera se reduce a
 $$x < y \iff \left(\HighPart{x} < \HighPart{y} \right) \;\vee\; \left(\HighPart{x} = \HighPart{y} \wedge \LowPart{x} < \LowPart{y}\right).$$
 
-En consecuencia, las ``columnas auxiliares'' de \HaloTwo relevantes para esta sección son de dos tipos:
-\begin{enumerate}[label=\arabic*), noitemsep]
-    \item columnas físicas de tabla, que materializan los valores permitidos para los \textit{lookups};
-    \item polinomios auxiliares del protocolo, en particular \PermutationPoly, \LookupPoly y \QuotientPoly.
-\end{enumerate}
-El costo algebraico del circuito no queda determinado únicamente por las columnas explícitas, sino también por estas entidades adicionales que \HaloTwo introduce para probar consistencia global.
+En consecuencia, el costo algebraico del circuito no queda determinado únicamente por las columnas explícitas: también depende de los recursos auxiliares que \HaloTwo introduce para verificar estas condiciones de consistencia global.
 
 \subsection{Uso de crates de \texorpdfstring{\textnormal{\Midnight}}{Midnight}}
 

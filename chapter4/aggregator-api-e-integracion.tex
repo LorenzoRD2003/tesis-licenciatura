@@ -1,6 +1,6 @@
 % !TeX root = ../tesis.tex
 
-\Mithril fue presentado como protocolo y como estructura de certificados. Sin embargo, el \zkBridge no interactúa con una abstracción matemática, sino con un nodo concreto de la red: el \MithrilAggregator. Este componente, entre otras cosas, expone artefactos y pruebas a través de una API \textsc{REST} \cite{MithrilDocsAggregator}. Para este desarrollo, es la interfaz práctica entre el estado certificado de \Cardano y el \textit{relayer} \Offchain que prepara argumentos para el \zkBridge. La documentación oficial de \Mithril sobre \CardanoTransactions ayuda a interpretar mejor este flujo \cite{MithrilDocsTransactions}.
+A partir del rol del \MithrilAggregator definido en la introducción, esta sección describe su interfaz concreta. \Mithril fue presentado como protocolo y como estructura de certificados. Sin embargo, el \zkBridge no interactúa con una abstracción matemática, sino con un nodo concreto de la red: el \MithrilAggregator. Este componente, entre otras cosas, expone artefactos y pruebas a través de una API \textsc{REST} \cite{MithrilDocsAggregator}. Para este desarrollo, es la interfaz práctica entre el estado certificado de \Cardano y el \textit{relayer} \Offchain que prepara argumentos para el \zkBridge. La documentación oficial de \Mithril sobre \CardanoTransactions ayuda a interpretar mejor este flujo \cite{MithrilDocsTransactions}.
 
 \subsection{Endpoints relevantes}
 
