@@ -7,13 +7,15 @@ No todos los artefactos certificados por \Mithril cumplen el mismo rol dentro de
 	\item Una entidad firmada \CardanoTransactions certifica una Merkle Root obtenida de un conjunto de transacciones de \Cardano. Colabora en respaldar argumentos de pertenencia de \LockTx en \ChainA para autorizar \MintTx en \ChainB.
 \end{itemize}
 
+En esta sección, \CardanoTransactions denota una entidad firmada de \Mithril que certifica un conjunto de transacciones de \Cardano, representado mediante una raíz de Merkle y asociado a un intervalo de bloques. No se refiere a una transacción individual. Por otra parte, \Concatenation denota el tipo de agregación de firmas utilizado por la ruta productiva \Pythagoras: la evidencia combina las firmas individuales \BLS de los participantes elegibles en una firma agregada verificable bajo la \AVK correspondiente.
+
 Desde el punto de vista del \zkBridge, la diferencia central entre \MithrilStakeDistribution y \CardanoTransactions es operacional. El primero fija el estado autenticado que la capa de actualización mantiene en \ChainB; mientras que el segundo respalda una prueba efímera de pertenencia sobre un compromiso global de transacciones. No conviene persistir esta segunda evidencia en el datum cuando lo que realmente debe sobrevivir entre transacciones es el certificado que autentica el comité y los parámetros con los que luego se valida un \TransactionSnapshotCertificate.
 
 La documentación oficial refuerza la asimetría del lado transaccional. Un certificado de \CardanoTransactions está diseñado para un conjunto masivo de transacciones de \Cardano y por eso firma un Merkle Root en lugar de transacciones aisladas \cite{MithrilDocsTransactions}.
 
 \subsection{\Pythagoras y el camino \textit{legacy}}
 
-La implementación actual del \zkBridge consume el único camino que hoy aparece integrado de punta a punta en el flujo real del \MithrilAggregator: \Pythagoras con agregación de tipo \texttt{Concatenation} \cite{MithrilDocsAggregator}. El operador del \zkBridge trabaja contra esa interfaz al ejecutar \texttt{tx prove} sobre respuestas reales de la API del \MithrilAggregator.
+En la versión del repositorio de \Mithril evaluada en esta tesis ---commit \texttt{bd24b9d48}, de mayo de 2026---, el \zkBridge consume el camino \Pythagoras con agregación de tipo \Concatenation, que aparece integrado de punta a punta en el flujo real del \MithrilAggregator \cite{MithrilDocsAggregator}. El operador del \zkBridge trabaja contra esa interfaz al ejecutar \texttt{tx prove} sobre respuestas reales de la API del \MithrilAggregator.
 
 Para esta sección, $\Bytes{\ell}$ denota el conjunto de cadenas de bytes de longitud $\ell$. En particular, $\Bytes{32}$ representa un digest binario de 32 bytes, mientras que la codificación hexadecimal ASCII correspondiente pertenece a $\Bytes{64}$.
 
@@ -106,7 +108,13 @@ si y sólo si todas las ramas locales y la rama maestra llegan a la misma raíz 
 \Lagrange es la era que introduce el carril \textit{SNARK-friendly}; no cambia el rol lógico del certificado dentro del \zkBridge. Lo que sí cambia es la representación matemática del mensaje firmado y de la evidencia que luego debe verificar el \zkBridge. El propio código de \Mithril deja visibles esas modificaciones aunque el \MithrilAggregator productivo todavía opere sobre el carril \Pythagoras. Por eso, el diseño del bridge queda preparado para \Lagrange, pero el flujo integrado actual conserva \Pythagoras para la pertenencia de \CardanoTransactions. El capítulo de implementación refleja esta separación: el camino \Pythagoras aparece como circuito integrado al operador, mientras que la geometría \Lagrange queda presentada como transición experimental.
 
 \paragraph{El mensaje firmado deja de ser sólo un hash \LegacyHashScheme.}
-En \Pythagoras, el certificado termina firmando el valor $\LegacyDigest = \ProtocolMsg.\texttt{compute\_hash()}$ con esquema \LegacyHashScheme, es decir, un hash calculado sobre el diccionario dinámico de partes del mensaje. Esta representación es flexible para el software del \MithrilAggregator, porque permite agregar o quitar partes del mensaje sin cambiar una preimagen rígida global, pero es menos conveniente para un circuito: el verificador aritmético debería reproducir una lógica de serialización dinámica o aceptar como dato externo una frontera difícil de auditar. En la ruta \Lagrange, en cambio, \texttt{ProtocolMessage} pasa al esquema \RigidHashScheme y el repositorio ya fija una preimagen rígida, de longitud y segmentación controladas, de la forma:
+En \Pythagoras, el certificado termina firmando el valor $\LegacyDigest = \ProtocolMsg.\texttt{compute\_hash()}$ con esquema \LegacyHashScheme, es decir, un hash calculado sobre el diccionario dinámico de partes del mensaje. Esta representación es flexible para el software del \MithrilAggregator, porque permite agregar o quitar partes del mensaje sin cambiar una preimagen rígida global, pero es menos conveniente para un circuito: el verificador aritmético debería reproducir una lógica de serialización dinámica o aceptar como dato externo una frontera difícil de auditar.
+
+En la ruta \Lagrange, `rigid` es el esquema de hash de los mensajes de protocolo compatible con circuitos \SNARK. A diferencia de \LegacyHashScheme, no hashea directamente un diccionario dinámico: separa las partes variables del mensaje de ciertos campos estructurales y los reinyecta en segmentos de tamaño fijo, precedidos por etiquetas conocidas. En nuestra notación, \RigidHashScheme designa este esquema y \RigidDigest el digest obtenido a partir de esa preimagen rígida.
+
+Esta elección responde a una necesidad concreta del circuito: el verificador debe recibir una preimagen cuya longitud, segmentación y campos relevantes estén determinados de antemano. De ese modo, puede imponer restricciones sobre posiciones conocidas sin reproducir la lógica de un diccionario dinámico ni aceptar una serialización ambigua.
+
+En la ruta \Lagrange, en cambio, \texttt{ProtocolMessage} pasa al esquema \RigidHashScheme y el repositorio ya fija una preimagen rígida, de longitud y segmentación controladas, de la forma:
 $$
 \begin{aligned}
 \RigidDigest = \SHATwoFiveSix \bigl(&\texttt{digest} \concat d \concat \texttt{next\_aggregate\_verification\_key} \\

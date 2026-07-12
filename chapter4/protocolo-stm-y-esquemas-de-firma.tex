@@ -16,11 +16,11 @@ Esta distinción es importante para el \zkBridge: no alcanza con decir que se ac
 
 Antes de pasar al detalle matemático conviene separar tres niveles de vocabulario. En la implementación de \Mithril, una \emph{era} identifica una versión del protocolo soportada por el software. En la copia local revisada del repositorio, las eras explícitas son \Pythagoras y \Lagrange. Una \emph{ruta criptográfica}, en cambio, describe cómo se representa y verifica la evidencia agregada dentro de una era. Finalmente, un esquema de firma como Schnorr o \BLS no es una era por sí mismo, sino una primitiva usada por alguna ruta.
 
-En esta tesis, \Pythagoras designa el camino productivo pre-\Lagrange que consume el prototipo integrado. A efectos de la exposición, cuando hablemos del camino \textit{legacy} de \Mithril para \CardanoTransactions, lo identificamos con \Pythagoras: es el carril disponible hoy para el flujo real del \MithrilAggregator y usa agregación de tipo \texttt{Concatenation}, basada en una \BLS \textit{multisignature}. El término \LegacyHashScheme queda reservado para el detalle de compatibilidad del \ProtocolMsg, es decir, el esquema de hash pre-\Lagrange que aparece en la implementación.
+En esta tesis, \Pythagoras designa el camino productivo pre-\Lagrange que consume el prototipo integrado. A efectos de la exposición, cuando hablemos del camino \textit{legacy} de \Mithril para \CardanoTransactions, lo identificamos con \Pythagoras: es el carril disponible hoy para el flujo real del \MithrilAggregator y usa el tipo de agregación \Concatenation, que combina las firmas individuales \BLS de los participantes elegibles en una firma agregada verificable bajo la \AVK. El término \LegacyHashScheme queda reservado para el detalle de compatibilidad del \ProtocolMsg, es decir, el esquema de hash pre-\Lagrange que aparece en la implementación.
 
 Por contraste, \Lagrange nombra la transición \textit{SNARK-friendly}. En esa ruta, la agregación se modela como una evidencia de tipo \SNARK: el registro conserva claves y umbrales compatibles con circuitos, el mensaje firmado se organiza mediante una preimagen rígida, y las firmas individuales relevantes son firmas Schnorr sobre curvas aptas para la aritmetización. Por lo tanto, Schnorr debe leerse como el esquema de firma usado por la ruta \Lagrange/\SNARK, no como una tercera era de \Mithril.
 
-Con esta convención, el resto del capítulo usa \Pythagoras para referirse al camino productivo \textit{legacy}/pre-\Lagrange, \Lagrange para la ruta \textit{SNARK-friendly}, \texttt{Concatenation} y \texttt{Snark} para los tipos de agregación, y Schnorr o \BLS para las primitivas de firma correspondientes.
+Con esta convención, el resto del capítulo usa \Pythagoras para referirse al camino productivo \textit{legacy}/pre-\Lagrange, \Lagrange para la ruta \textit{SNARK-friendly}, \Concatenation y \texttt{Snark} para los tipos de agregación, y Schnorr o \BLS para las primitivas de firma correspondientes.
 
 \subsection{Fases del protocolo}
 
@@ -32,7 +32,7 @@ y el peso relativo del participante $1 \leq i \leq n$ viene dado por $w_i = s_i/
 
 Se fijan el grupo criptográfico subyacente, los algoritmos de firma, las funciones de hash relevantes y los parámetros $(k,m,\phi_f)$. El resultado de esta fase es una instancia del protocolo
 $$\Pi_{\mathsf{Mithril}} = (\mathcal{G}, \Sign, \Verify, k, m, \phi_f),$$
-donde $\mathcal{G}$ está compuesto por la familia de grupos y curvas elegidas. Esta descripción todavía es independiente de si la evidencia agregada se materializa por la ruta de concatenación o por la ruta SNARK.
+donde $\mathcal{G}$ está compuesto por la familia de grupos y curvas elegidas. Esta descripción todavía es independiente de si la evidencia agregada se materializa mediante la ruta \Concatenation o mediante la ruta SNARK.
 
 \paragraph{Fase de inicialización.}
 
@@ -64,7 +64,7 @@ donde las hojas se ordenan canónicamente antes de armar el árbol, primero por 
 
 \subsection{Esquema de firmas en \Lagrange}
 
-En esta era de \Mithril, se produce para cada participante una clave de firmado $\SchnorrSK_i$ y su correspondiente clave de verificación $\SchnorrVK_i$. Este es el camino más importante para la verificación \STM de certificados del \zkBridge, ya que para obtener argumentos sucintos verificables \Onchain en \ChainB no alcanza con transportar la \BLS \textit{multisignature} del camino \Pythagoras. Esto no significa que toda la evidencia del bridge haya migrado a \Lagrange: la pertenencia de \CardanoTransactions en el prototipo integrado se trata por separado mediante el camino \Pythagoras actualmente disponible.
+En esta era de \Mithril, se produce para cada participante una clave de firmado $\SchnorrSK_i$ y su correspondiente clave de verificación $\SchnorrVK_i$. Este es el camino más importante para la verificación \STM de certificados del \zkBridge, ya que para obtener argumentos sucintos verificables \Onchain en \ChainB no alcanza con transportar la \BLS \textit{multisignature} del camino \Pythagoras. Esto no significa que toda la evidencia del bridge haya migrado a \Lagrange: en la versión del repositorio de \Mithril evaluada en esta tesis ---commit \texttt{bd24b9d48}, de mayo de 2026---, la pertenencia de \CardanoTransactions en el prototipo integrado se verifica mediante el camino \Pythagoras y la agregación \Concatenation. La ruta \Lagrange se presenta aquí como una transición \textit{SNARK-friendly}, todavía no utilizada por ese flujo integrado.
 
 Dentro de este camino, aparecen dos variantes de firma Schnorr. La primera es la \StandardSchnorrSignature, formada solo por un \textit{challenge} $c$ y su correspondiente respuesta $r$. Según la propia implementación, esta variante se usa en el \SNARK \GenesisCertificate. Su desafío se recomputa como un hash \PoseidonHash del \textit{domain separation tag}, la clave de verificación, el punto aleatorio y el mensaje. La segunda es la \UniqueSchnorrSignature, que agrega un \CommitmentPoint determinista dependiente solo del mensaje y de la clave Schnorr \SchnorrSK. Ese punto permite evitar \textit{grinding attacks} sobre la lotería de \MithrilAggregator, y por lo tanto es la forma que el circuito \HaloTwo reutiliza después \cite{MithrilSTMRepo}.
 

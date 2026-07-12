@@ -2,18 +2,18 @@
 
 \subsection{De la relación \texorpdfstring{\(\NP\)}{NP} a una aritmetización \textit{PLONKish}}
 
-Sea $\EvalDomain = \{\omega^0,\omega^1,\ldots,\omega^{n-1}\} \subseteq \Fq$ un subgrupo multiplicativo de orden $n$, y sea $\VanishingPoly(X) = \prod_{h \in \EvalDomain} (X - h) = X^n - 1 \in \poly{\Fq}$ su \textit{vanishing polynomial}. La aritmetización de \HaloTwo consiste en asociar a cada columna del \textit{layout} un polinomio de grado menor que $n$ interpolado sobre \EvalDomain. Notamos:
+Sea $\EvalDomain = \{\omega^0,\omega^1,\ldots,\omega^{n-1}\} \subseteq \Fq$ un subgrupo multiplicativo de orden $n$, y sea $\VanishingPoly(X) = \prod_{h \in \EvalDomain} (X - h) = X^n - 1 \in \poly{\Fq}$ su \textit{vanishing polynomial}. En esta sección, el \Layout es la disposición concreta de filas, columnas y restricciones con la que \HaloTwo representa el circuito. La aritmetización de \HaloTwo consiste en asociar a cada columna del \Layout un polinomio de grado menor que $n$ interpolado sobre \EvalDomain. En la terminología de \HaloTwo, las columnas \Advice contienen valores asignados por el \textit{prover}; las columnas \Fixed contienen constantes determinadas por la configuración del circuito; y las columnas \Instance representan las entradas públicas que recibe el verificador. En lo que sigue usamos estos nombres sólo para describir la aritmetización concreta, mientras que la relación abstracta continúa expresándose mediante $\PublicInputs$ y $\PrivateInputs$. Notamos:
 \begin{itemize}[noitemsep]
-	\item $\AdvicePoly{1}(X), \ldots, \AdvicePoly{a}(X)$ a los polinomios de columnas \textit{advice},
-	\item $\FixedPoly{1}(X), \ldots, \FixedPoly{f}(X)$ a los polinomios de columnas \textit{fixed},
-	\item $\InstancePoly{1}(X), \ldots, \InstancePoly{u}(X)$ a los polinomios de columnas \textit{instance}.
+	\item $\AdvicePoly{1}(X), \ldots, \AdvicePoly{a}(X)$ a los polinomios de columnas \Advice,
+	\item $\FixedPoly{1}(X), \ldots, \FixedPoly{f}(X)$ a los polinomios de columnas \Fixed,
+	\item $\InstancePoly{1}(X), \ldots, \InstancePoly{u}(X)$ a los polinomios de columnas \Instance.
 \end{itemize}
 
 Entonces, cada fila $0 \leq r < n$ impone identidades locales de la forma
 $$G_j \left(\AdvicePoly{1}(\omega^r), \ldots, \AdvicePoly{a}(\omega^r), \FixedPoly{1}(\omega^r), \ldots, \FixedPoly{f}(\omega^r), \InstancePoly{1}(\omega^r), \ldots, \InstancePoly{u}(\omega^r)\right) = 0,$$
 donde cada $G_j$ es un polinomio multivariado de bajo grado.
 
-Aplicado al circuito \STM, esto significa que los cuatro chequeos ya introducidos en $\STMRelation(\PublicInputs, \PrivateInputs) = 1$ deben reescribirse como igualdades locales sobre filas del \textit{layout}. En particular:
+Aplicado al circuito \STM, esto significa que los cuatro chequeos ya introducidos en $\STMRelation(\PublicInputs, \PrivateInputs) = 1$ deben reescribirse como igualdades locales sobre filas del \Layout. En particular:
 \begin{itemize}[noitemsep]
     \item los chequeos de Merkle Path se traducen a iteraciones de $\Hash$ entre filas consecutivas;
     \item los chequeos de firma se traducen a restricciones sobre puntos de $\E(\Fq)$, escalares en $\Fr$ y desafíos recomputados;
@@ -27,7 +27,7 @@ Se debe verificar que $\ConstraintNumerator(x) = 0$ para todo $x \in \EvalDomain
 
 \subsection{Argumentos de permutación, \textit{lookups} y columnas auxiliares}
 
-\HaloTwo separa dos tipos de consistencia. La primera es la consistencia algebraica local, expresada por las \textit{gates}. La segunda es la consistencia de igualdad entre celdas ubicadas en distintas posiciones del \textit{layout}. Esta última no se impone copiando valores, sino mediante un argumento de permutación. Si dos celdas $c$ y $c'$ deben representar el mismo valor lógico, la configuración del circuito las inserta en una misma clase de equivalencia, y el protocolo prueba algebraicamente que la asignación de $\PrivateInputs$ respeta esa permutación.
+\HaloTwo separa dos tipos de consistencia. La primera es la consistencia algebraica local, expresada por las \textit{gates}. La segunda es la consistencia de igualdad entre celdas ubicadas en distintas posiciones del \Layout. Esta última no se impone copiando valores, sino mediante un argumento de permutación. Si dos celdas $c$ y $c'$ deben representar el mismo valor lógico, la configuración del circuito las inserta en una misma clase de equivalencia, y el protocolo prueba algebraicamente que la asignación de $\PrivateInputs$ respeta esa permutación.
 
 Formalmente, si $\sigma$ es la permutación inducida por todas las restricciones de igualdad, el protocolo incorpora un polinomio auxiliar (\textit{grand product polynomial}), que denotaremos por $\PermutationPoly \in \poly{\Fq}$, que certifica que las columnas habilitadas con \texttt{enable\_equality} son compatibles con $\sigma$. Este polinomio no suele escribirse a mano en la descripción de alto nivel del circuito, pero forma parte del costo real del \textit{prover}.
 
@@ -53,11 +53,11 @@ que no es neutra: determina el \textit{backend}, la forma de los componentes esp
 
 En la implementación, la relación \STM se expresa como un objeto del tipo \texttt{Relation}, y luego se compila mediante $\texttt{MidnightCircuit::from\_relation(\&circuit)}$. Si denotamos por \MidnightSTMCircuit al circuito resultante, entonces su tamaño mínimo de dominio viene dado por un parámetro $\MinDomainK = \texttt{min\_k()}$, de modo que el dominio \EvalDomain efectivamente usado tiene cardinalidad $n = 2^{\MinDomainK}$.
 
-Aún si formulamos $\STMRelation$ sin hacer referencia a columnas concretas, la complejidad real del sistema queda determinada por la compilación que hace \Midnight de esa relación a un \textit{layout} \HaloTwo.
+Aún si formulamos $\STMRelation$ sin hacer referencia a columnas concretas, la complejidad real del sistema queda determinada por la compilación que hace \Midnight de esa relación a un \Layout \HaloTwo.
 
 La particularidad más importante de esa compilación es que los distintos componentes no necesariamente aportan columnas disjuntas. Si denotamos por $\ArithCols, \EccCols, \PoseidonCols, \RangeCols$ a las necesidades de columnas de cada componente principal, la arquitectura de \Midnight no toma en general la suma
 $$\ArithCols+\EccCols+\PoseidonCols+\RangeCols,$$
-sino un \textit{pool} de columnas común cuyo tamaño $\AdviceCols$ denota la cantidad de columnas \textit{advice} reservadas por la configuración, y cumple
+sino un \textit{pool} de columnas común cuyo tamaño $\AdviceCols$ denota la cantidad de columnas \Advice reservadas por la configuración, y cumple
 $$\AdviceCols \approx \max\{\ArithCols, \EccCols, \PoseidonCols, \RangeCols \},$$
 más algunos recursos adicionales de soporte. Esto justifica por qué no es correcto estimar el costo del \textit{prover} sumando ingenuamente columnas ``por componente''.
 
