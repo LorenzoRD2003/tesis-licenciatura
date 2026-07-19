@@ -1,0 +1,101 @@
+% !TeX root = ../tesis.tex
+
+Este apéndice formaliza la abstracción utilizada para distinguir el rol de origen $\ChainA$ del rol de destino $\ChainB$. En la implementación, ambos roles se ejecutan sobre un único ledger \eUTxO y una misma \textit{devnet}; no existen dos redes, dos estados globales ni dos espacios de nombres independientes. La distinción se materializa mediante los scripts, las políticas y los \UTxOs de estado que intervienen en cada etapa. Por ello, la equivalencia estructural se formula como dos vistas etiquetadas de una misma interfaz de ejecución. Sobre esa base se define, por separado, la relación de aplicación que vincula una $\LockTx$ con una $\MintTx$.
+
+\section{Ledger concreto y roles lógicos}
+\label{sec:modelo-cadenas-instancias-logicas-del-ledger}
+
+\begin{definition}[Ledger \eUTxO compatible con \Cardano]
+\label{def:ledger-eutxo-compatible-cardano}
+\normalfont
+El ledger concreto del prototipo se representa mediante la tupla
+$$\mathcal{L}= (\mathcal{S},\mathcal{T}, \mathsf{Valid},\mathsf{Apply}),$$
+donde $\mathcal{S}$ es el conjunto de estados \eUTxO, $\mathcal{T}$ es el conjunto de transacciones, $\mathsf{Valid}(S,t)$ determina si $t$ es válida en el estado $S$ y $\mathsf{Apply}(S,t)$ produce el estado posterior cuando la transacción es válida. La sintaxis de las transacciones incluye referencias a inputs, outputs, valores multiasset, direcciones, datums, redeemers, scripts y el campo de \textit{minting}. La validez preserva las reglas que utiliza el protocolo: consumo único de outputs, conservación de valor y ejecución determinista de validadores y políticas.
+\end{definition}
+
+Sean $\mathcal{S}^{\mathsf{br}}\subseteq\mathcal{S}$ y $\mathcal{T}^{\mathsf{br}}\subseteq\mathcal{T}$ los estados y transacciones cuya estructura es observable por los validadores del \Bridge. El fragmento omite bloques, selección de líderes y otros componentes del consenso. Para razonar sobre los dos extremos del flujo sin duplicar el ledger real, se construyen las copias etiquetadas
+$$
+\mathcal{S}^{\mathsf{br}}_i=\{i\}\times\mathcal{S}^{\mathsf{br}}
+\qquad\text{y}\qquad
+\mathcal{T}^{\mathsf{br}}_i=\{i\}\times\mathcal{T}^{\mathsf{br}},
+\qquad i\in\{A,B\}.
+$$
+La etiqueta expresa únicamente el rol que cumple un objeto en el protocolo. Al borrarla, ambos lados se interpretan mediante las mismas reglas concretas $\mathsf{Valid}$ y $\mathsf{Apply}$.
+
+\section{Isomorfismo restringido a la interfaz del bridge}
+\label{sec:modelo-cadenas-isomorfismo-restringido}
+
+\begin{definition}[Isomorfismo entre las vistas lógicas]
+\label{def:isomorfismo-interfaz-bridge}
+\normalfont
+Las vistas del origen y del destino son isomorfas respecto de la interfaz del \Bridge mediante las biyecciones
+$$
+\Phi_{\mathcal S}(A,S)=(B,S)
+\qquad\text{y}\qquad
+\Phi_{\mathcal T}(A,t)=(B,t).
+$$
+Para $i\in\{A,B\}$, se definen las operaciones de la vista etiquetada como
+$$
+\mathsf{Valid}_i((i,S),(i,t)):=\mathsf{Valid}(S,t)
+$$
+y, cuando $t$ es válida,
+$$
+\mathsf{Apply}_i((i,S),(i,t)):=(i,\mathsf{Apply}(S,t)).
+$$
+Por construcción, para todo $S\in\mathcal{S}^{\mathsf{br}}$ y $t\in\mathcal{T}^{\mathsf{br}}$ se cumple
+$$
+\mathsf{Valid}_A((A,S),(A,t))
+\iff
+\mathsf{Valid}_B\bigl(\Phi_{\mathcal S}(A,S),\Phi_{\mathcal T}(A,t)\bigr),
+$$
+y la aplicación conmuta con $\Phi_{\mathcal S}$.
+\end{definition}
+
+Este isomorfismo no afirma que la $\LockTx$ concreta sea transformada en la $\MintTx$ concreta: son transacciones diferentes que coexisten en el mismo ledger y ejecutan scripts distintos. La construcción sólo captura que ambos roles emplean la misma sintaxis y semántica \eUTxO. El vínculo entre las dos transacciones pertenece a la lógica de aplicación.
+
+\section{Evento de locking y relación de transferencia}
+\label{sec:modelo-cadenas-evento-locking-relacion-transferencia}
+
+Sea $b$ el identificador de la política de \textit{minting} que se está ejecutando y sea $n_{\mathsf{br}}$ el nombre de activo fijo configurado por el validador. El activo transferible del prototipo es
+$$a_b=(b,n_{\mathsf{br}}).$$
+La implementación no traduce un valor multiasset arbitrario: preserva una cantidad positiva $q$ de este único activo. Como ambos roles comparten el mismo ledger y la misma política, la representación de origen y la emitida en destino coinciden en política, nombre y cantidad. El \textit{lovelace} asociado a los outputs se parametriza por separado y no forma parte de la cantidad transferida.
+
+\begin{definition}[Evento de locking]
+\label{def:evento-locking}
+\normalfont
+Una transacción $t_A\in\mathcal{T}^{\mathsf{br}}$ tiene la forma canónica que puede reconstruir el prototipo cuando su cuerpo CBOR contiene exactamente: un único input; un único output en el índice $0$, dirigido a una dirección $\alpha$, con una cantidad de \textit{lovelace} y $q>0$ unidades de $a_b$; un datum \textit{inline} que codifica $b$ y la credencial de pago de destino $d_B$; y una comisión. Los demás campos opcionales del cuerpo están ausentes. Se define
+$$\mathsf{LockEvent}_A(t_A)=(b,e,q,d_B,\alpha),$$
+donde la identidad del evento es el identificador canónico de la transacción de \Cardano:
+$$e=\TxId(t_A)=\BLAKETwoBTwoFiveSix\bigl(\mathsf{ser}_{\mathsf{CBOR}}(\mathsf{body}(t_A))\bigr).$$
+\end{definition}
+
+El operador entrega los $32$ bytes de $\TxId(t_A)$ tanto al circuito de pertenencia como al circuito de actualización del \SMT, y los validadores exigen que el campo \texttt{locking\_tx\_hash} del redeemer de minting coincida con el campo \texttt{tx\_id} del redeemer del actualizador.
+
+El validador reconstruye el cuerpo CBOR rígido de $t_A$ a partir de la referencia del input, la dirección $\alpha$, la cantidad de \textit{lovelace}, el identificador $b$, el nombre de activo fijo, la cantidad $q$, la credencial $d_B$ y la comisión, y vuelve a calcular el hash canónico. El identificador $b$ se utiliza simultáneamente como política del activo y como campo \texttt{bridge\_id} del datum. La credencial $d_B$ se serializa como una credencial de verificación dentro del datum y el validador de $\MintTx$ exige que un output que recibe $q$ unidades de $a_b$ tenga esa misma credencial de pago.
+
+\begin{definition}[Relación de transferencia entre roles]
+\label{def:relacion-transferencia-lock-mint}
+\normalfont
+Sean $t_A,t_B\in\mathcal{T}^{\mathsf{br}}$. La relación $\mathcal{R}_{\mathsf{lock\text{-}mint}}(t_A,t_B)$ vale si existe
+$$\mathsf{LockEvent}_A(t_A)=(b,e,q,d_B,\alpha)$$
+tal que se satisfacen simultáneamente las siguientes condiciones:
+\begin{enumerate}[noitemsep]
+  \item $e$ pertenece a un \TransactionSnapshot autenticado por un certificado de \Mithril aceptado por la capa de actualización;
+  \item $e$ coincide con el campo \texttt{locking\_tx\_hash} presentado por $t_B$ y con el campo \texttt{tx\_id} de la actualización anti-replay;
+  \item $b$ es la política de \textit{minting} bajo la cual se ejecuta $t_B$ y determina tanto el activo $a_b$ como el campo \texttt{bridge\_id} reconstruido;
+  \item $t_B$ emite exactamente $q$ unidades de $a_b$ y algún output que contiene esa cantidad tiene como credencial de pago a $d_B$;
+  \item la raíz anterior del \SMT representa un estado en el que $e$ está ausente, y la raíz nueva representa el estado resultante de insertarlo; y
+  \item la emisión y el reemplazo del \TxsUpdaterUTxO ocurren atómicamente dentro de $t_B$.
+\end{enumerate}
+\end{definition}
+
+Si $T_{\mathsf{used}}$ denota el conjunto comprometido por la raíz anterior del \SMT, la transición demostrada por el circuito se expresa como
+$$e\notin T_{\mathsf{used}} \qquad\land\qquad T_{\mathsf{used}}'=T_{\mathsf{used}}\cup\{e\}.$$
+La prueba de pertenencia autentica $e$ dentro de \CardanoTransactions; la reconstrucción canónica liga a ese identificador los campos de la $\LockTx$; el validador de minting impone la cantidad, la política y el destinatario; y el actualizador verifica la transición anti-replay.
+
+\section{Alcance de la abstracción}
+\label{sec:modelo-cadenas-alcance-abstraccion}
+
+El modelo anterior permite evaluar la lógica transaccional, la composición de validadores, el consumo de certificados y argumentos, la atomicidad y el mecanismo contra repeticiones usando estructuras reales del entorno \Cardano. Una ejecución de ambos roles sobre la misma \textit{devnet} no prueba transporte entre redes, independencia de consensos, latencia entre cadenas ni políticas de finalidad distintas.
+
+Para un par heterogéneo de cadenas habría que reemplazar las vistas etiquetadas por dos modelos de ledger y adaptadores específicos para sus transacciones, activos, direcciones y reglas de finalidad. Por ello, la contribución evaluada corresponde a un flujo homogéneo sobre una instancia de \Cardano y no a un \zkBridge universal para pares arbitrarios de blockchains.
