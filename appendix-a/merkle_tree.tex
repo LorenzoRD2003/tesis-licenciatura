@@ -1,10 +1,12 @@
 % !TeX root = tesis.tex
 
 \subsection{Definición e intuición}
+\label{subsec:apendice-a-merkle-tree-definicion-e-intuicion}
 
 Los Merkle Trees son estructuras de datos basadas en árboles binarios y funciones de hash criptográficas que se utilizan extensivamente como parte de protocolos criptográficos en el \ROM. Por ejemplo, son utilizadas en la red de \Bitcoin desde sus inicios \cite{nakamoto2009bitcoin}. Fueron introducidas por Merkle en \cite{Merkle1988}.
 
 \begin{definition}[Merkle Tree]
+\label{def:apendice-a-merkle-tree-merkle-tree}
 	Sea $L = \{\ell_1, \ldots, \ell_n\} \subset \Strings{*}$ una secuencia ordenada de datos, y sea $\Hash: \Strings{*} \to \Strings{n}$ una función de hash criptográfica. Un Merkle Tree es un árbol binario $\MerkleTree{T}_{L,\Hash}$ (notado $\MerkleTree{T}$ por comodidad) completo cuyas hojas corresponden a los elementos de $L$, definido recursivamente de la siguiente manera:
 	\begin{enumerate}
 		\item En el nivel inferior, están las hojas del árbol, que son los hashes de los datos ordenados: $h_i = \Hash(\ell_i)$, para $1 \leq i \leq n$.
@@ -16,7 +18,7 @@ Los Merkle Trees son estructuras de datos basadas en árboles binarios y funcion
 
 La propiedad clave de un Merkle Tree $\MerkleRoot{\MerkleTree{T}}$ es que cualquier modificación en un dato $\ell_i$ provoca un cambio en su hoja asociada $\Hash(\ell_i)$, y se propaga hasta $\MerkleRoot{\MerkleTree{T}}$ de una forma impredecible. Esto permite verificar la integridad de un elemento específico sin necesidad de recorrer o almacenar toda la secuencia de datos. Cualquier modificación en un dato (incluso en un solo bit) permite detectar alteraciones de forma inmediata solamente verificando si cambió el valor de $\MerkleRoot{\MerkleTree{T}}$.
 
-Por supuesto, los elementos de la secuencia de datos pueden pertenecer a cualquier conjunto arbitrario $X$ mientras todos sus datos sean finitos, y transformarse a tiras de bits, replicando lo que hicimos en la sección anterior.
+Por supuesto, los elementos de la secuencia de datos pueden pertenecer a cualquier conjunto arbitrario $X$ mientras todos sus datos sean finitos, y transformarse a tiras de bits, replicando la codificación discutida en la Sección~\ref{sec:primitivas-criptograficas-hashes}.
 
 Observar que en las imágenes se indica la secuencia de datos por debajo de $\MerkleTree{T}$, pero se recalca que estos no pertenecen directamente a $\MerkleTree{T}$, sino que el nivel inferior de $\MerkleTree{T}$ está compuesto por los $\Hash(\ell_i)$.
 
@@ -65,10 +67,12 @@ Observar que en las imágenes se indica la secuencia de datos por debajo de $\Me
 \end{figure}
 
 \subsection{Merkle Proofs}
+\label{subsec:apendice-a-merkle-tree-merkle-proofs}
 
 Una de las propiedades más importantes de esta estructura es que permite construir pruebas de pertenencia, también conocidas como Merkle Proofs. Una Merkle Proof permite demostrar que un elemento pertenece a un Merkle Tree $\MerkleTree{T}$ sin necesidad de revelar todos los elementos de la secuencia de datos asociada. En particular, esto permite verificar un solo dato conociendo únicamente la raíz $\MerkleRoot{\MerkleTree{T}}$ y el camino autenticado correspondiente, sin necesidad de replicar el árbol completo en cada lugar donde se quiera verificar pertenencia.
 
 \begin{definition}[Merkle Proof]
+\label{def:apendice-a-merkle-tree-merkle-proof}
 	Sea $\MerkleTree{T}$ un Merkle Tree con raíz $\MerkleRoot{\MerkleTree{T}}$, construido sobre una secuencia de datos $L = \{\ell_1, \ldots, \ell_n\}$ y usando una función de hash criptográfica $\Hash$. Una Merkle Proof para un dato $\ell = (b_1, \ldots, b_k) \in L$ es una lista ordenada $\MerkleProof = [h_1, \ldots, h_k]$ que representa un camino (Merkle Path) desde la hoja correspondiente a $\ell$ hasta $\MerkleRoot{\MerkleTree{T}}$, donde:
 	\begin{itemize}
 		\item Cada $h_i \in \Strings{n}$ es el hash del hermano del nodo del nivel $i$ en el Merkle Path desde la hoja correspondiente a $\ell$ hasta $\MerkleRoot{\MerkleTree{T}}$.
@@ -129,6 +133,7 @@ En la imagen de una Merkle Proof, se observa que es una prueba de pertenencia de
 La seguridad criptográfica de un Merkle Tree se reduce a la resistencia a colisiones de su función de hash. En efecto, una colisión permitiría construir dos subárboles distintos con la misma raíz, comprometiendo la solidez de las pruebas de pertenencia (ver \cite{hac,katz}).
 
 \begin{definition}[Función de verificación de Merkle Proof]
+\label{def:apendice-a-merkle-tree-funcion-de-verificacion-de-merkle-proof}
 	Sea $\MerkleTree{T}$ un Merkle Tree con raíz $\MerkleRoot{\MerkleTree{T}}$, construido usando una función de hash criptográfica $\Hash$, y sea $\MerkleProof$ una Merkle Proof para un dato $\ell \in L$. Definimos la función de verificación de $\MerkleProof$ como:
 	$$\Verify(\ell, \MerkleProof, \MerkleRoot{\MerkleTree{T}}) = \llbracket x_k = \MerkleRoot{\MerkleTree{T}} \rrbracket,$$
 	donde

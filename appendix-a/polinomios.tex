@@ -1,10 +1,12 @@
 % !TeX root = tesis.tex
 
 \subsection{Anillo de polinomios}
+\label{subsec:apendice-a-polinomios-anillo-de-polinomios}
 
 Los polinomios constituyen una de las herramientas algebraicas más versátiles en matemática y criptografía. Permiten representar funciones, modelar relaciones algebraicas y describir cómputos completos. En esta sección introducimos el anillo de polinomios y algunas de sus propiedades fundamentales.
 
 \begin{definition}[Anillo de polinomios]
+\label{def:apendice-a-polinomios-anillo-de-polinomios}
 	Dado un cuerpo $\K$, se define el anillo de polinomios en una indeterminada $x$ sobre $\K$, denotado $\poly{\K}$, como el conjunto de todas las expresiones formales de la forma
 	$$P(x) = a_0 + a_1x + a_2x^2 + \ldots + a_mx^m = \sum_{i=0}^{m} a_i x^i,$$
 	donde $m \in \mathbb{N}$ y $a_0, a_1, a_2, \ldots, a_m \in \K$. Llamamos grado de $P$, notado $\degp P$, al mayor $k \in \N$ tal que $a_k \neq 0$. Las operaciones de este anillo se definen como:
@@ -26,6 +28,7 @@ Se observan las siguientes propiedades para el grado de un polinomio:
 \end{itemize}
 
 \begin{definition}[Raíz de un polinomio]
+\label{def:apendice-a-polinomios-raiz-de-un-polinomio}
 	Dados un polinomio $P \in \poly{\K}$ y un $x^* \in \K$, decimos que $x^*$ es una raíz de $P$ si $P(x^*) = 0$.
 \end{definition}
 
@@ -40,6 +43,7 @@ Como corolario de este teorema, se observa que si $x^*$ es una raíz de $P$, ent
 Aunque los polinomios se definen como expresiones formales, resulta natural asociarles una función mediante evaluación, es decir $P: \K \to \K$. En cuerpos finitos, esta distinción es particularmente relevante: polinomios distintos en $\poly{\Fq}$ pueden inducir la misma función.
 
 \subsection{Lema de Schwartz-Zippel}
+\label{subsec:apendice-a-polinomios-lema-de-schwartz-zippel}
 
 El lema de Schwartz–Zippel es una herramienta fundamental en el estudio de las Pruebas de Identidad de Polinomios (Polynomial Identity Testing, \PIT). Las \PIT son centrales en los proving systems modernos y aparecen de manera recurrentemente en diversos protocolos criptográficos, donde permiten obtener garantías de corrección probabilísticas.
 
@@ -55,10 +59,12 @@ En contextos donde el tamaño del cuerpo es significativamente mayor al grado de
 La hipótesis de elegir $k$ de forma aleatoria es extremadamente importante para la seguridad de los protocolos criptográficos que usan este lema como una de sus herramientas. Si el punto de evaluación pudiera ser elegido de forma maliciosa por un agente que conoce $P, Q$, el lema dejaría de ser aplicable. Ya que si existe un $k^* \in \Fq$ tal que $P(k^*) = Q(k^*)$, entonces el agente malicioso puede usarlo para darnos una garantía (falsa) de que $P = Q$. Esto indica que se requieren mecanismos seguros para la generación de aleatoriedad y su correcta incorporación en los procesos criptográficos que usen el lema de Schwartz-Zippel.
 
 \subsection{Interpolación de polinomios}
+\label{subsec:apendice-a-polinomios-interpolacion-de-polinomios}
 
 La interpolación de polinomios permite reconstruir un polinomio a partir de sus evaluaciones. La interpolación sobre cuerpos finitos desempeña un rol central en construcciones criptográficas modernas, en particular en la aritmetización de cómputos en sistemas de pruebas sucintas.
 
 \begin{definition}[Polinomio interpolador]
+\label{def:apendice-a-polinomios-polinomio-interpolador}
 	Sean $\K$ un cuerpo, $P \in \poly{\K}$ un polinomio, y $D = \left\{(x_0, y_0), (x_1, y_1), \ldots, (x_n, y_n)\right\}$ un conjunto de puntos de $\K \times \K$ donde los $x_i$ son distintos dos a dos. Si se cumple $P(x_i) = y_i$ para cada $0 \leq i \leq n$, entonces decimos que $P$ es un polinomio interpolador de $D$.
 \end{definition}
 

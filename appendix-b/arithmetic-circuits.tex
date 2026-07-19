@@ -1,14 +1,16 @@
 % !TeX root = tesis.tex
 
 \subsection{Introducción a los circuitos aritméticos}
+\label{subsec:apendice-b-arithmetic-circuits-introduccion-a-los-circuitos-aritmeticos}
 
-Hasta ahora, tratamos a las relaciones $\Relation \subseteq \InstanceSpace \times \WitnessSpace$ de forma abstracta, asumiendo únicamente su pertenencia a la clase $\NP$. Sin embargo, para construir \SNARK concretos es necesario describir explícitamente el algoritmo/cómputo (polinomial) que define a $\Relation$, de modo que su correctitud pueda ser verificada eficientemente sin tener que volver a ejecutar dicho cómputo. En este contexto, resulta fundamental contar con una representación estructurada y algebraica de los algoritmos que se desean verificar.
+En la Sección~\ref{sec:aritmetizacion-y-construccion-de-un-snark-snarks} tratamos a las relaciones $\Relation \subseteq \InstanceSpace \times \WitnessSpace$ de forma abstracta, asumiendo únicamente su pertenencia a la clase $\NP$. Sin embargo, para construir \SNARK concretos es necesario describir explícitamente el algoritmo/cómputo (polinomial) que define a $\Relation$, de modo que su correctitud pueda ser verificada eficientemente sin tener que volver a ejecutar dicho cómputo. En este contexto, resulta fundamental contar con una representación estructurada y algebraica de los algoritmos que se desean verificar.
 
 Una forma natural de modelar un cómputo es mediante un circuito, en el cual cada operación elemental se representa como una puerta y el flujo de datos se describe mediante conexiones entre ellas. En general conocemos a los circuitos booleanos, que son adecuados para describir computación a nivel lógico, y estamos acostumbrados a trabajar con ellos.
 
 Pero también sabemos que en el contexto de la construcción de \SNARK, resulta más conveniente trabajar sobre cuerpos finitos y operaciones algebraicas. Esto motiva la introducción del modelo computacional de los circuitos aritméticos \cite{DBLP:journals/ftsec/Thaler22}. Dichos circuitos permiten representar cómputos como composiciones de sumas y multiplicaciones sobre un cuerpo finito.
 
 \begin{definition}[Circuito aritmético]
+\label{def:apendice-b-arithmetic-circuits-circuito-aritmetico}
 	Sea $\K$ un cuerpo finito. Un \textbf{circuito aritmético} $\Circuit$ sobre $\K$ es un grafo dirigido acíclico (DAG) cuyas aristas representan el flujo de valores y cuyos nodos se clasifican en los siguientes tipos:
 	\begin{itemize}[noitemsep]
 		\item \textbf{Nodos de entrada}, que reciben valores en $\K$. Estos nodos representan tanto los \textit{public inputs} como el \textit{witness} privado del cómputo.
@@ -32,6 +34,7 @@ $$f_\Relation : \InstanceSpace \times \WitnessSpace \to \{0,1\},$$
 existe un circuito aritmético $\Circuit_\Relation$ sobre un cuerpo finito $\K$ tal que la evaluación de $\Circuit_\Relation$ sobre $(x,w)$ devuelve el valor esperado si y solo si $f_\Relation(x,w)$ acepta el par $(x,w)$.
 
 \subsection{Construcción de un ejemplo}
+\label{subsec:apendice-b-arithmetic-circuits-construccion-de-un-ejemplo}
 
 Consideramos el cuerpo finito $\Fp$. Supongamos que queremos verificar la siguiente relación (trivial) $\Relation \subseteq \Fp^4 \times \Fp^3$:
 $$\Relation = \{((x_1, x_2, x_3, y), (w_1, w_2, w_3)) \mid y = (w_1 + x_1) \cdot (w_2 + x_2 + 1) + w_3 \cdot x_3\}.$$
@@ -124,9 +127,10 @@ Desde la perspectiva de los \SNARK discutidos en la sección introductoria sobre
 
 En particular, la verificación de un circuito aritmético puede expresarse como un conjunto de restricciones algebraicas (constraints), una por cada puerta del circuito. Esta observación es más profunda de lo que podría parecer inicialmente. En lugar de pensar al circuito como un objeto gráfico compuesto por puertas, podemos reinterpretar toda la computación como un sistema algebraico de ecuaciones, donde cada puerta induce una restricción polinómica de grado a lo sumo $2$. Cada puerta impone una restricción polinómica de bajo grado sobre las variables del cómputo, y la corrección global del circuito equivale entonces a la satisfacibilidad simultánea de todas dichas restricciones.
 
-Esta reformulación puramente algebraica del cómputo es precisamente la perspectiva adoptada por los sistemas de prueba modernos. En la siguiente sección introduciremos Rank-1 Constraint Systems (\ROneCS), que son una representación canónica y particularmente conveniente de circuitos aritméticos para llegar a los \SNARK. En este caso, un \SNARK va a permitir demostrar, mediante un argumento sucinto (asintóticamente menos que la cantidad de compuertas) y no interactivo, que existe una asignación de valores que satisface todas las igualdades inducidas por el circuito $\Circuit$, sin revelar dicha asignación.
+Esta reformulación puramente algebraica del cómputo es precisamente la perspectiva adoptada por los sistemas de prueba modernos. En la Sección~\ref{sec:aritmetizacion-y-construccion-de-un-snark-sistemas-de-restricciones-ronecs-rank-1-constraint-systems} introduciremos Rank-1 Constraint Systems (\ROneCS), que son una representación canónica y particularmente conveniente de circuitos aritméticos para llegar a los \SNARK. En este caso, un \SNARK va a permitir demostrar, mediante un argumento sucinto (asintóticamente menos que la cantidad de compuertas) y no interactivo, que existe una asignación de valores que satisface todas las igualdades inducidas por el circuito $\Circuit$, sin revelar dicha asignación.
 
 \subsection{Lo que tenemos hasta ahora}
+\label{subsec:apendice-b-arithmetic-circuits-lo-que-tenemos-hasta-ahora}
 
 Por ahora, $\Prover$ podría confeccionar un argumento $\pi$ a partir del circuito $\Circuit$. La forma inmediata de hacerlo consistiría en enviar todos los valores involucrados en la evaluación del circuito:
 $$\pi = (w_1, w_2, w_3, s_1, s_2, s_3, m_1, m_2, y') \in \Fp^9.$$
@@ -140,6 +144,7 @@ Por último, tampoco sería un argumento \ZK, ya que no cumple la propiedad de c
 Estos problemas del argumento $\pi$ motivan la necesidad de transformar la descripción del circuito en una representación algebraica más estructurada. En lugar de manipular puertas individualmente, buscaremos un formalismo que capture simultáneamente todas las restricciones del cómputo en una forma uniforme y algebraicamente conveniente, como se desarrolla en las secciones sobre \ROneCS y \QAP. Así mismo, se observa necesario introducir mecanismos criptográficos que permitan comprometer valores sin revelarlos, como se discute en las secciones sobre esquemas de compromiso y \KZG.
 
 \subsection{Limitaciones de los circuitos aritméticos}
+\label{subsec:apendice-b-arithmetic-circuits-limitaciones-de-los-circuitos-aritmeticos}
 
 Nos estamos comprometiendo a trabajar con un modelo de cómputo específico, que tiene propiedades favorables para implementar construcciones criptográficas basadas en \SNARK. Por lo tanto, debemos ser conscientes lo antes posible de qué limitaciones tenemos a la hora de trabajar con él. Cabe notar que la representatividad de los circuitos aritméticos para relaciones en $\NP$ no implica eficiencia automática; optimizar el tamaño y la profundidad de los circuitos es un problema no trivial al que los desarrolladores se enfrentan con frecuencia.
 

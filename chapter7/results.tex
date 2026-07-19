@@ -1,6 +1,6 @@
 % !TeX root = ../tesis.tex
 
-Este capítulo resume el resultado principal de la implementación final: el flujo transaccional del \zkBridge entra dentro de los límites de recursos de \Cardano que motivaron el diseño presentado en los capítulos anteriores. En particular, retomamos \maxTxSize y \maxTxExUnits, introducidos en el capítulo \emph{Cardano y Modelo \eUTxO}. Para evaluarlo, tomamos las transacciones concretas del flujo final y comparamos su tamaño serializado, su consumo de CPU y su consumo de memoria contra los parámetros de protocolo de la Tabla~\ref{tab:cardano-protocol-limits}.
+Este capítulo resume el resultado principal de la implementación final: el flujo transaccional de la Sección~\ref{sec:final-bridge-flow-flujo-final-del-zkbridge} entra dentro de los límites de recursos de \Cardano que motivaron el diseño. En particular, retomamos \maxTxSize y \maxTxExUnits, introducidos en la Sección~\ref{sec:motivation-limites-del-protocolo-y-su-importancia-en-un-zkbridge}. Para evaluarlo, tomamos las transacciones concretas del flujo final y comparamos su tamaño serializado, su consumo de CPU y su consumo de memoria contra los parámetros de protocolo de la Tabla~\ref{tab:cardano-protocol-limits}.
 
 La Tabla \ref{tab:bridge-flow-vs-cardano-limits} concentra ese contraste. El resultado más ajustado en tamaño es \PublishPhaseOneReferenceScriptTx, que ocupa el 96.4\% de \maxTxSize. Del lado de \ExUnits, las transacciones más costosas son las dos fases del verificador \STM, con picos de 72.0\% del presupuesto de CPU y 96.5\% del presupuesto de memoria. La \BridgeMintTxTemplate final también queda por debajo del límite, usando 58.5\% del presupuesto de CPU y 18.7\% del de memoria.
 
@@ -39,7 +39,7 @@ La implementación se encuentra en el repositorio de GitHub \texttt{eryxcoop/zk-
 Además, ese repositorio aporta tres resultados complementarios que ayudan a delimitar el alcance del proyecto:
 
 \begin{enumerate}[noitemsep]
-  \item El flujo integrado del prototipo se ejecuta de punta a punta mediante \texttt{./scripts/bridge.sh run --strict}, encadenando construcción del bundle de \Mithril, \textit{preflight}, \texttt{aiken check} y corrida completa sobre un nodo local \Dolos.
-  \item La suite de \texttt{aiken check} cubre los validadores principales del sistema: \textit{minting}, \StakeDistribution, actualizador de transacciones usadas, pertenencia al \Snapshot, \texttt{phase1}, \texttt{phase2} y \textit{fixtures} de integración.
+  \item El flujo integrado del prototipo, cuya secuencia se detalla en la Subsección~\ref{subsec:final-bridge-flow-el-flujo-principal-del-zkbridge}, se ejecuta de punta a punta mediante \texttt{./scripts/bridge.sh run --strict}, encadenando construcción del bundle de \Mithril, \textit{preflight}, \texttt{aiken check} y corrida completa sobre un nodo local \Dolos.
+  \item La suite de \texttt{aiken check}, descrita en la Subsección~\ref{subsec:final-bridge-flow-estrategia-de-tests-con-aiken-check}, cubre los validadores principales del sistema: \textit{minting}, \StakeDistribution, actualizador de transacciones usadas, pertenencia al \Snapshot, \texttt{phase1}, \texttt{phase2} y \textit{fixtures} de integración.
   \item La validación es reproducible porque el flujo local se apoya en \textit{fixtures} canónicos versionados, en un bundle derivado de manera determinística y en chequeos previos que detectan \textit{drift} entre pruebas, certificados y datos auxiliares antes de enviar transacciones.
 \end{enumerate}

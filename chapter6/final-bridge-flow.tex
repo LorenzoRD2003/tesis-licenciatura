@@ -1,10 +1,12 @@
 % !TeX root = ../tesis.tex
 
 \section{Flujo final del \zkBridge}
+\label{sec:final-bridge-flow-flujo-final-del-zkbridge}
 
-Esta sección describe el flujo operacional completo que une las partes presentadas en las secciones anteriores en un protocolo transaccional ejecutable. En particular, explica cómo se ensamblan las transacciones, qué ajustes de tooling fueron necesarios para volver reproducible el flujo y cómo se organizó la validación mediante tests.
+Esta sección describe el flujo operacional completo que une los validadores de la Sección~\ref{sec:validadores-y-flujo-transaccional-formalizacion-de-los-validadores-principales}, la adaptación de \HaloTwo de la Sección~\ref{sec:mithril-a-cardano-del-circuito-halotwo-de-mithril-a-cardano} y los circuitos auxiliares de las Secciones~\ref{sec:tx-set-update-el-circuito-txsetupdatecircuit} y~\ref{sec:tx-snapshot-membership-el-circuito-de-pertenencia-a-una-transactionsnapshot} en un protocolo transaccional ejecutable. En particular, explica cómo se ensamblan las transacciones, qué ajustes de \textit{tooling} fueron necesarios para volver reproducible el flujo y cómo se organizó la validación mediante tests.
 
 \subsection{El ecosistema \texorpdfstring{\TxThree/\Trix/\CShell/\Dolos}{Tx3/Trix/cshell/dolos}}
+\label{subsec:final-bridge-flow-el-ecosistema-tx3-trix-cshell-dolos}
 
 La implementación final del \zkBridge se apoya en un pequeño ecosistema coordinado de herramientas, además de Aiken. Es el ecosistema \TxThree, \Trix, \CShell y \Dolos. Esta capa fija el protocolo transaccional concreto del \zkBridge, materializa plantillas de transacciones, resuelve \UTxOs, firma y envía transacciones, y mantiene un entorno local donde todo el protocolo se pueda ejecutar de forma determinista.
 
@@ -36,6 +38,7 @@ La Tabla~\ref{tab:bridge-toolchain-versions} resume las versiones de las herrami
 \end{table}
 
 \subsection{Estrategia de tests con \texttt{aiken check}}
+\label{subsec:final-bridge-flow-estrategia-de-tests-con-aiken-check}
 
 La estrategia de tests del repositorio está organizada alrededor de \texttt{aiken check}. En \Cardano, los tests verdaderamente útiles para validadores no solamente reproducen una propiedad lógica, sino que recorren el camino de traducción a \UPLC. Por eso, \texttt{aiken check} es central: valida semántica, produce trazas y reporta unidades de ejecución suficientemente cercanas a las reales como para guiar el diseño y detectar problemas antes de correr el flujo integrado \cite{aiken2026}. En el repositorio, esta estrategia adopta una forma cercana a una pirámide de validación. La ventaja de esta organización es que separa bien los tipos de falla.
 
@@ -49,6 +52,7 @@ La estrategia de tests del repositorio está organizada alrededor de \texttt{aik
 Además, integramos \texttt{aiken check} al mismo flujo principal del \zkBridge. En particular, \BridgeRunStrictCommand ejecuta primero un \textit{preflight} que valida la coherencia del estado actual del repositorio para poder llevar a cabo las mediciones y ejecutar validadores, y sólo después corre \texttt{aiken check}. Del mismo modo, si \texttt{aiken check} falla, tampoco vale la pena arrancar \Dolos ni construir la secuencia completa de transacciones.
 
 \subsection{El flujo principal del \zkBridge}
+\label{subsec:final-bridge-flow-el-flujo-principal-del-zkbridge}
 
 El punto de entrada principal del \zkBridge es \BridgeRunStrictCommand. Consideramos a este comando como la implementación final de la prueba de concepto del \zkBridge en \Cardano. Podemos resumirlo en:
 

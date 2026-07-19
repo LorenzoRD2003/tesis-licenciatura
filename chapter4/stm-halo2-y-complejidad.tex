@@ -1,24 +1,28 @@
 % !TeX root = ../tesis.tex
 
 \subsection{Qué aporta \HaloTwo en este capítulo}
+\label{subsec:stm-halo2-y-complejidad-que-aporta-halotwo-en-este-capitulo}
 
 En este capítulo, \HaloTwo se utiliza como un sistema de aritmetización \textit{PLONKish}: transforma la relación abstracta $\STMRelation$ en un circuito organizado en filas, columnas y restricciones locales \cite{cryptoeprint:2019/953}. Las columnas contienen valores asignados por el \textit{prover}, constantes del circuito o entradas públicas; las restricciones locales verifican operaciones del circuito, mientras que los argumentos de permutación y los \textit{lookups} permiten expresar igualdades entre celdas y pertenencia a tablas. La prueba se construye mediante compromisos polinomiales, cuya instancia concreta utiliza \KZG.
 
-La definición abstracta de \SNARK, la relación entre circuitos y restricciones algebraicas, y el funcionamiento de \KZG se presentan en el Apéndice B. Esta sección se concentra únicamente en cómo la aritmetización concreta representa los cuatro chequeos de $\STMRelation$ y en las consecuencias estructurales de esa compilación para el circuito STM.
+La definición abstracta de \SNARK y la relación entre circuitos y restricciones algebraicas se presentan en la Definición~\ref{def:apendice-b-snark-snark-zksnark} y en las secciones iniciales del Apéndice~\ref{chap:aritmetizacion-y-construccion-de-un-snark}; el funcionamiento de \KZG se desarrolla en la Sección~\ref{sec:aritmetizacion-y-construccion-de-un-snark-kzg}. Esta sección se concentra únicamente en cómo la aritmetización concreta representa los cuatro chequeos de $\STMRelation$ y en las consecuencias estructurales de esa compilación para el circuito STM.
 
 \subsection{Del protocolo \SNARK al circuito STM}
+\label{subsec:stm-halo2-y-complejidad-del-protocolo-snark-al-circuito-stm}
 
-Como se explica en el Apéndice B, un \SNARK recibe una instancia pública $x$, un \textit{witness} $w$ y produce una prueba $\pi$ que el verificador puede comprobar sin reconstruir el cómputo completo. En este capítulo, la instancia pública está formada por los parámetros de la época, el mensaje y los compromisos publicados; el \textit{witness} contiene las evidencias de los firmantes, sus caminos de Merkle y los valores auxiliares necesarios para verificarlas.
+Como se formaliza en la Definición~\ref{def:apendice-b-snark-snark-zksnark}, un \SNARK recibe una instancia pública $x$, un \textit{witness} $w$ y produce una prueba $\pi$ que el verificador puede comprobar sin reconstruir el cómputo completo. En este capítulo, la instancia pública está formada por los parámetros de la época, el mensaje y los compromisos publicados; el \textit{witness} contiene las evidencias de los firmantes, sus caminos de Merkle y los valores auxiliares necesarios para verificarlas.
 
 El objetivo de esta sección no es volver a definir el protocolo \SNARK, sino describir cómo la relación $\STMRelation$ se traduce a las restricciones del circuito que luego procesa \HaloTwo.
 
 \subsection{Representación del circuito en \HaloTwo}
+\label{subsec:stm-halo2-y-complejidad-representacion-del-circuito-en-halotwo}
 
 En \HaloTwo, un circuito se organiza como un \Layout: una disposición tabular de filas y columnas que permite reutilizar la misma estructura de restricciones a lo largo del dominio de evaluación. Cada fila representa una instancia local del cálculo, mientras que las columnas almacenan los valores que participan de esas restricciones.
 
 Las columnas \Advice contienen valores asignados por el \textit{prover}; las columnas \Fixed contienen constantes determinadas por la configuración del circuito; y las columnas \Instance contienen las entradas públicas que recibe el verificador. Esta distinción es relevante para el circuito STM, porque las evidencias de los firmantes forman parte del \textit{witness}, mientras que el mensaje, los parámetros de época y los compromisos forman parte de la instancia pública.
 
 \subsection{De la relación \texorpdfstring{\(\NP\)}{NP} a una aritmetización \textit{PLONKish}}
+\label{subsec:stm-halo2-y-complejidad-de-la-relacion-np-a-una-aritmetizacion-plonkish}
 
 Sea $\EvalDomain = \{\omega^0,\omega^1,\ldots,\omega^{n-1}\} \subseteq \Fq$ un subgrupo multiplicativo de orden $n$, y sea $\VanishingPoly(X) = \prod_{h \in \EvalDomain} (X - h) = X^n - 1 \in \poly{\Fq}$ su \textit{vanishing polynomial}. La aritmetización de \HaloTwo consiste en asociar a cada columna del \Layout un polinomio de grado menor que $n$ interpolado sobre \EvalDomain. En lo que sigue usamos estos nombres sólo para describir la aritmetización concreta, mientras que la relación abstracta continúa expresándose mediante $\PublicInputs$ y $\PrivateInputs$. Notamos:
 \begin{itemize}[noitemsep]
@@ -32,6 +36,7 @@ $$G_j \left(\AdvicePoly{1}(\omega^r), \ldots, \AdvicePoly{a}(\omega^r), \FixedPo
 donde cada $G_j$ es un polinomio multivariado de bajo grado.
 
 \subsection{Restricciones específicas de la relación STM}
+\label{subsec:stm-halo2-y-complejidad-restricciones-especificas-de-la-relacion-stm}
 
 Aplicado al circuito \STM, esto significa que los cuatro chequeos ya introducidos en $\STMRelation(\PublicInputs, \PrivateInputs) = 1$ deben reescribirse como igualdades locales sobre filas del \Layout. En particular:
 \begin{itemize}[noitemsep]
@@ -42,12 +47,14 @@ Aplicado al circuito \STM, esto significa que los cuatro chequeos ya introducido
 \end{itemize}
 
 \subsection{Compilación algebraica y verificación global}
+\label{subsec:stm-halo2-y-complejidad-compilacion-algebraica-y-verificacion-global}
 
 Todas estas familias de restricciones se agregan luego en una única identidad global. Más precisamente, si notamos \ConstraintNumerator a la combinación aleatorizada de \textit{gates}, condiciones de borde, consistencia con \textit{public inputs}, permutaciones y \textit{lookups}, entonces el \textit{prover} debe exhibir un polinomio $\QuotientPoly \in \poly{\Fq}$ tal que $\ConstraintNumerator(X) = \QuotientPoly(X) \cdot \VanishingPoly(X)$.
 
 Se debe verificar que $\ConstraintNumerator(x) = 0$ para todo $x \in \EvalDomain$. Se utiliza \KZG como \PCS para los polinomios involucrados, de modo que esa identidad se pueda verificar mediante $\Open$ en pocos puntos aleatorios derivados con \FiatShamir.
 
 \subsection{Argumentos de permutación, \textit{lookups} y columnas auxiliares}
+\label{subsec:stm-halo2-y-complejidad-argumentos-de-permutacion-lookups-y-columnas-auxiliares}
 
 \HaloTwo utiliza argumentos de permutación y de \textit{lookup} para expresar igualdades entre celdas y pertenencia a tablas, respectivamente. El tratamiento general de estos mecanismos pertenece a la descripción del protocolo y se remite al Apéndice B. En el circuito STM sólo nos interesa su consecuencia concreta: las permutaciones garantizan la consistencia entre valores reutilizados en distintas filas del \Layout, mientras que los \textit{lookups} permiten implementar los \textit{range checks} de la lotería.
 
@@ -59,6 +66,7 @@ $$x < y \iff \left(\HighPart{x} < \HighPart{y} \right) \;\vee\; \left(\HighPart{
 En consecuencia, el costo algebraico del circuito no queda determinado únicamente por las columnas explícitas: también depende de los recursos auxiliares que \HaloTwo introduce para verificar estas condiciones de consistencia global.
 
 \subsection{Uso de crates de \texorpdfstring{\textnormal{\Midnight}}{Midnight}}
+\label{subsec:stm-halo2-y-complejidad-uso-de-crates-de-midnight}
 
 La descripción anterior corresponde a \HaloTwo/\KZG en abstracto. En \Mithril, sin embargo, la aritmetización concreta no se escribe directamente contra una API mínima de columnas y \textit{gates}, sino a través de las crates \texttt{midnight\_proofs} y \texttt{midnight\_zk\_stdlib}. Este detalle importa matemáticamente porque fija una transformación intermedia
 $$\mathcal{C}_{\mathsf{Mid}}: \STMRelation \to \Circuit_{\mathsf{Halo2/KZG}},$$
@@ -75,6 +83,7 @@ $$\AdviceCols \approx \max\{\ArithCols, \EccCols, \PoseidonCols, \RangeCols \},$
 más algunos recursos adicionales de soporte. Esto justifica por qué no es correcto estimar el costo del \textit{prover} sumando ingenuamente columnas ``por componente''.
 
 \subsection{Grado algebraico del circuito}
+\label{subsec:stm-halo2-y-complejidad-grado-algebraico-del-circuito}
 
 Diremos que un circuito de \HaloTwo tiene \emph{grado algebraico} a lo sumo $d$ si toda restricción/\textit{gate} local $G(X_1, \ldots, X_m) \in \Fq[X_1, \ldots, X_m]$ puede escribirse mediante un polinomio multivariado de grado total a lo sumo $d$. \MidnightSTMCircuit tiene grado algebraico $5$.
 
@@ -87,9 +96,10 @@ En consecuencia, las restricciones que implementan esta transición pueden alcan
 La compilación concreta en \HaloTwo incorpora además restricciones auxiliares, como las asociadas a permutaciones y \textit{lookups}. Estas restricciones pertenecen a la representación del circuito y no forman parte de la definición de la S-box. En la práctica, la representación resultante puede requerir fragmentar \QuotientPoly en varios \textit{chunks} cuando su grado excede el rango soportado por la \SRS; esta es una consecuencia del \textit{backend} y de la configuración de la prueba, no una modificación de la S-box.
 
 \subsection{Costo estructural del \textit{prover}}
+\label{subsec:stm-halo2-y-complejidad-costo-estructural-del-prover}
 
 Denotamos por \BaseCols al número de polinomios correspondientes a columnas visibles, y por $\AuxCols = \PermCols + \LookupCols + \QuotCols$ al número de polinomios auxiliares inducidos por permutación, \textit{lookups} y \textit{quotient}. Una cota heurística razonable para el costo del \textit{prover} es
 $$\ProverCost = \BigO\left((\BaseCols + \AuxCols) \, n \log n\right) +  \BigO\left(\CommitCols \cdot \MSM(n)\right),$$
-donde $\CommitCols$ es el número de compromisos \KZG efectivamente producidos. Esta fórmula no es un teorema, pero sí es un resumen razonable del costo: transformaciones tipo \FFT sobre dominios de tamaño $n$, construcción de polinomios auxiliares y \MSM grandes sobre la \SRS para \textit{batch commitments} en \KZG. La operación \MSM se define y analiza en el Apéndice B.
+donde $\CommitCols$ es el número de compromisos \KZG efectivamente producidos. Esta fórmula no es un teorema, pero sí es un resumen razonable del costo: transformaciones tipo \FFT sobre dominios de tamaño $n$, construcción de polinomios auxiliares y \MSM grandes sobre la \SRS para \textit{batch commitments} en \KZG. La operación \MSM y su incidencia en el costo se describen en la Subsección~\ref{subsec:apendice-b-groth16-complejidad-de-groth}.
 
 El circuito \MidnightSTMCircuit parece estar dominado por aritmética de curva elíptica sobre \Jubjub, así como evaluaciones repetidas de \PoseidonHash.

@@ -1,12 +1,14 @@
 % !TeX root = ../tesis.tex
 
 \section{El circuito de pertenencia a una \texorpdfstring{\TransactionSnapshot}{TransactionSnapshot}}
+\label{sec:tx-snapshot-membership-el-circuito-de-pertenencia-a-una-transactionsnapshot}
 
 Para orientar la lectura, esta sección separa tres niveles de la misma verificación. Primero fija la relación matemática que se quiere probar: que un \TxId pertenece al conjunto de transacciones comprometido por una raíz \TxSetRoot certificada por \Mithril. Luego distingue qué datos deben quedar como \textit{public inputs} del argumento \Groth, concretamente \TxId, \SnapshotSubRoot y \TxSetRoot, y qué datos permanecen como \textit{witness}, principalmente los caminos Merkle y la cadena ASCII que identifica el rango de bloques. Finalmente, muestra cómo esos valores públicos se empaquetan para el verificador \Onchain y cómo el \MintingValidator los enlaza con el \TransactionSnapshotCertificate ya validado.
 
 Este circuito resuelve cómo convencer a la cadena destino \ChainB de que la \LockTx de \ChainA efectivamente pertenece al \TransactionSnapshot de \Cardano autenticado por un certificado de \Mithril. Es decir, argumenta la pertenencia respecto de la Merkle Root de \CardanoTransactions que un \TransactionSnapshotCertificate expone en su \ProtocolMsg. Esto importa porque el \MintingValidator no solamente valida un \TransactionSnapshotCertificate contra el \ProofReceipt que dejó la fase 2 del verificador \STM, sino que además consume un argumento \Groth generado por \TxSnapshotMembershipCircuit para verificar que el \TxId de la \LockTx pertenece al snapshot autenticado por \TransactionSnapshotCertificate.
 
 \subsection{Modelo matemático del \texorpdfstring{\TransactionSnapshot}{TransactionSnapshot} Pythagoras de Mithril}
+\label{subsec:tx-snapshot-membership-modelo-matematico-del-transactionsnapshot-pythagoras-de-mithril}
 
 En la implementación actualmente compatible con el \MithrilAggregator, la entidad \CardanoTransactions se autentica mediante el esquema \LegacyHashScheme de la era \Pythagoras. Como acabamos de describir, la prueba tiene estructura de dos niveles: un \emph{sub-tree} que agrupa un rango contiguo de transacciones de \Cardano, y un \emph{master tree} cuyas hojas son un compromiso de cada \textit{sub-tree} junto con el rango que representa.
 
@@ -25,6 +27,7 @@ El argumento completo de pertenencia queda descompuesto en:
 \end{enumerate}
 
 \subsection{\textit{Public inputs} y \textit{witness} del circuito}
+\label{subsec:tx-snapshot-membership-public-inputs-y-witness-del-circuito}
 
 Para este circuito, tenemos $\PublicInputs = (\TxId,\SnapshotSubRoot,\TxSetRoot) \in \InstanceSpace$, donde $\TxId \in \Bytes{32}$ es el identificador de transacción de \Cardano cuya pertenencia queremos demostrar, $\SnapshotSubRoot \in \Bytes{32}$ es la Merkle Root del \textit{sub-tree} que contiene a \TxId, y $\TxSetRoot \in \Bytes{32}$ es la Merkle Root certificada por el \TransactionSnapshotCertificate de \Mithril.
 
@@ -53,6 +56,7 @@ $$\left(\begin{aligned}
 \end{aligned}\right).$$
 
 \subsection{La relación \texorpdfstring{\(\NP\)}{NP} de \TxSnapshotMembershipCircuit}
+\label{subsec:tx-snapshot-membership-la-relacion-np-de-txsnapshotmembershipcircuit}
 
 Tenemos $\InstanceSpace = \Bytes{32}^3$ y $\WitnessSpace = \left\{(\SubPrefixWitness, \SubUpperWitness, \alpha, \MasterPrefixWitness, \MasterUpperWitness)\right\}$ compatibles con los formatos ya descritos. Formalmente, cada paso activo del \SubPrefix o del \MasterPrefix es una tripla $\psi = (k, s, b)$ con $k,b \in \{0,1\}$, donde $k$ indica si el hermano $s$ se interpreta como bytes o como hash, y $b$ indica si ese hermano se ubica a la izquierda del nodo actual. Para compactar la notación, escribimos
 $$\MergeOp(x,s,b) = \begin{cases}
@@ -82,6 +86,7 @@ Decimos que $\TxSnapshotMembershipRelation(\PublicInputs, \PrivateInputs) = 1$ s
 \end{quote}
 
 \subsection{Familias de restricciones del circuito}
+\label{subsec:tx-snapshot-membership-familias-de-restricciones-del-circuito}
 
 La relación anterior es implementada en \Circom para ser convertida a un circuito aritmético y luego a un \QAP. En conjunto, estas restricciones prueban pertenencia, y además descartan \textit{witness} inválidos, incoherencias de longitud y usos incompatibles.
 
@@ -99,8 +104,9 @@ La relación anterior es implementada en \Circom para ser convertida a un circui
 \end{enumerate}
 
 \subsection{Vínculo exacto con \MintingValidator}
+\label{subsec:tx-snapshot-membership-vinculo-exacto-con-mintingvalidator}
 
-La utilidad del circuito en el protocolo aparece al mirar la interfaz del \MintingValidator, cuyas condiciones de aceptación fueron formalizadas en las secciones iniciales de este capítulo y forman parte de las condiciones necesarias de \MintTx. El mapeo entre la matemática del argumento \Groth y la validación \Onchain es el siguiente:
+La utilidad del circuito en el protocolo aparece al mirar la interfaz del \MintingValidator, cuyas condiciones de aceptación fueron formalizadas en la Subsección~\ref{subsec:validadores-y-flujo-transaccional-validador-de-minting-del-zkbridge} y forman parte de las condiciones necesarias de \MintTx. El mapeo entre la matemática del argumento \Groth y la validación \Onchain es el siguiente:
 \begin{enumerate}[noitemsep]
 	\item El validador construye un \texttt{ReducedMithril\allowbreak Certificate} a partir de los campos planos del \textit{redeemer}.
 	\item Inspecciona los inputs de la transacción para recuperar el \texttt{statement\_hash} persistido en el \ProofReceipt de fase 2 y, con eso, ejecuta la verificación del certificado contra el certificado padre autenticado por el \StakeDistributionUTxO de referencia.
@@ -109,6 +115,7 @@ La utilidad del circuito en el protocolo aparece al mirar la interfaz del \Minti
 \end{enumerate}
 
 \subsection{Transición experimental a \Lagrange}
+\label{subsec:tx-snapshot-membership-transicion-experimental-a-lagrange}
 
 Junto con el circuito \textit{legacy} integrado hoy al operador, el repositorio mantiene un experimento separado: \texttt{mithril\_lagrange\_tx\_membership\_experimental\allowbreak.circom}. Ese archivo adelanta la geometría esperada para la era \Lagrange: un único Merkle Tree plano de transacciones, un \texttt{leaf\_index}, un vector de siblings y una función de hash \MidnightPoseidonHash de \Midnight. En su forma actual, el circuito experimental recibe:
 \begin{enumerate}[noitemsep]

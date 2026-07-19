@@ -1,10 +1,12 @@
 % !TeX root = tesis.tex
 
 \subsection{Funciones de hash criptográficas}
+\label{subsec:apendice-a-hashes-funciones-de-hash-criptograficas}
 
 Las funciones de hash son una primitiva criptográfica sumamente popular. Ejemplos conocidos son \MDFive, \SHAOne, \SHATwoFiveSix, \BLAKETwo, \BLAKEThree, \RIPEMD, \PoseidonHash, entre muchas otras. Estas serán utilizadas frecuentemente en el desarrollo del proyecto, y permiten construir primitivas criptográficas más avanzadas.
 
 \begin{definition}[Función de hash criptográfica]
+\label{def:apendice-a-hashes-funcion-de-hash-criptografica}
 	Sea $n \in \mathbb{N}$. Se dice que $\Hash: \Strings{*} \to \Strings{n}$ es una función de hash criptográfica si satisface las siguientes propiedades:
 	\begin{itemize}[noitemsep]
 		\item Pueden ser implementadas determinísticamente en forma eficiente.
@@ -25,12 +27,14 @@ En criptografía, la seguridad de muchas construcciones se analiza en modelos id
 Podemos transformar cualquier estructura matemática o información finita a una tira de bytes, es decir al conjunto $\Strings{*}$, y elegir un $n$ suficientemente grande como para que valga la propiedad de resistencia a colisiones. Esto es lo que se hace en la práctica. Entonces, dada una función de hash $\Hash$ y un conjunto arbitrario $X$ donde sus elementos tienen tamaño finito, podemos hablar de la función de hash asociada $\Hash_X: X \to \Strings{n}$, y por comodidad de notación usar simplemente $\Hash$.
 
 \subsection{Domain separation}
+\label{subsec:apendice-a-hashes-domain-separation}
 
 En construcciones criptográficas modernas es habitual reutilizar una misma función de hash en múltiples contextos dentro de un protocolo. Sin embargo, esta reutilización puede introducir interacciones indeseadas entre componentes que, idealmente, deberían comportarse de manera independiente. La técnica de \textit{domain separation} consiste en forzar dicha independencia lógica modificando la entrada de la función de hash mediante etiquetas, prefijos o parámetros públicos.
 
 Es decir, permite que una misma función $\Hash$ actúe como si fueran múltiples funciones independientes. Por ejemplo, en lugar de computar simplemente $\Hash(x)$, se evalúan expresiones del tipo $\Hash(\texttt{commit} \concat x)$ o $\Hash(\texttt{challenge} \concat x)$. De esta forma, aunque los valores de entrada coincidan, los hashes pertenecen a dominios criptográficamente aislados. Esta técnica resulta fundamental a lo largo de esta tesis, por ejemplo, en la heurística de \FiatShamir.
 
 \subsection{Hash hacia curvas elípticas}
+\label{subsec:apendice-a-hashes-hash-hacia-curvas-elipticas}
 
 En numerosos protocolos criptográficos modernos resulta necesario mapear datos arbitrarios (es decir, tiras de bits de $\Strings{*}$) a puntos de una curva elíptica. Este problema no es trivial: una función de hash produce cadenas de bits, mientras que los puntos de una curva elíptica deben satisfacer una ecuación algebraica específica. Formalmente, buscamos una función determinística y eficiente
 
@@ -56,6 +60,7 @@ En la práctica, estas funciones no se construyen directamente, sino mediante tr
 Más precisamente, estos mapeos algebraicos consisten en funciones racionales definidas sobre $\Fq$, diseñadas de modo que su imagen pertenezca a $\E(\Fq)$ con alta probabilidad o de forma determinística. Dichas funciones se construyen utilizando identidades algebraicas que garantizan la satisfacción de la ecuación de la curva.
 
 \subsection{Firmas Schnorr sobre curvas elípticas}
+\label{subsec:apendice-a-hashes-firmas-schnorr-sobre-curvas-elipticas}
 
 Si fijamos un subgrupo cíclico de una curva elíptica $\gen{G} \subseteq \E(\Fq)$ de orden primo $r$, es natural construir sobre él primitivas criptográficas concretas. Un ejemplo es el esquema de firmas de Schnorr, que será utilizado en la tesis.
 

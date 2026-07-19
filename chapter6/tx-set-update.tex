@@ -1,12 +1,14 @@
 % !TeX root = ../tesis.tex
 
 \section{El circuito \TxSetUpdateCircuit}
+\label{sec:tx-set-update-el-circuito-txsetupdatecircuit}
 
-En las secciones iniciales de este capítulo introdujimos el problema \textit{anti-replay} del camino $\LockTx \rightarrow \MintTx$: aun si el \zkBridge dispone de una prueba correcta de que cierta \LockTx ocurrió en \Cardano y pertenece a un \TransactionSnapshot autenticado por \Mithril, todavía falta evitar que esa misma evidencia se reutilice para mintear dos veces. La función del circuito \TxSetUpdateCircuit es precisamente cerrar esa brecha. No prueba pertenencia de una transacción en un snapshot certificado por \Mithril; esa es la responsabilidad del circuito \texttt{snapshot\_membership}. Lo que prueba aquí es que el \SMT local del bridge, que resume el conjunto de transacciones ya consumidas por el protocolo, fue actualizado correctamente al pasar de un estado donde la transacción reclamada estaba ausente a otro donde esa misma transacción figura como presente.
+En la Subsección~\ref{subsec:validadores-y-flujo-transaccional-transaccion-de-minting-en-la-cadena-destino} introdujimos el problema \textit{anti-replay} del camino $\LockTx \rightarrow \MintTx$: aun si el \zkBridge dispone de una prueba correcta de que cierta \LockTx ocurrió en \Cardano y pertenece a un \TransactionSnapshot autenticado por \Mithril, todavía falta evitar que esa misma evidencia se reutilice para mintear dos veces. La función del circuito \TxSetUpdateCircuit es precisamente cerrar esa brecha. No prueba pertenencia de una transacción en un snapshot certificado por \Mithril; esa es la responsabilidad del circuito desarrollado en la Sección~\ref{sec:tx-snapshot-membership-el-circuito-de-pertenencia-a-una-transactionsnapshot}. Lo que prueba aquí es que el \SMT local del bridge, que resume el conjunto de transacciones ya consumidas por el protocolo, fue actualizado correctamente al pasar de un estado donde la transacción reclamada estaba ausente a otro donde esa misma transacción figura como presente.
 
 Esta distinción es importante porque el circuito se verifica \Onchain en un lugar muy preciso del flujo. El argumento \Groth asociado a \TxSetUpdateCircuit es consumido por \TxsUpdaterMintingValidator, mientras que el argumento de pertenencia en el snapshot certificado es consumido por \MintingValidator. Ambos scripts deben validarse dentro de la misma \MintTx. Por eso conviene separar con cuidado tres niveles que en el código aparecen superpuestos: el \emph{statement} semántico del circuito, su interfaz aritmética compilada para \Groth y la manera en que el validador Aiken recupera de la transacción los datos necesarios para invocar al verificador.
 
 \subsection{Modelo matemático del \SMT}
+\label{subsec:tx-set-update-modelo-matematico-del-smt}
 
 Fijamos un \SMT $\MerkleTree{T}$ de altura $H = 256$, cuyas hojas están indexadas por elementos de $\Bytes{32}$, o equivalentemente de $\Strings{256}$. El circuito trabaja sobre el cuerpo escalar $\Fr$ de \BLS, de modo que cada nodo interno del árbol es un elemento de $\Fr$. Las hojas usan como codificación $\EmptyNode = 0 \in \Fr$ para ausencia de la transacción y $1 \in \Fr$ si está presente.
 
@@ -17,6 +19,7 @@ La posición de una transacción dentro del \SMT viene determinada por el identi
 Sea ahora $\SiblingVec = (h_0,\ldots,h_{255}) \in \Fr^{256}$ el vector de hermanos del camino asociado a \TxId, escrito también en orden de raíz hacia hoja. El mismo vector \SiblingVec sirve simultáneamente para probar ausencia antes de la actualización y presencia después de ella, porque la única diferencia entre ambos estados es el valor de la hoja terminal. Ningún nodo hermano fuera de ese camino se modifica.
 
 \subsection{\textit{Public inputs} y \textit{witness} del circuito}
+\label{subsec:tx-set-update-public-inputs-y-witness-del-circuito}
 
 Los \textit{public inputs} del circuito están dados por la tripla $\PublicInputs = (\TxId, \RootIn, \RootOut)$, donde $\TxId \in \Bytes{32}$ es el identificador de la transacción, $\RootIn \in \Fr$ es la raíz del conjunto antes de procesarla y $\RootOut \in \Fr$ es la raíz después de marcarla como usada. El \textit{witness} es simplemente $\PrivateInputs = \SiblingVec = (h_0,\ldots,h_{255}) \in \Fr^{256}$.
 
@@ -33,6 +36,7 @@ $$\TxId_{\mathrm{hi}} = \sum_{i=0}^{15} \TxId[i]\cdot 256^{15-i}, \qquad \TxId_{
 En el validador de Aiken, usamos esta convención para reconstruir \TxIdHi y \TxIdLo a partir del \textit{redeemer}.
 
 \subsection{La relación \texorpdfstring{\(\NP\)}{NP} de \TxSetUpdateCircuit}
+\label{subsec:tx-set-update-la-relacion-np-de-txsetupdatecircuit}
 
 Tenemos $\InstanceSpace = \Bytes{32} \times \Fr \times \Fr$, $\WitnessSpace = \Fr^{256}$, y consideramos la relación
 $\TxSetUpdateRelation \subseteq \InstanceSpace \times \WitnessSpace$. Consideramos $\PublicInputs = (\TxId, \RootIn, \RootOut) \in \InstanceSpace$ y $\PrivateInputs = (h_0,\ldots,h_{255}) \in \WitnessSpace$. Sea además $(b_0,\ldots,b_{255})$ la expansión \textit{big-endian} de \TxId.
@@ -53,6 +57,7 @@ Como ambos chequeos utilizan los mismos vectores, la nueva raíz \RootOut no pue
 $$\TxSetUpdateLanguage = \left\{(\TxId, \RootIn, \RootOut) \in \InstanceSpace \;\middle|\; \exists \; \SiblingVec \in \WitnessSpace: \TxSetUpdateRelation(\PublicInputs,\PrivateInputs)=1 \right\}.$$
 
 \subsection{Familias de restricciones del circuito}
+\label{subsec:tx-set-update-familias-de-restricciones-del-circuito}
 
 La relación anterior es implementada en \Circom para ser convertida a un circuito aritmético y luego a un \QAP.
 
@@ -65,8 +70,9 @@ La relación anterior es implementada en \Circom para ser convertida a un circui
 \end{enumerate}
 
 \subsection{Vínculo con \TxsUpdaterMintingValidator}
+\label{subsec:tx-set-update-vinculo-con-txsupdatermintingvalidator}
 
-La utilidad del circuito en el protocolo aparece al mirar \TxsUpdaterMintingValidator. Sus condiciones de aceptación fueron formalizadas en las secciones iniciales de este capítulo y forman parte de las condiciones necesarias de \MintTx. El mapeo entre la matemática del argumento \Groth y la validación \Onchain es el siguiente:
+La utilidad del circuito en el protocolo aparece al mirar \TxsUpdaterMintingValidator. Sus condiciones de aceptación fueron formalizadas en la Subsección~\ref{subsec:validadores-y-flujo-transaccional-validador-del-conjunto-de-transacciones-procesadas} y forman parte de las condiciones necesarias de \MintTx. El mapeo entre la matemática del argumento \Groth y la validación \Onchain es el siguiente:
 
 \begin{enumerate}[noitemsep]
   \item El \UTxO \TxsUpdaterUTxO de entrada contiene la raíz anterior \RootIn en su \textit{datum};

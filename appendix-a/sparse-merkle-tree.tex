@@ -1,12 +1,14 @@
 % !TeX root = tesis.tex
 
 \subsection{Definición e Intuición}
+\label{subsec:apendice-a-sparse-merkle-tree-definicion-e-intuicion}
 
 Los Merkle Trees tradicionales permiten realizar pruebas eficientes de pertenencia a un conjunto de datos finito. Pero hay una limitación fundamental a la hora de realizar pruebas de exclusión, es decir de la \textbf{no pertenencia} de un dato $\ell$ a un conjunto $L$. En un Merkle Tree clásico, las hojas corresponden exclusivamente a los elementos de $L$. Una posible solución sería definir un orden total sobre $L$ (si fuera posible), construyendo una prueba de exclusión mostrando que el elemento consultado se encuentra entre dos hojas consecutivas del árbol. Observamos que en protocolos criptográficos esto no es ideal, pues se debe revelar información adicional sobre elementos vecinos en $L$.
 
 Para superar estas limitaciones se introducen los \SMT. La idea de una estructura de datos que permite tanto actualizar como revocar certificados fue introducida por primera vez en \cite{Naor2000}.
 
 \begin{definition}[Default hashes, Sparse Merkle Tree]
+\label{def:apendice-a-sparse-merkle-tree-default-hashes-sparse-merkle-tree}
 	Sean $k, n \in \N$, y $\Hash$ una función de hash criptográfica, y sea $D = \Strings{k}$ el dominio completo de posibles elementos (cadenas de $k$ bits). Definimos primero los \textbf{default hashes} por nivel de forma recursiva:
 	
 	$$z_0 := \Hash(\EmptyNode), \qquad \defaultHash{i} := \Hash(\defaultHash{i-1} \concat \defaultHash{i-1}) \quad \text{para } 0 < i \leq k.$$
@@ -82,10 +84,12 @@ Cada default hash $\defaultHash{i}$ es un valor que representa un subárbol comp
 La ventaja de representar implícitamente la mayor parte de los nodos no se aprecia del todo en la figura \ref{fig:sparse-merkle-tree}, ya que allí la altura del árbol es muy pequeña. Sin embargo, para valores de $k$ usados en la práctica, como $224$ o $256$, almacenar explícitamente todos los nodos del árbol completo resulta completamente inviable. Esa es precisamente la motivación operativa detrás de los \SMT.
 
 \subsection{Sparse Merkle Proofs}
+\label{subsec:apendice-a-sparse-merkle-tree-sparse-merkle-proofs}
 
 Los \SMT permiten definir pruebas de exclusión eficientes: para demostrar que $\ell \not\in L$, basta con exhibir el camino $\MerklePath$ desde la hoja asociada a $\ell \in D \setminus {L}$ (que contiene el default hash $\defaultHash{0}$) hasta la raíz del árbol. La verificación de dicha prueba depende únicamente del valor de $\MerkleRoot{\MerkleTree{T}}$ y de la resistencia a colisiones de $\Hash$. 
 
 \begin{definition}[Sparse Merkle Proof]
+\label{def:apendice-a-sparse-merkle-tree-sparse-merkle-proof}
 	Sea $\MerkleTree{T}$ un Sparse Merkle Tree de altura $k$ con raíz $\MerkleRoot{\MerkleTree{T}}$, construido sobre un conjunto finito $L \subseteq \Strings{k}$ y de función criptográfica asociada $\Hash$. Sea $\ell = (b_1, \ldots, b_k) \in \Strings{k}$. Una Sparse Merkle Proof de $\ell$ en $L$ es una lista ordenada $\MerkleProof = [h_1, \ldots, h_k]$, donde:
 	\begin{itemize}
 		\item Cada $h_i \in \{0,1\}^n$ es el hash del hermano del nodo del nivel $i$ en el camino desde la hoja correspondiente a $\ell$ hasta $\MerkleRoot{\MerkleTree{T}}$.
@@ -97,6 +101,7 @@ Los \SMT permiten definir pruebas de exclusión eficientes: para demostrar que $
 Se puede dar una función de verificación (y su algoritmo correspondiente) para una Sparse Merkle Proof, así como hicimos con la Merkle Proof tradicional. Nuevamente, vamos reconstruyendo el camino $\MerklePath$ de $\ell$ en un vector $x$, y la prueba es válida si y solo si el valor obtenido al final del camino es consistente con la raíz: $x_k = \MerkleRoot{\MerkleTree{T}}$. Si los hermanos no estuvieran almacenados explícitamente en $\MerkleTree{T}$, hay que usar los default hashes de los niveles correspondientes.
 
 \begin{definition}[Función de verificación de una Sparse Merkle Proof]
+\label{def:apendice-a-sparse-merkle-tree-funcion-de-verificacion-de-una-sparse-merkle-proof}
 	Sea $\MerkleTree{T}$ un Sparse Merkle Tree de altura $k$ con raíz $\MerkleRoot{\MerkleTree{T}}$ y función de hash criptográfica asociada $\Hash$ y valor por defecto $\EmptyNode$, y sea $\MerkleProof$ una Sparse Merkle Proof para un elemento $\ell = (b_1, \ldots, b_k) \in \Strings{k}$. La función de verificación de $\MerkleProof$ se define como:
 		$$\Verify(\ell, \MerkleProof, \MerkleRoot{\MerkleTree{T}}, b) = \llbracket x_k = \MerkleRoot{\MerkleTree{T}} \rrbracket,$$
 	donde
@@ -132,11 +137,12 @@ Para el algoritmo de verificación, podemos simplemente indicar con un bit adici
 	\end{algorithmic}
 \end{algorithm}
 
-Nada impide combinar una Sparse Merkle Proof de exclusión con una de inclusión para argumentar la corrección de una actualización sobre un \SMT. En efecto, se trata de una estructura de datos \textbf{autenticada}: toda actualización de $\MerkleTree{T}$ induce una nueva raíz que puede ser verificada por terceros a partir de la información adecuada \cite{Miller2014}. Esta propiedad será especialmente relevante en los mecanismos de actualización autenticada que aparecen más adelante en la tesis.
+Nada impide combinar una Sparse Merkle Proof de exclusión con una de inclusión para argumentar la corrección de una actualización sobre un \SMT. En efecto, se trata de una estructura de datos \textbf{autenticada}: toda actualización de $\MerkleTree{T}$ induce una nueva raíz que puede ser verificada por terceros a partir de la información adecuada \cite{Miller2014}. Esta propiedad se utiliza concretamente en el circuito \TxSetUpdateCircuit de la Sección~\ref{sec:tx-set-update-el-circuito-txsetupdatecircuit}.
 
 \subsection{Actualización de un Sparse Merkle Tree}
+\label{subsec:apendice-a-sparse-merkle-tree-actualizacion-de-un-sparse-merkle-tree}
 
-Hasta ahora, los \SMT resultan demasiado similares a los Merkle Tree tradicionales. Pero lo que es diferente es la función de actualización de los \SMT, ya que idealmente es usado como una estructura de datos dinámica: al agregar un nuevo elemento $\ell \in \Strings{k}$, se deben añadir nuevos nodos al árbol, correspondientes al Merkle Path de $\ell$ en $\MerkleTree{T}$ (la parte que no haya sido creada antes). El algoritmo \ref{alg:update-sparse-merkle-tree} explica cómo hacer esto en tiempo $O(k)$.
+En comparación con los Merkle Trees de la Sección~\ref{sec:primitivas-criptograficas-merkle-trees}, la diferencia central es la función de actualización de los \SMT, ya que idealmente se usan como una estructura de datos dinámica: al agregar un nuevo elemento $\ell \in \Strings{k}$, se deben añadir nuevos nodos al árbol, correspondientes al Merkle Path de $\ell$ en $\MerkleTree{T}$ (la parte que no haya sido creada antes). El Algoritmo~\ref{alg:update-sparse-merkle-tree} explica cómo hacer esto en tiempo $O(k)$.
 
 En una implementación concreta no se materializa el árbol disperso completo: se almacenan únicamente los nodos no triviales y los caminos de autenticación necesarios para recomputar la raíz luego de cada inserción o eliminación.
 
@@ -254,4 +260,4 @@ En la figura \ref{fig:update-sparse-merkle-tree-100-path}, podemos ver la actual
 	\label{fig:update-sparse-merkle-tree-100-path}
 \end{figure}
 
-Las implementaciones reales aprovechan que la gran mayoría de los nodos son implícitos (default hashes) y representan únicamente los caminos relevantes mediante estructuras derivadas de tries binarios. La idea es interpretar $\ell$ como una ruta en el trie, de modo que solo existan nodos asociados a prefijos efectivamente compartidos por claves insertadas. Más aún, los \SMT suelen implementarse sobre almacenamiento direccionado por hash, donde cada nodo existente se identifica por su hash y el árbol se reconstruye dinámicamente a partir de una base de datos \textit{key-value}.
+Las implementaciones reales representan sólo los caminos relevantes mediante tries binarios, pues la mayoría de los nodos son implícitos (\textit{default hashes}). Cada clave $\ell$ determina una ruta y sólo existen nodos para los prefijos compartidos por claves insertadas. Además, los \SMT suelen apoyarse en almacenamiento direccionado por hash: cada nodo se identifica por su hash y el árbol se reconstruye desde una base de datos \textit{key-value}.

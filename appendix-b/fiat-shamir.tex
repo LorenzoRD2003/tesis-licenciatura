@@ -1,8 +1,11 @@
 % !TeX root = tesis.tex
 
-\subsection{De protocolos interactivos a no interactivos}
+Esta sección presenta la transformación que elimina la interacción en protocolos de desafío público y muestra su aplicación al esquema \KZG.
 
-Los protocolos de argumentos de conocimiento suelen ser interactivos entre el prover y el verifier. Sin ir más lejos, el argumento sucinto desarrollado en la sección anterior requiere que el verifier envíe un valor aleatorio como challenge al prover.
+\subsection{De protocolos interactivos a no interactivos}
+\label{subsec:apendice-b-fiat-shamir-de-protocolos-interactivos-a-no-interactivos}
+
+Los protocolos de argumentos de conocimiento suelen ser interactivos entre el prover y el verifier. Sin ir más lejos, el argumento sucinto \KZG de la Sección~\ref{sec:aritmetizacion-y-construccion-de-un-snark-kzg} requiere que el verifier envíe un valor aleatorio como challenge al prover.
 
 Sin embargo, en entornos como blockchains, donde la verificación debe ocurrir en un único mensaje publicado onchain, la interactividad es un obstáculo. En 1986, Amos Fiat y Adi Shamir propusieron una transformación que convierte muchos de estos protocolos interactivos en protocolos no interactivos (\NIZK) sin pérdida significativa del valor de seguridad, cuando se modela la función de desafío como un oráculo aleatorio \cite{Fiat, Bellare1993}.
 
@@ -11,6 +14,7 @@ La idea central es la siguiente: en lugar de que el \textit{verifier} genere un 
 Para que esta transformación sea segura, se necesita trabajar en el \ROM, de modo que la función de hash $\Hash$ se comporte como una función aleatoria. Este enfoque es central para la mayoría de construcciones de \zkSNARK modernas. Aunque no existen funciones hash verdaderamente aleatorias en la práctica, modelar una función criptográfica como oráculo aleatorio permite demostrar seguridad de manera formal y luego instanciar la construcción con hashes como \SHATwoFiveSix, \BLAKETwo o \PoseidonHash bajo heurísticas de seguridad razonables. Para formalizar esta transformación, primero planteamos formalmente un protocolo interactivo público genérico de tres mensajes (lo cual puede trivialmente generalizarse a un número arbitrario de mensajes), conocido como \SigmaProtocol.
 
 \begin{definition}[\SigmaProtocol]
+\label{def:apendice-b-fiat-shamir-sigmaprotocol}
 	Decimos que $\Pi = (\Commit, \Open, \Verify)$ es un \SigmaProtocol para una relación $\Relation \subseteq \InstanceSpace \times \WitnessSpace$ con public inputs $x$ y witness $w$ tales que $(x,w) \in \Relation$, entre un prover $\Prover$ y un verifier $\Verifier$, si consiste de los siguientes tres mensajes:
 	\begin{enumerate}[itemsep=0.1 cm]
 		\item El prover le envía al verifier un compromiso $c = \Commit(x, w; r)$ ($r$ es la aleatoriedad interna del prover, fijada al inicio de la ejecución).
@@ -21,6 +25,7 @@ Para que esta transformación sea segura, se necesita trabajar en el \ROM, de mo
 \end{definition}
 
 \begin{definition}[Transformación \FiatShamir]
+\label{def:apendice-b-fiat-shamir-transformacion-fiatshamir}
 	Sea $\Pi = (\Commit, \Open, \Verify)$ un \SigmaProtocol para una relación $\Relation \subseteq \InstanceSpace \times \WitnessSpace$, y supongamos que su espacio de desafíos es compatible con el \textit{output} de una función hash criptográfica $\Hash: \Strings{*} \to \Strings{n}$. La \emph{transformación \FiatShamir} es un protocolo no interactivo $\Pi_{FS} = (\Prove_{FS}, \Verify_{FS})$ definido como:
 	\begin{itemize}[noitemsep]
 		\item $\Prove_{FS}(x,w)$, ejecutado por el prover:
@@ -38,6 +43,7 @@ Para que esta transformación sea segura, se necesita trabajar en el \ROM, de mo
 \end{definition}
 
 \subsection{Transformación \FiatShamir en \KZG}
+\label{subsec:apendice-b-fiat-shamir-transformacion-fiatshamir-en-kzg}
 
 Vamos a ver un ejemplo de la transformación de \FiatShamir. En particular, la vamos a aplicar al esquema de compromisos polinomiales \KZG. Esto nos permitirá ganar intuición sobre la transformación, lo que será necesario para la sección final del capítulo. Observemos que esto es para las etapas posteriores al trusted setup.
 
@@ -73,9 +79,10 @@ El protocolo consiste de los algoritmos $\Prove_{FS}$ \ref{alg:kzg-fs-prove}, a 
 
 La transformación de \FiatShamir aplicada al protocolo de apertura de \KZG muestra un principio fundamental en el diseño de pruebas criptográficas modernas: la eliminación de la interacción mediante la derivación determinística de desafíos aleatorios a partir de información pública. Esta técnica permite eliminar la interactividad en protocolos sin sacrificar las demás propiedades deseables en un \SNARK.
 
-En el caso del esquema \KZG, el desafío $\Challenge$ pasa de ser generado por el verificador a determinarse como el resultado de una función hash aplicada al compromiso. En contraste, como veremos en la siguiente sección, el esquema \Groth ya se presenta directamente como un argumento no interactivo, y la aleatoriedad que en un \SigmaProtocol sería provista por el verificador aparece absorbida en la estructura del trusted setup. La transformación de \FiatShamir reaparecerá más adelante en este trabajo en otros contextos, donde protocolos interactivos deben ser compilados a versiones no interactivas.
+En el caso del esquema \KZG, el desafío $\Challenge$ pasa de ser generado por el verificador a determinarse como el resultado de una función hash aplicada al compromiso. En contraste, el esquema \Groth de la Sección~\ref{sec:aritmetizacion-y-construccion-de-un-snark-groth} ya se presenta directamente como un argumento no interactivo, y la aleatoriedad que en un \SigmaProtocol sería provista por el verificador aparece absorbida en la estructura del \textit{trusted setup}. La transformación de \FiatShamir reaparece además en el \transcript de la verificación \HaloTwo discutido en la Subsección~\ref{subsec:mithril-a-cardano-validez-del-transcript-y-binding-entre-fases}.
 
 \subsection{Limitaciones}
+\label{subsec:apendice-b-fiat-shamir-limitaciones}
 
 Aunque el esquema \FiatShamir es extremadamente útil y ampliamente utilizado para obtener pruebas no interactivas, no es una panacea sin riesgos. La seguridad de la transformación se demuestra únicamente en el \ROM, y no existe una garantía absoluta en el mundo real de que una instancia concreta del hash cumpla exactamente ese ideal. De hecho, múltiples trabajos han documentado varios problemas asociados a implementaciones mal hechas o a condiciones de seguridad insuficientes. La bibliografía es sumamente extensa al respecto; acá dejamos un pequeño resumen.
 

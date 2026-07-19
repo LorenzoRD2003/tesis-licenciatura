@@ -1,16 +1,18 @@
 % !TeX root = ../tesis.tex
 
-Durante este capítulo, mantendremos la notación de los capítulos anteriores: $\ChainA$ denota la cadena de origen del evento a verificar y $\ChainB$ la cadena destino del \zkBridge. La implementación se presenta en dos bloques complementarios. Primero describimos la etapa que materializa la lógica \Onchain del camino $\LockTx \rightarrow \MintTx$ sobre el modelo \eUTxO usando validadores escritos en Aiken \cite{aiken2026, Chakravarty2020}. Luego incorporamos los circuitos \ZK concretos, la verificación de certificados de \Mithril y el flujo transaccional final. El camino inverso $\BurnTx \rightarrow \UnlockTx$ se incluye en la base de código, y en este trabajo se lo trata como una extensión natural para que la arquitectura del \zkBridge sea bidireccional, pero no lo consideramos como foco central de la implementación.
+Durante este capítulo, mantendremos la notación y la arquitectura fijadas en la Sección~\ref{sec:design-decisions-arquitectura}: $\ChainA$ denota la cadena de origen del evento a verificar y $\ChainB$ la cadena destino del \zkBridge. La implementación se presenta en dos bloques complementarios. Primero describimos la etapa que materializa la lógica \Onchain del camino $\LockTx \rightarrow \MintTx$ sobre el modelo \eUTxO usando validadores escritos en Aiken \cite{aiken2026, Chakravarty2020}. Luego incorporamos los circuitos \ZK concretos, la verificación de certificados de \Mithril y el flujo transaccional final. El camino inverso $\BurnTx \rightarrow \UnlockTx$ se incluye en la base de código, y en este trabajo se lo trata como una extensión natural para que la arquitectura del \zkBridge sea bidireccional, pero no lo consideramos como foco central de la implementación.
 
 \section{Objetivo y alcance del bloque inicial}
+\label{sec:validadores-y-flujo-transaccional-objetivo-y-alcance-del-bloque-inicial}
 
-El capítulo de \emph{Decisiones de Diseño} estableció la separación entre una capa de actualización y una capa de aplicación. La primera mantiene en $\ChainB$ un estado autenticado y compacto sobre $\ChainA$, mientras que la segunda usa ese estado para autorizar operaciones concretas del \Bridge. La implementación de este capítulo baja esa división a componentes precisos: \UTxOs de estado identificados por NFTs, \textit{datums} que representan el estado persistente del protocolo, \textit{redeemers} que transportan la evidencia puntual de cada transacción, y validadores que fuerzan la atomicidad entre todos esos componentes.
+La Subsección~\ref{subsec:design-decisions-capas-actualizacion-y-aplicacion} estableció la separación entre una capa de actualización y una capa de aplicación. La primera mantiene en $\ChainB$ un estado autenticado y compacto sobre $\ChainA$, mientras que la segunda usa ese estado para autorizar operaciones concretas del \Bridge. La implementación de este capítulo baja esa división a componentes precisos: \UTxOs de estado identificados por NFTs, \textit{datums} que representan el estado persistente del protocolo, \textit{redeemers} que transportan la evidencia puntual de cada transacción, y validadores que fuerzan la atomicidad entre todos esos componentes.
 
-La elección de Aiken como lenguaje de implementación resulta natural en este contexto. Por un lado, permite programar directamente scripts compatibles con el modelo \eUTxO. Por otro, ofrece una interfaz relativamente directa para integrar verificadores de \Groth sobre \BLS mediante bibliotecas como \texttt{ak-381}, lo cual encaja con la decisión arquitectónica de dejar el trabajo pesado \Offchain y reservar para la cadena destino una verificación sucinta \cite{CIP0381, IOGPlutusV3, AK381Repo}. En este bloque inicial, sin embargo, el objetivo no es cerrar todavía los circuitos de inclusión y de verificación de certificados, sino fijar correctamente las interfaces entre estado, argumentos y transacciones. Por eso aparecen \textit{placeholder circuits} en las posiciones donde el prototipo ya necesita un argumento \ZK, pero cuya implementación completa se desarrolla en las secciones de circuitos de este mismo capítulo.
+La elección de Aiken como lenguaje de implementación resulta natural en este contexto. Por un lado, permite programar directamente scripts compatibles con el modelo \eUTxO. Por otro, ofrece una interfaz relativamente directa para integrar verificadores de \Groth sobre \BLS mediante bibliotecas como \texttt{ak-381}, lo cual encaja con la decisión arquitectónica de dejar el trabajo pesado \Offchain y reservar para la cadena destino una verificación sucinta \cite{CIP0381, IOGPlutusV3, AK381Repo}. En este bloque inicial, sin embargo, el objetivo no es cerrar todavía los circuitos de inclusión y de verificación de certificados, sino fijar correctamente las interfaces entre estado, argumentos y transacciones. Por eso aparecen \textit{placeholder circuits} en las posiciones donde el prototipo ya necesita un argumento \ZK; sus implementaciones completas se desarrollan en las Secciones~\ref{sec:tx-snapshot-membership-el-circuito-de-pertenencia-a-una-transactionsnapshot} y~\ref{sec:tx-set-update-el-circuito-txsetupdatecircuit}.
 
 También es importante aclarar un punto metodológico. En una iteración intermedia del prototipo se experimentó con recomputar \Onchain el hash completo de certificados de \Mithril para encadenarlos dentro del script. Esa estrategia no se adopta como decisión final del sistema, ya que hashear certificados completos dentro del validador agrega demasiado \textit{overhead} en bytes procesados y \ExUnits, mientras que el \textit{binding} entre certificado y estado almacenado \Onchain puede lograrse de forma más barata y dentro de un circuito \Offchain. En consecuencia, en este capítulo describimos la implementación con la decisión final ya incorporada: el estado \Onchain publica los certificados y los encadena con la evidencia criptográfica necesaria, mientras que la validación detallada de esa evidencia se desplaza a circuitos especializados y a entradas públicas cuidadosamente elegidas.
 
 \section{Componentes principales del prototipo}
+\label{sec:validadores-y-flujo-transaccional-componentes-principales-del-prototipo}
 
 La implementación se organiza alrededor de un conjunto pequeño de módulos y validadores, cada uno con una responsabilidad muy puntual. El repertorio central puede resumirse en la Tabla~\ref{tab:chapter6-validators}. La distinción más importante es entre validadores que gobiernan estado persistente y validadores que gobiernan una acción de aplicación. En la primera categoría quedan el validador de \StakeDistribution y el actualizador del conjunto de transacciones procesadas. En la segunda categoría queda, para esta etapa, el validador de minting.
 
@@ -35,8 +37,9 @@ La implementación se organiza alrededor de un conjunto pequeño de módulos y v
 Alrededor de esos scripts aparecen tres módulos auxiliares particularmente importantes. El primero define los tipos de dominio compartidos por todo el sistema: el datum del \UTxO generado por la \LockTx, el datum mantenido por el \TxsUpdaterUnlockingValidator y los \textit{redeemers} que transportan identificadores de transacción, argumentos \ZK \Groth y referencias a \UTxOs. El segundo encapsula la verificación genérica de argumentos \ZK \Groth en Aiken. El tercero concentra funciones auxiliares para encontrar \UTxOs candidatos válidos, verificar la presencia de NFTs de estado y coordinar la coherencia entre redeemers de distintos scripts. El objetivo es evitar repetir lógica de \eUTxO y dejar aisladas las zonas donde luego se reemplazarán \textit{proof stubs} por verificadores reales.
 
 \section{Representación del estado del bridge en \eUTxO}
+\label{sec:validadores-y-flujo-transaccional-representacion-del-estado-del-bridge-en-eutxo}
 
-El bloque inicial del prototipo sigue la intuición del capítulo de \emph{Decisiones de Diseño}: en lugar de modelar el estado del \zkBridge como un registro global mutable, lo representa mediante una pequeña familia de \UTxOs canónicos, cada uno protegido por un script y marcado por una NFT. Esta elección reaprovecha directamente las fortalezas del modelo \eUTxO \cite{Chakravarty2020}: cada transición de estado consume un \UTxO bien identificado y crea su sucesor, con lo cual la preservación de invariantes queda reducida a un chequeo local sobre la transacción que implementa el paso.
+El bloque inicial del prototipo concreta la decisión de la Sección~\ref{sec:design-decisions-estado-en-eutxo-atomicidad-y-concurrencia}: en lugar de modelar el estado del \zkBridge como un registro global mutable, lo representa mediante una pequeña familia de \UTxOs canónicos, cada uno protegido por un script y marcado por una NFT. Esta elección reaprovecha directamente las fortalezas del modelo \eUTxO \cite{Chakravarty2020}: cada transición de estado consume un \UTxO bien identificado y crea su sucesor, con lo cual la preservación de invariantes queda reducida a un chequeo local sobre la transacción que implementa el paso.
 
 En el camino $\LockTx \rightarrow \MintTx$ aparecen tres piezas persistentes.
 
@@ -51,6 +54,7 @@ Esta descomposición responde a tres necesidades distintas. El \UTxO de fondos b
 Además, la decisión tiene consecuencias positivas en términos de interfaz de transacción: cada paso del protocolo debe transportar solo la porción de información estrictamente necesaria para reconstruir el invariante local. Por eso los \textit{datums} contienen estado estable y reusable, mientras que los \textit{redeemers} contienen evidencia efímera: argumentos \ZK, identificadores de transacción y otros campos puntuales que permiten reconstruir la transacción bloqueante. Esto permite mantener los scripts pequeños y respetar \maxTxSize.
 
 \section{Flujo transaccional del bloque inicial}
+\label{sec:validadores-y-flujo-transaccional-flujo-transaccional-del-bloque-inicial}
 
 La Figura~\ref{fig:chapter6-transaction-flow} resume el flujo que implementa el prototipo para el caso principal de uso. El orden lógico no es accidental: primero debe haber certificados autenticados de \StakeDistribution; luego puede ocurrir una $\LockTx$ en $\ChainA$; y recién entonces una transacción de \textit{minting} puede presentar la evidencia necesaria para emitir los \textit{wrapped assets} en $\ChainB$.
 
@@ -97,16 +101,18 @@ La Figura~\ref{fig:chapter6-transaction-flow} resume el flujo que implementa el 
 \end{figure}
 
 \subsection{Actualización de \StakeDistribution mediante \texorpdfstring{\StakeDistTx}{tx\_sd}}
+\label{subsec:validadores-y-flujo-transaccional-actualizacion-de-stakedistribution-mediante-tx-sd}
 
 La transacción \StakeDistTx pertenece a la capa de actualización. Su objetivo no es mover activos del usuario, sino mantener en $\ChainB$ un resumen autenticado del estado de \Mithril que luego será utilizado por las transacciones de minting. Conceptualmente, el validador admite dos fases.
 
 En la fase de \textit{bootstrap}, un script de minting crea el NFT que identificará al estado de \StakeDistribution y lo deposita en un \UTxO cuyo datum contiene un certificado génesis de \Mithril. Esto debe poder ocurrir una sola vez; por eso se la ata a un único \UTxO capaz de acuñar el NFT, y se exige que el \UTxO creado quede bajo el control del mismo validador, para que gobierne las actualizaciones posteriores.
 
-En la fase recurrente de actualización, \StakeDistTx consume el \UTxO que contiene el certificado padre y produce un nuevo \UTxO con el mismo NFT y con el certificado nuevo en el datum. Este bloque inicial ya fija varios invariantes útiles: el nuevo certificado debe ser del tipo correcto, debe estar correctamente encadenado con su padre y el control del estado debe permanecer en el mismo script. La interpretación detallada de qué significa, en términos de \Mithril, que un certificado sea correcto se apoya en el capítulo dedicado a \Mithril; las secciones de circuitos de este capítulo completan cómo esa evidencia se consume luego mediante argumentos de inclusión y recibos de verificación.
+En la fase recurrente de actualización, \StakeDistTx consume el \UTxO que contiene el certificado padre y produce un nuevo \UTxO con el mismo NFT y con el certificado nuevo en el datum. Este bloque inicial ya fija varios invariantes útiles: el nuevo certificado debe ser del tipo correcto, debe estar correctamente encadenado con su padre y el control del estado debe permanecer en el mismo script. La interpretación criptográfica de una actualización correcta se desarrolla en la Sección~\ref{sec:mithril-cadena-de-certificados}; la Sección~\ref{sec:mithril-a-cardano-del-circuito-halotwo-de-mithril-a-cardano} completa cómo esa evidencia se consume mediante recibos de verificación.
 
 Un detalle operativo importante es que el \UTxO de \StakeDistribution no se consume en cada \MintTx. En lugar de eso, aparece como \textit{reference input}. Esta decisión reduce costos y evita que cada usuario compita por modificar un estado que solamente necesita leer.
 
 \subsection{Transacción de \textit{locking} en la cadena de origen}
+\label{subsec:validadores-y-flujo-transaccional-transaccion-de-locking-en-la-cadena-de-origen}
 
 La $\LockTx$ materializa la intención del usuario de iniciar un traslado de valor. En este bloque inicial, la transacción crea un \UTxO dirigido al script del \UnlockingValidator de $\ChainA$, el cual contiene la totalidad de los activos bloqueados y un datum con dos componentes: \texttt{bridge\_id} y \texttt{destination\_address}. El primero evita que la misma transacción sea reutilizada para reclamar activos en múltiples \Bridges incompatibles, mientras que el segundo deja fijado desde $\ChainA$ quién es el destinatario autorizado al hacer \MintTx en $\ChainB$.
 
@@ -114,9 +120,10 @@ El campo \texttt{destination\_address} debe leerse como una dirección de la cad
 
 La implementación adopta en este bloque inicial una convención deliberadamente conservadora: el \UTxO bloqueado se toma como la parte semántica relevante de la operación, y la evidencia presentada en $\MintTx$ se organiza alrededor de ese \UTxO. La información útil para validación queda concentrada en estos campos: referencia del input, dirección de la entrada, datum original, dirección de destino en $\ChainB$ y valor transferido. Esto permite expresar con claridad qué propiedades debe preservar el \zkBridge entre la transacción en $\ChainA$ remota y el minting en $\ChainB$, incluso antes de fijar la forma definitiva del circuito de inclusión.
 
-En esta etapa, el prototipo trabaja sobre una formulación isomorfa del problema, donde las cadenas $\ChainA, \ChainB$ son isomorfas. Esto significa que la interfaz de las transacciones en ambas cadenas puede representarse en Aiken con estructuras suficientemente similares como para chequear localmente la coherencia de la evidencia presentada sobre la \LockTx en el script de \MintingValidator. Entonces, la capa de aplicación del \zkBridge puede validarse antes de introducir las complejidades propias de un circuito completo de inclusión de transacciones de \Cardano. En las secciones de circuitos de este capítulo, esta responsabilidad se separa: el circuito de pertenencia dentro de un certificado de \Mithril fija criptográficamente que el \TxId de la \LockTx pertenece a \CardanoTransactions, pero no prueba por sí solo el destinatario ni el valor transferido. Por eso, la coherencia semántica entre el evento de origen y el minting queda como invariante explícito de la interfaz del \Bridge y de los validadores que consumen esa evidencia.
+En esta etapa, el prototipo trabaja sobre una formulación isomorfa del problema, donde las cadenas $\ChainA, \ChainB$ son isomorfas. Esto significa que la interfaz de las transacciones en ambas cadenas puede representarse en Aiken con estructuras suficientemente similares como para chequear localmente la coherencia de la evidencia presentada sobre la \LockTx en el script de \MintingValidator. Entonces, la capa de aplicación del \zkBridge puede validarse antes de introducir las complejidades propias de un circuito completo de inclusión de transacciones de \Cardano. En la Sección~\ref{sec:tx-snapshot-membership-el-circuito-de-pertenencia-a-una-transactionsnapshot}, esta responsabilidad se separa: el circuito fija criptográficamente que el \TxId de la \LockTx pertenece a \CardanoTransactions, pero no prueba por sí solo el destinatario ni el valor transferido. Por eso, la coherencia semántica entre el evento de origen y el minting queda como invariante explícito de la interfaz del \Bridge y de los validadores que consumen esa evidencia.
 
 \subsection{Transacción de minting en la cadena destino}
+\label{subsec:validadores-y-flujo-transaccional-transaccion-de-minting-en-la-cadena-destino}
 
 La \MintTx es la pieza central de la capa de aplicación. Su trabajo consiste en \textit{mintear} en $\ChainB$ un valor equivalente al bloqueado en $\ChainA$, pero solo si la evidencia aportada por el usuario satisface simultáneamente cuatro condiciones:
 
@@ -142,12 +149,13 @@ Lo importante es que \MintingValidator y \TxsUpdaterMintingValidator no se valid
 \end{itemize}
 
 \section{Decisiones de ingeniería y preparación para los circuitos reales}
+\label{sec:validadores-y-flujo-transaccional-decisiones-de-ingenieria-y-preparacion-para-los-circuitos-reales}
 
 El bloque inicial no solo implementa validadores; también fija varias decisiones prácticas que condicionan la evolución del sistema. La primera es el uso sistemático de NFTs para marcar estado canónico. Tanto el conjunto de transacciones usadas como el estado de \StakeDistribution dependen de una NFT que identifica de manera unívoca al \UTxO válido. Esta técnica evita ambigüedades sobre qué \textit{output} representa el estado vigente y simplifica mucho la lógica de los scripts.
 
 La segunda es la separación entre datos persistentes y evidencia efímera. Los certificados de \Mithril y las raíces comprometidas viven en datums de \UTxOs reutilizables; los argumentos \ZK, identificadores de transacción y reconstrucciones parciales de la \LockTx viven en redeemers. Esa división es saludable para el costo del protocolo: aquello que muchos usuarios deben leer se publica una sola vez; aquello que cambia en cada operación viaja solo cuando la operación lo necesita.
 
-La tercera, ya mencionada, es la decisión final de no recomputar \Onchain hashes completos de certificados de \Mithril. Desde el punto de vista teórico, tal recomputación podría parecer una forma directa de lograr \textit{binding} entre el dato publicado y el argumento \ZK presentado. Sin embargo, en la práctica introduce un costo desproporcionado en serialización, hashing y \ExUnits. La versión final del sistema persigue el mismo objetivo de un modo más económico: el \UTxO de \StakeDistribution publica el certificado relevante, los argumentos quedan ligados a entradas públicas del circuito que identifican el estado certificado y los validadores solo verifican la consistencia necesaria para que ese enlace sea unívoco. El desarrollo criptográfico de este punto se completa en las secciones de circuitos de este mismo capítulo, pero lo mencionamos aquí porque condiciona la forma final de la interfaz \Onchain.
+La tercera, ya mencionada, es la decisión final de no recomputar \Onchain hashes completos de certificados de \Mithril. Desde el punto de vista teórico, tal recomputación podría parecer una forma directa de lograr \textit{binding} entre el dato publicado y el argumento \ZK presentado. Sin embargo, en la práctica introduce un costo desproporcionado en serialización, hashing y \ExUnits. La versión final del sistema persigue el mismo objetivo de un modo más económico: el \UTxO de \StakeDistribution publica el certificado relevante, los argumentos quedan ligados a entradas públicas del circuito que identifican el estado certificado y los validadores solo verifican la consistencia necesaria para que ese enlace sea unívoco. El desarrollo criptográfico de este punto se completa en las Secciones~\ref{sec:mithril-a-cardano-del-circuito-halotwo-de-mithril-a-cardano}, \ref{sec:tx-snapshot-membership-el-circuito-de-pertenencia-a-una-transactionsnapshot} y~\ref{sec:tx-set-update-el-circuito-txsetupdatecircuit}, pero lo mencionamos aquí porque condiciona la forma final de la interfaz \Onchain.
 
 Una cuarta decisión es el orden de compilación e instanciación de scripts. Dado que varios validadores necesitan conocer \textit{policy IDs}, \textit{script hashes} o referencias únicas producidas por otros componentes, el prototipo induce un pequeño grafo de dependencias entre validadores. Entonces, este orden es consecuencia directa de cómo los scripts se referencian mutuamente. En la parte del sistema correspondiente a $\LockTx \rightarrow \MintTx$, dicho grafo puede resumirse como:
 
@@ -161,6 +169,7 @@ Una cuarta decisión es el orden de compilación e instanciación de scripts. Da
 Por último, la base de código ya incorpora un \textit{test suite} en Aiken para cada uno de los validadores utilizados. Desde el punto de vista de la tesis, estos tests no reemplazan la evaluación de resultados, pero sí aportan una primera validación estructural sobre los casos positivos y negativos donde se rechazan certificados mal encadenados, argumentos \ZK inválidos o transacciones que intentan mintear sin actualizar el conjunto \textit{anti-replay}.
 
 \section{Formalización de los validadores principales}
+\label{sec:validadores-y-flujo-transaccional-formalizacion-de-los-validadores-principales}
 
 En esta sección fijamos una notación más abstracta para los validadores principales del camino $\LockTx \rightarrow \MintTx$. Seguimos la distinción introducida al presentar el modelo \eUTxO entre \textit{spending validators} y \textit{minting validators}. Para los primeros utilizamos la forma \SpendValidatorSchema, mientras que para los segundos utilizamos la forma \MintValidatorSchema. En todos los casos, la igualdad a \True debe leerse como ``el validador acepta la transición codificada por la transacción''.
 
@@ -174,6 +183,7 @@ Dos aclaraciones ayudan a leer correctamente esta formalización:
 En esta formalización nos concentramos en cuatro validadores: \StakeDistributionMintValidator, \StakeDistributionSpendValidator, \MintingValidator y \TxsUpdaterMintingValidator. Los validadores del camino inverso pueden formalizarse de manera análoga. 
 
 \subsection{Validador de bootstrap de \StakeDistribution}
+\label{subsec:validadores-y-flujo-transaccional-validador-de-bootstrap-de-stakedistribution}
 
 \begin{center}
 \MintValidatorNotation{\StakeDistributionMintValidator}
@@ -190,6 +200,7 @@ La expresión anterior vale si y sólo si se satisfacen simultáneamente las sig
 \end{enumerate}
 
 \subsection{Validador de actualización de \StakeDistribution}
+\label{subsec:validadores-y-flujo-transaccional-validador-de-actualizacion-de-stakedistribution}
 
 \begin{center}
 \SpendValidatorNotation{\StakeDistributionSpendValidator}
@@ -208,6 +219,7 @@ La expresión anterior vale si y sólo si se satisfacen simultáneamente las sig
 \end{enumerate}
 
 \subsection{Validador de \textit{minting} del \zkBridge}
+\label{subsec:validadores-y-flujo-transaccional-validador-de-minting-del-zkbridge}
 
 \begin{center}
 \MintValidatorNotation{\MintingValidator}
@@ -227,6 +239,7 @@ La expresión anterior vale si y sólo si se satisfacen simultáneamente las sig
 \end{enumerate}
 
 \subsection{Validador del conjunto de transacciones procesadas}
+\label{subsec:validadores-y-flujo-transaccional-validador-del-conjunto-de-transacciones-procesadas}
 
 \begin{center}
 \SpendValidatorNotation{\TxsUpdaterMintingValidator}

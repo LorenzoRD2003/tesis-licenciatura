@@ -1,6 +1,7 @@
 % !TeX root = tesis.tex
 
 \subsection{¿Qué es un \Bridge?}
+\label{subsec:bridges-que-es-un-bridge}
 
 Las blockchains modernas se diseñan, en general, como sistemas autocontenidos: cada red mantiene su propio consenso, estado global y reglas de validación. Como consecuencia, una blockchain no puede verificar directamente el estado de otra sin algún mecanismo adicional. Esta limitación dificulta la \emph{interoperabilidad}, es decir, la capacidad de transferir información o activos entre redes distintas.
 
@@ -22,6 +23,7 @@ Observamos que un \Bridge es esencialmente \emph{unidireccional}: es decir, se t
 Si se provee un \Bridge unidireccional desde $\ChainA$ hacia $\ChainB$ y otro desde $\ChainB$ hacia $\ChainA$, podríamos decir que es un \textit{\Bridge bidireccional}.
 
 \subsection{Ejemplo de uso}
+\label{subsec:bridges-ejemplo-de-uso}
 
 El caso más común de interoperabilidad entre blockchains es la transferencia de activos. Supongamos que un usuario desea transferir un token desde una blockchain $\ChainA$ hacia una blockchain $\ChainB$. Una estrategia ampliamente utilizada es el modelo \emph{lock–mint}:
 
@@ -42,6 +44,7 @@ Si posteriormente el usuario desea regresar el activo a $\ChainA$, el proceso se
 En este modelo, la seguridad del sistema depende de que el \Bridge pueda verificar correctamente eventos entre cadenas. Si un atacante logra falsificar una prueba de bloqueo o destrucción, podría crear activos sin respaldo, comprometiendo completamente el sistema y destruyendo todo su valor.
 
 \subsection{Modelos de seguridad de \Bridges}
+\label{subsec:bridges-modelos-de-seguridad-de-bridges}
 
 Existen múltiples formas de implementar el mecanismo de verificación entre blockchains. Estas implementaciones difieren principalmente en su modelo de confianza y en los supuestos criptográficos que utilizan.
 
@@ -57,11 +60,11 @@ En un \Bridge multisignature, los operadores firman un mensaje que afirma que un
 
 Un enfoque más descentralizado consiste en que una blockchain verifique directamente el consenso de otra mediante un \emph{\LightClient}, idea que se remonta a la fundación de \Bitcoin \cite{nakamoto2009bitcoin}. En este modelo, $\ChainB$ mantiene una representación compacta del estado de $\ChainA$. Típicamente se verifican encabezados de bloques, reglas del protocolo de consenso, e inclusión de transacciones.
 
-Supongamos que las transacciones de un bloque se representan en forma compacta usando una raíz de Merkle $r$. Si se quiere probar que una transacción $\tx$ está incluida en un bloque de $\ChainA$ con encabezado $h$ y raíz $r$, se debería verificar que $h$ efectivamente pertenece a la cadena consensuada de $\ChainA$, y verificar una prueba de Merkle $\MerkleProof$ de la inclusión de $\tx$. La seguridad de este modelo depende entonces de la seguridad del consenso de la blockchain de origen.
+Supongamos que las transacciones de un bloque se representan en forma compacta usando una raíz de Merkle $r$. Si se quiere probar que una transacción $\tx$ está incluida en un bloque de $\ChainA$ con encabezado $h$ y raíz $r$, se debería verificar que $h$ efectivamente pertenece a la cadena consensuada de $\ChainA$, y verificar una prueba de Merkle $\MerkleProof$ de la inclusión de $\tx$; estas estructuras se definen formalmente en las Definiciones~\ref{def:apendice-a-merkle-tree-merkle-tree} y~\ref{def:apendice-a-merkle-tree-merkle-proof}. La seguridad de este modelo depende entonces de la seguridad del consenso de la blockchain de origen.
 
 \subsubsection{Bridges basados en pruebas criptográficas}
 
-Otro enfoque es usar pruebas criptográficas sucintas, como \zkSNARK, para demostrar que un evento ocurrió en $\ChainA$ \cite{Xie2022}. En este modelo, un prover $\Prover$ genera una prueba o argumento que certifica que un bloque de $\ChainA$ es válido según sus reglas de consenso. Luego, se puede hacer un programa en $\ChainB$ que actúe como el verifier $\Verifier$ de la prueba generada.
+Otro enfoque es usar pruebas criptográficas sucintas, como \zkSNARK, definidos en la Definición~\ref{def:apendice-b-snark-snark-zksnark}, para demostrar que un evento ocurrió en $\ChainA$ \cite{Xie2022}. En este modelo, un prover $\Prover$ genera una prueba o argumento que certifica que un bloque de $\ChainA$ es válido según sus reglas de consenso. Luego, se puede hacer un programa en $\ChainB$ que actúe como el verifier $\Verifier$ de la prueba generada.
 
 Se conoce popularmente a un \Bridge de esta clase como un \zkBridge.
 

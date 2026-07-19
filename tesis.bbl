@@ -47,6 +47,13 @@ I.~O. G. .~M. Team, ``Mithril documentation (overview, protocol, certificates,
   client),'' 2024--2026.
 \newblock Documentación oficial del protocolo y la red Mithril.
 
+\bibitem{MithrilDocsTransactions}
+M.~Team, ``Cardano transactions certification (mithril documentation),''
+  2024--2026.
+
+\bibitem{MithrilDocsAggregator}
+M.~Team, ``Mithril aggregator node and rest api documentation,'' 2024--2026.
+
 \bibitem{MithrilDocsProtocol}
 M.~Team, ``Protocol phases (mithril documentation),'' 2024--2026.
 
@@ -54,18 +61,11 @@ M.~Team, ``Protocol phases (mithril documentation),'' 2024--2026.
 I.~O. G. .~M. Team, ``mithril-stm crate readme and implementation notes,''
   2024--2026.
 
-\bibitem{MithrilDocsTransactions}
-M.~Team, ``Cardano transactions certification (mithril documentation),''
-  2024--2026.
-
 \bibitem{MithrilDocsCertChain}
 M.~Team, ``Certificate chain design (mithril documentation),'' 2024--2026.
 
 \bibitem{MithrilDocsThreatModel}
 M.~Team, ``Threat model analysis (mithril documentation),'' 2024--2026.
-
-\bibitem{MithrilDocsAggregator}
-M.~Team, ``Mithril aggregator node and rest api documentation,'' 2024--2026.
 
 \bibitem{cryptoeprint:2019/953}
 A.~Gabizon, Z.~J. Williamson, and O.~Ciobotaru, ``{PLONK}: Permutations over

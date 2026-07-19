@@ -1,8 +1,10 @@
 % !TeX root = tesis.tex
 
 \subsection{Definición formal e intuición}
+\label{subsec:apendice-b-kzg-definicion-formal-e-intuicion}
 
 \begin{definition}[\KZG \PCS]
+\label{def:apendice-b-kzg-kzg-pcs}
 	Consideremos el cuerpo finito $\Fp$, y sea $\PolynomialSpace = \poly{\Fp}_{\leq d}$ el espacio de polinomios de grado a lo sumo $d$. Sean además $\GOne$ y $\GTwo$ grupos cíclicos aditivos con generadores $G_1 \in \GOne$ y $G_2 \in \GTwo$, sea $\GT$ un grupo multiplicativo, y sea un pairing bilineal no degenerado
 	$$
 	e : \GOne \times \GTwo \to \GT.
@@ -25,7 +27,7 @@
 	\end{itemize}
 \end{definition}
 
-Para relacionarlo con la definición general dada en la sección anterior, observamos la instancia específica utilizada para cada uno de los conjuntos:
+Para relacionarlo con la Definición~\ref{def:apendice-b-commitment-schemes-pcs}, observamos la instancia específica utilizada para cada uno de los conjuntos:
 	\begin{itemize}[itemsep=0.1cm]
 		\item El espacio de polinomios $\PolynomialSpace$ es $ \Fp[x]_{\leq d}$.
 		\item El espacio de compromisos $\CommitmentSpace$ es $\GOne$.
@@ -49,6 +51,7 @@ $\tau$, no se puede falsificar coherentemente la aritmética polinomial codifica
 En la práctica, los grupos $\GOne, \GTwo, \GT$ no son grupos arbitrarios, sino grupos derivados de curvas elípticas emparejables (\textit{pairing-friendly elliptic curves}). Estas curvas están construidas específicamente para admitir pairings bilineales eficientes y seguros. En construcciones tipo \KZG, los compromisos y pruebas viven en $\GOne$, los elementos de verificación utilizan $\GTwo$, y las ecuaciones se evalúan en $\GT$. En la práctica, estos grupos suelen instanciarse mediante curvas emparejables como \BLS o \BN, ampliamente utilizadas en sistemas de argumentos \zkSNARK.
 
 \subsection{Trusted Setup}
+\label{subsec:apendice-b-kzg-trusted-setup}
 
 El \textit{trusted setup} en \KZG es, esencialmente, el mecanismo mediante el cual se genera la Structured Reference String (\SRS). Intuitivamente, la \SRS contiene “potencias secretas” de un valor desconocido $\tau \in \Fp$. Es decir, de la forma
 $$\SRS = \left(G_1, \tau G_1, \tau^2 G_1, \ldots, \tau^d G_1,\; G_2, \tau G_2 \right),$$
@@ -66,6 +69,7 @@ Observamos que una \SRS para polinomios en el espacio $ \Fp[x]_{\leq d}$ requier
 Para \SNARK pequeños, suelen ser miles de elementos de la curva. Pero para sistemas grandes, pueden ser millones de elementos, lo que puede ocupar numerosos GB de almacenamiento, copiado en dispositivos de muchos desarrolladores. Como el proceso no es rápido y no pueden realizarlo dos desarrolladores al mismo tiempo, hay una complejidad social adicional. Por eso, es que hay alternativas para sistemas de pruebas que no requieren una fase de \textit{trusted setup}, o que el mismo es universal para cualquier circuito \cite{cryptoeprint:2019/953, BenSasson2017FastRI, cryptoeprint:2018/046}. Por otra parte, estos sistemas de pruebas alternativos tienen como contrapartida un mayor tamaño de prueba, al mismo tiempo que más tiempo de ejecución en sus algoritmos.
 
 \subsection{Aperturas múltiples y GWC19}
+\label{subsec:kzg-gwc19}
 
 El esquema \KZG presentado hasta ahora resuelve el problema de abrir \emph{un} polinomio en \emph{un} punto. Sin embargo, los sistemas de pruebas reales rara vez necesitan una sola evaluación aislada. En protocolos \PLONKish, como \HaloTwo, el verifier debe chequear simultáneamente evaluaciones de muchos polinomios. Verificar cada \Open por separado sería prohibitivo, porque implicaría una ecuación de pairing independiente por cada evaluación. El objetivo de \GWCNineteen, introducido en el paper de \PLONK \cite{cryptoeprint:2019/953}, es precisamente colapsar estos \Open en una verificación sucinta conservando la estructura algebraica de \KZG. El número total de polinomios consultados puede ser grande, pero si los puntos de evaluación distintos son pocos, el esquema logra mantener pruebas cortas y verificación sucinta. Esta es precisamente la situación que aparece en protocolos \PLONKish como \HaloTwo.
 
@@ -98,9 +102,33 @@ La completitud de \GWCNineteen es una consecuencia directa de la completitud de 
 
 La intuición de solidez también sigue la estructura de \KZG. En primer lugar, para un punto fijo $z_j$, si el \textit{prover} mintiera alguna de las evaluaciones $y_{j,i}$, entonces la igualdad $F_j(z_j) = \alpha_j$ dejaría de ser cierta salvo cancelaciones fortuitas en la combinación lineal inducida por $v$, pero esto tiene probabilidad negligible porque $v$ se elige uniformemente al azar en $\Fp$. En segundo lugar, aún si el \textit{prover} intentara mezclar comportamientos distintos entre varios puntos, la agregación posterior con $u$ obliga a que todas las ecuaciones parciales sean simultáneamente consistentes, de modo que falsificar la ecuación final implicaría fabricar una identidad de divisibilidad agregada en el exponente sin conocer $\tau$, lo cual sigue estando fuera del alcance computacional bajo los supuestos de seguridad de \KZG.
 
-\subsection{Lo que tenemos hasta ahora}
+\subsection{Aperturas por conjuntos de puntos en \texorpdfstring{\HaloTwoMultiOpen}{Halo2 Multi-Open}}
+\label{subsec:kzg-halo2-multiopen}
 
-En la sección de \QAP mostramos que la verificación de un circuito aritmético puede reformularse como una identidad entre polinomios de la forma
+La construcción anterior organiza las aperturas a partir de cada punto de evaluación: primero combina los polinomios consultados en un mismo punto y luego agrega las ecuaciones resultantes. Otra estrategia, utilizada por las bibliotecas de \Midnight que sostienen el circuito \MidnightSTMCircuit \cite{MithrilSTMRepo}, agrupa los polinomios que comparten un mismo \emph{conjunto} de puntos de evaluación. Esta diferencia no cambia el compromiso \KZG subyacente, pero sí modifica la forma algebraica del argumento de apertura y el trabajo que debe reconstruir el \textit{verifier}.
+
+Consideremos $r$ conjuntos de puntos. Para $0 \leq j < r$, escribimos
+$$S_j=\{z_{j,0},\ldots,z_{j,m_j-1}\}$$
+y denotamos por $p_{j,i}(X) \in \poly{\Fp}_{\leq d}$ a los polinomios asociados al conjunto $S_j$. Sean además $x_1,x_2,x_3,x_4 \in \Fp$ desafíos escalares del protocolo. En una ejecución no interactiva, estos valores se derivan del \transcript mediante la transformación de \FiatShamir de la Sección~\ref{sec:aritmetizacion-y-construccion-de-un-snark-protocolo-fiatshamir-y-no-interactividad}; por ahora sólo importa su función como coeficientes aleatorios de agregación.
+
+Para cada conjunto, el \textit{verifier} forma la combinación lineal
+$$Q_j(X)=\sum_i x_1^i\,p_{j,i}(X) \in \poly{\Fp}_{\leq d}.$$
+Luego debe reconstruir el valor de $Q_j$ en el punto adicional $x_3$ a partir de las evaluaciones conocidas sobre todo $S_j$. Para ello define
+$$R_j(x_3) = \sum_{\ell = 0}^{m_j - 1}\lambda_{j,\ell}(x_3) \, Q_j(z_{j, \ell}), \qquad Z_j(X) = \prod_{\ell = 0}^{m_j - 1}(X - z_{j, \ell}),$$
+donde $\lambda_{j,\ell}(x_3)$ son los coeficientes de interpolación de Lagrange y $Z_j$ es el polinomio que se anula en los puntos de $S_j$. A diferencia de verificar una apertura \KZG independiente por cada evaluación, el argumento contiene un único elemento de grupo $\Proof$ y valores auxiliares $q_j(x_3)$. Con esos datos, el \textit{verifier} reconstruye
+$$f(x_3) = \sum_{j=0}^{r-1} x_2^j\cdot \frac{q_j(x_3)-R_j(x_3)}{Z_j(x_3)}.$$
+
+Finalmente, agrega las contribuciones de los distintos conjuntos con potencias de $x_4$ y forma
+$$\mathrm{final\_com}=\sum_{j=0}^{r-1}x_4^j Q_j(\tau)G_1+x_4^{r}f(\tau)G_1, \qquad v = \sum_{j=0}^{r-1}x_4^j q_j(x_3)+x_4^{r}f(x_3).$$
+La verificación termina en una única ecuación de pairing:
+$$\pairing{\Proof}{\tau G_2} \stackrel{?}{=} \pairing{\mathrm{final\_com} - vG_1 + x_3\Proof}{G_2}.$$
+
+La diferencia esencial con \GWCNineteen está en el lugar donde se realiza la agregación. \GWCNineteen combina aperturas \KZG organizadas por punto de evaluación; \HaloTwoMultiOpen mueve parte del trabajo al proceso de reconstruir una apertura común para cada conjunto de puntos, mediante interpolaciones y polinomios de anulación. Ambos caminos conservan una verificación final sucinta, pero inducen estructuras de datos, acumuladores y costos de verificación diferentes. Esta distinción es la que impide trasladar mecánicamente un verificador generado para el primer protocolo al circuito de \Mithril basado en el segundo.
+
+\subsection{Lo que tenemos hasta ahora}
+\label{subsec:apendice-b-kzg-lo-que-tenemos-hasta-ahora}
+
+Las dos estrategias de apertura múltiple anteriores muestran cómo la linealidad de \KZG permite condensar muchas evaluaciones en una ecuación final de pairing, aunque organicen esa agregación de manera diferente. Este refinamiento no altera el papel que los compromisos polinomiales cumplen dentro de la construcción general. En la sección de \QAP mostramos que la verificación de un circuito aritmético puede reformularse como una identidad entre polinomios de la forma
 $$AB - C = HZ,$$
 entendida como igualdad en el anillo $\poly{\Fp}$, donde $A$, $B$, $C$, $H$ y $Z$ son polinomios. Conceptualmente, esto transforma la verificación de muchas restricciones en una única condición algebraica global. Sin embargo, ese enfoque presentaba un obstáculo fundamental: el verifier debía conocer explícitamente los polinomios (o al menos sus evaluaciones). Esto es incompatible con los objetivos criptográficos del sistema. Queremos que el witness permanezca oculto, la prueba sea sucinta y no interactiva, y que el verifier no necesite reconstruir objetos grandes.
 
@@ -109,7 +137,7 @@ Los compromisos polinomiales, y en particular \KZG, nos permiten reemplazar el a
 
 No obstante, todavía faltan componentes esenciales para obtener un \zkSNARK completo:
 \begin{itemize}[itemsep=0.1 cm]
-	\item No interactividad: \KZG asume desafíos enviados por el verifier (en concreto, el punto $z \in \Fp$). Para eliminar esta interacción, necesitaremos la transformación de \FiatShamir, que veremos en la siguiente sección.
+\item No interactividad: \KZG asume desafíos enviados por el verifier (en concreto, el punto $z \in \Fp$). Para eliminar esta interacción, necesitaremos la transformación de \FiatShamir de la Sección~\ref{sec:aritmetizacion-y-construccion-de-un-snark-protocolo-fiatshamir-y-no-interactividad}.
 	\item Conocimiento cero: \KZG no garantiza conocimiento cero por sí mismo. El ocultamiento va a aparecer al combinar compromisos, aleatoriedad y demás estructura del protocolo. En particular, vamos a ver cómo los compromisos a $A, B, C, H$ se ensamblan en una prueba coherente en la última sección del capítulo.
 \end{itemize}
 

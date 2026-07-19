@@ -5,6 +5,7 @@ Una prueba de conocimiento cero (\ZeroKnowledgeProof) o prueba \ZK es un protoco
 Intuitivamente, el \textit{witness} es la información privada que posee el prover y que hace verdadera la afirmación pública que quiere demostrar. La instancia pública, en cambio, contiene los datos que el verifier sí conoce. Así, una prueba \ZK no busca revelar el \textit{witness}, sino convencer al verifier de que existe un \textit{witness} válido para la instancia pública considerada. Cuando el protocolo es interactivo, llamamos \textit{transcript} a la secuencia ordenada de mensajes intercambiados entre prover y verifier durante una ejecución concreta del protocolo.
 
 \begin{definition}[Protocolo de pruebas \ZK]
+\label{def:apendice-b-introduccion-protocolo-de-pruebas-zk}
 	Sea $\Relation \subseteq \InstanceSpace \times \WitnessSpace$ una relación, donde $\InstanceSpace$ es el conjunto de \textit{public inputs} y $\WitnessSpace$ el conjunto de \textit{witnesses}. Asociado a $\Relation$, definimos el lenguaje
 	$$\Language_\Relation := \{x \in \InstanceSpace : \exists w \in \WitnessSpace,\ (x,w) \in \Relation\}.$$
 	Un protocolo de pruebas \ZK para $\Relation$ está dado por un prover $\Prover$ y un verifier $\Verifier$ tales que, sobre una instancia pública $x \in \InstanceSpace$ y un witness $w \in \WitnessSpace$, generan una interacción verificable por el verifier. Si el protocolo es interactivo, el objeto matemático relevante es el \textit{transcript} completo de esa interacción; si es no interactivo, dicho objeto se reduce a una prueba $\pi \in \ProofSpace$.
@@ -92,6 +93,7 @@ Por ahora, consideramos protocolos de pruebas \ZK en su forma más general, y vi
 Más aún, podemos pensar a los protocolos \ZK como una herramienta general para la verificación de cómputo. Dado un algoritmo eficiente y una entrada secreta, el prover puede convencer al verifier de que el algoritmo fue calculado correctamente, sin revelar información adicional sobre $w$ ni sobre el proceso interno de cómputo. Si el tiempo de verificación es bajo, y el tamaño de prueba es reducido, podemos incluso obviar el hecho de que no estamos revelando información sobre $w$ y hablar de protocolos \ZK que permiten verificar cómputos de gran complejidad en sistemas con muy escasos recursos (como una blockchain). También se puede hablar de \textit{cómputo delegado}.
 
 \begin{definition}[Esquema de cómputo verificable (\ZK)]
+\label{def:apendice-b-introduccion-esquema-de-computo-verificable-zk}
 	Sea $f: \InstanceSpace \times \WitnessSpace \to \mathcal{Y}$ una función computable en tiempo polinomial. Un esquema de cómputo verificable para $f$ es un protocolo $(\Prover, \Verifier)$ asociado a la relación $\Relation_f \subseteq \InstanceSpace^* \times \WitnessSpace$, donde el conjunto de \textit{public inputs} es $\InstanceSpace^* = \InstanceSpace \times \mathcal{Y}$ y el conjunto de \textit{witness} es $\WitnessSpace$, y que está definida por:
 	$$(x, y, w) \in \Relation_f \iff f(x,w) = y.$$
 	

@@ -111,75 +111,94 @@
 %%%% ACA VA EL CONTENIDO DE LA TESIS
 
 \chapter{Introducción}
+\label{chap:introduccion}
 
 \input{chapter1/introduction}
 
 \chapter{Bridges y \zkBridge}
+\label{chap:bridges-y-zkbridge}
 \section{Bridges en la Blockchain}
+\label{sec:bridges-y-zkbridge-bridges-en-la-blockchain}
 
 \input{chapter2/bridges}
 
 \section{Problemas de seguridad en \Bridges}
+\label{sec:bridges-y-zkbridge-problemas-de-seguridad-en-bridges}
 
 \input{chapter2/security-issues}
 
 \section{Resumen del paper \zkBridge}
+\label{sec:bridges-y-zkbridge-resumen-del-paper-zkbridge}
 
 \input{chapter2/zk-bridge}
 
 \chapter{Cardano y Modelo \eUTxO}
+\label{chap:cardano-y-modelo-eutxo}
 
 \input{chapter3/motivation}
 
 \chapter{Mithril}
+\label{chap:mithril}
 
 \section{Introducción y motivación}
+\label{sec:mithril-introduccion-y-motivacion}
 
 \input{chapter4/introduccion-y-motivacion}
 
 \section{Protocolo \STM y esquemas de firma}
+\label{sec:mithril-stm-protocol}
 
 \input{chapter4/protocolo-stm-y-esquemas-de-firma}
 
 \section{Cadena de certificados}
+\label{sec:mithril-cadena-de-certificados}
 
 \input{chapter4/cadena-de-certificados}
 
 \section{Entidades, certificados y versiones}
+\label{sec:mithril-entidades-certificados-y-versiones}
 
 \input{chapter4/artefactos-certificados-y-versiones}
 
 \section{API del \MithrilAggregator e integración}
+\label{sec:mithril-api-del-mithrilaggregator-e-integracion}
 
 \input{chapter4/aggregator-api-e-integracion}
 
 \section{Relación \texorpdfstring{\(\NP\)}{NP} del circuito \STM}
+\label{sec:mithril-relacion-np-del-circuito-stm}
 
 \input{chapter4/stm-relacion-np-y-chequeos}
 
 \section{\HaloTwo y complejidad}
+\label{sec:mithril-halotwo-y-complejidad}
 
 \input{chapter4/stm-halo2-y-complejidad}
 
 \section{Puente a la implementación final}
+\label{sec:mithril-puente-a-la-implementacion-final}
 
 \input{chapter4/puente-a-la-implementacion-final}
 
 \chapter{Decisiones de Diseño}
+\label{chap:decisiones-de-diseno}
 
 \input{chapter5/design-decisions}
 
 \chapter{Implementación del \zkBridge}
+\label{chap:implementacion-del-zkbridge}
 
 \input{chapter6/validadores-y-flujo-transaccional}
 
 \input{chapter6/circuitos-y-flujo-final}
 
 \chapter{Resultados}
+\label{chap:resultados}
 
 \input{chapter7/results}
 
 \chapter{Conclusiones y trabajo futuro}
+\label{chap:conclusiones-y-trabajo-futuro}
 
 \input{chapter8/conclusions-and-future-work}
 
@@ -196,82 +215,101 @@
 \appendix
 
 \chapter{Primitivas Criptográficas}
+\label{chap:primitivas-criptograficas}
 
-Este apéndice reúne herramientas algebraicas y criptográficas que el cuerpo principal de la tesis da por sabidas o utiliza de manera recurrente. Su función no es desarrollar una narrativa independiente, sino fijar el vocabulario mínimo y las construcciones de base necesarias para sostener la discusión sobre aritmetización, certificados, pruebas de inclusión y verificación sucinta en el \zkBridge propuesto.
+Este apéndice reúne herramientas algebraicas y criptográficas que el cuerpo principal de la tesis da por sabidas o utiliza de manera recurrente. Su función no es desarrollar una narrativa independiente, sino fijar el vocabulario mínimo y las construcciones de base necesarias para sostener la discusión sobre certificados de la Sección~\ref{sec:mithril-cadena-de-certificados}, pruebas de inclusión de la Sección~\ref{sec:tx-snapshot-membership-el-circuito-de-pertenencia-a-una-transactionsnapshot}, actualización autenticada de la Sección~\ref{sec:tx-set-update-el-circuito-txsetupdatecircuit} y verificación sucinta en el \zkBridge propuesto.
 
 \section{Cuerpos Finitos}
+\label{sec:primitivas-criptograficas-cuerpos-finitos}
 
 \input{appendix-a/cuerpos-finitos}
 
 \section{Problema del logaritmo discreto (\DLP)}
+\label{sec:primitivas-criptograficas-problema-del-logaritmo-discreto-dlp}
 
 \input{appendix-a/dlp}
 
 \section{Polinomios}
+\label{sec:primitivas-criptograficas-polinomios}
 
 \input{appendix-a/polinomios}
 
 \section{Curvas Elípticas}
+\label{sec:primitivas-criptograficas-curvas-elipticas}
 
 \input{appendix-a/curvas-elipticas}
 
 \section{Pairings bilineales}
+\label{sec:primitivas-criptograficas-pairings-bilineales}
 
 \input{appendix-a/pairings}
 
 \section{Hashes}
+\label{sec:primitivas-criptograficas-hashes}
 
 \input{appendix-a/hashes}
 
 \section{Merkle Trees}
+\label{sec:primitivas-criptograficas-merkle-trees}
 
 \input{appendix-a/merkle_tree}
 
 \section{Sparse Merkle Trees (\SMT)}
+\label{sec:primitivas-criptograficas-sparse-merkle-trees-smt}
 
 \input{appendix-a/sparse-merkle-tree}
 
 
 %% ...
 \chapter{Aritmetización y Construcción de un \SNARK}
+\label{chap:aritmetizacion-y-construccion-de-un-snark}
 
-Este apéndice reúne la teoría criptográfica subyacente a los argumentos sucintos utilizados en la tesis. Su propósito es concentrar en un único lugar las definiciones, transformaciones y construcciones que permiten pasar de un cómputo expresado como relación en $\NP$ a un argumento \zkSNARK verificable de manera eficiente. En particular, las nociones de circuitos aritméticos, \ROneCS, \QAP, compromisos polinomiales, \KZG, \FiatShamir y \Groth aparecen luego de forma directa en las decisiones de diseño del \Bridge, en la justificación de la verificación \Onchain en \Cardano, y en la discusión posterior sobre circuitos y pruebas asociadas a \Mithril.
+Este apéndice reúne la teoría criptográfica subyacente a los argumentos sucintos utilizados en la tesis. Su propósito es concentrar en un único lugar las definiciones, transformaciones y construcciones que permiten pasar de un cómputo expresado como relación en $\NP$ a un argumento \zkSNARK verificable de manera eficiente. En particular, estas nociones sostienen la estrategia elegida en la Sección~\ref{sec:design-decisions-eleccion-de-estrategia-zk}, la adaptación \Onchain de la Sección~\ref{sec:mithril-a-cardano-del-circuito-halotwo-de-mithril-a-cardano} y los circuitos auxiliares de las Secciones~\ref{sec:tx-snapshot-membership-el-circuito-de-pertenencia-a-una-transactionsnapshot} y~\ref{sec:tx-set-update-el-circuito-txsetupdatecircuit}.
 
 Puede leerse de dos maneras. Una lectura lineal, de principio a fin, reconstruye la cadena completa que va desde la representación algebraica del cómputo hasta el esquema de prueba finalmente adoptado en el proyecto. En cambio, un lector que sólo necesite contexto para seguir el argumento principal puede usarlo como material de consulta selectiva: las secciones sobre \QAP, \KZG y \Groth son las más directamente conectadas con los capítulos de diseño e implementación, mientras que las secciones iniciales fijan la intuición necesaria para que esas construcciones no aparezcan como cajas negras.
 
 \section{Introducción a pruebas \ZK}
+\label{sec:aritmetizacion-y-construccion-de-un-snark-introduccion-a-pruebas-zk}
 
 \input{appendix-b/introduccion}
 
 \section{SNARKs}
+\label{sec:aritmetizacion-y-construccion-de-un-snark-snarks}
 
 \input{appendix-b/snark}
 
 \section{Circuitos Aritméticos}
+\label{sec:aritmetizacion-y-construccion-de-un-snark-circuitos-aritmeticos}
 
 \input{appendix-b/arithmetic-circuits}
 
 \section{Sistemas de Restricciones \ROneCS (Rank-1 Constraint Systems)}
+\label{sec:aritmetizacion-y-construccion-de-un-snark-sistemas-de-restricciones-ronecs-rank-1-constraint-systems}
 
 \input{appendix-b/r1cs}
 
 \section{\QAP: Quadratic Arithmetic Programs}
+\label{sec:aritmetizacion-y-construccion-de-un-snark-qap-quadratic-arithmetic-programs}
 
 \input{appendix-b/qap}
 
 \section{Esquemas de Compromiso (Commitment Schemes)}
+\label{sec:aritmetizacion-y-construccion-de-un-snark-esquemas-de-compromiso-commitment-schemes}
 
 \input{appendix-b/commitment-schemes}
 
 \section{\KZG}
+\label{sec:aritmetizacion-y-construccion-de-un-snark-kzg}
 
 \input{appendix-b/kzg}
 
 \section{Protocolo \FiatShamir y No-Interactividad}
+\label{sec:aritmetizacion-y-construccion-de-un-snark-protocolo-fiatshamir-y-no-interactividad}
 
 \input{appendix-b/fiat-shamir}
 
 \section{\Groth}
+\label{sec:aritmetizacion-y-construccion-de-un-snark-groth}
 
 \input{appendix-b/groth16}
 

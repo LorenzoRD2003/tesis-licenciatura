@@ -1,8 +1,9 @@
 % !TeX root = tesis.tex
 
 \subsection{El protocolo \Groth}
+\label{subsec:apendice-b-groth16-el-protocolo-groth}
 
-En esta sección presentamos una descripción simplificada del argumento de conocimiento subyacente al esquema \Groth, pensada para fijar la intuición algebraica principal sin reproducir todos los detalles técnicos de una formalización estándar. Sea $\Relation \subseteq \InstanceSpace \times \WitnessSpace$ una relación en $\NP$. Como en la sección dedicada a \QAP, suponemos que la relación ha sido aritmetizada como un \QAP de tamaño $m$ y dimensión $n$ sobre un cuerpo finito $\K = \Fp$, y todo se reduce a argumentar sucintamente una identidad polinomial. Vamos a ligar todos estos nombres de objetos antes de entrar a describir el protocolo propiamente dicho.
+En esta sección presentamos una descripción simplificada del argumento de conocimiento subyacente al esquema \Groth, pensada para fijar la intuición algebraica principal sin reproducir todos los detalles técnicos de una formalización estándar. Sea $\Relation \subseteq \InstanceSpace \times \WitnessSpace$ una relación en $\NP$. Como en la Sección~\ref{sec:aritmetizacion-y-construccion-de-un-snark-qap-quadratic-arithmetic-programs}, suponemos que la relación ha sido aritmetizada como un \QAP de tamaño $m$ y dimensión $n$ sobre un cuerpo finito $\K = \Fp$, y todo se reduce a argumentar sucintamente una identidad polinomial. Vamos a ligar todos estos nombres de objetos antes de entrar a describir el protocolo propiamente dicho.
 
 En particular, existen $3n$ polinomios $\{A_i(x)\}_{i=1}^n$, $\{B_i(x)\}_{i=1}^n$, $\{C_i(x)\}_{i=1}^n$ en $\poly{\Fp}_{< m}$ tales que, definiendo el vector extendido de asignación
 
@@ -19,6 +20,7 @@ $$AB - C = HZ.$$
 Además, sean $\GOne$ y $\GTwo$ grupos cíclicos aditivos de orden primo $p$, sean $G_1 \in \GOne$ y $G_2 \in \GTwo$ generadores, y sea $\GT$ un grupo multiplicativo, con un pairing bilineal no degenerado $e: \GOne \times \GTwo \to \GT$.
 
 \begin{definition}[Protocolo interactivo \Groth]
+\label{def:apendice-b-groth16-protocolo-interactivo-groth}
 	El \emph{protocolo interactivo \Groth} busca argumentar la existencia de un polinomio $H$ y consta de los siguientes algoritmos:
 	
 	\begin{itemize}
@@ -55,7 +57,7 @@ Observamos que si $(x, w) \in \Relation$, entonces por la definición del \QAP e
 $$A(\tau)B(\tau) - C(\tau) = H(\tau)Z(\tau).$$
 Si expandimos la ecuación de verificación y utilizamos la bilinealidad de $e$, se observa que todos los términos dependientes de $r$ y $s$ se cancelan, y la igualdad se satisface completamente. Por lo tanto, el protocolo cumple la propiedad de completitud. La solidez se fundamenta en supuestos criptográficos estándar sobre grupos bilineales y en la estructura algebraica de la construcción.
 
-A diferencia de los $\Sigma$-\textit{protocols} discutidos en la sección anterior, \Groth no expone un \textit{challenge} explícito del \textit{verifier}. En cambio, la randomización está embebida en la fase del \textit{trusted setup} mediante la tupla $(\tau, \alpha, \beta, \gamma, \delta)$. \Groth ya es \NIZK por diseño. En particular, no se enmarca en el \ROM, sino en el \AGM (Algebraic Group Model) \cite{Fuchsbauer2018}.
+A diferencia de los $\Sigma$-\textit{protocols} discutidos en la Sección~\ref{sec:aritmetizacion-y-construccion-de-un-snark-protocolo-fiatshamir-y-no-interactividad}, \Groth no expone un \textit{challenge} explícito del \textit{verifier}. En cambio, la randomización está embebida en la fase del \textit{trusted setup} mediante la tupla $(\tau, \alpha, \beta, \gamma, \delta)$. \Groth ya es \NIZK por diseño. En particular, no se enmarca en el \ROM, sino en el \AGM (Algebraic Group Model) \cite{Fuchsbauer2018}.
 
 Para finalizar esta subsección, vamos a observar que \Groth realmente está diseñado para verificar la identidad polinomial en el exponente (en $\GT$), pero separando la parte pública $1 \leq i \leq \ell$, de la parte privada $\ell + 1 \leq i \leq n$, y de la parte de aleatorización. En efecto:
 
@@ -68,6 +70,7 @@ Así, vemos que todo lo que está dividido por $\delta$ corresponde a la parte a
 
 
 \subsection{\Groth como extensión natural de \KZG}
+\label{subsec:apendice-b-groth16-groth-como-extension-natural-de-kzg}
 
 Es instructivo interpretar \Groth como una evolución del esquema \KZG aplicado a la aritmetización mediante \QAP. Recordemos que en \KZG, el prover demuestra que conoce un polinomio $P(x)$ tal que $y = P(z)$. La verificación consiste en chequear, mediante un pairing bilineal, que $P(\tau) - y$ es divisible por $\tau - z$. En esencia, \KZG permite verificar una identidad polinomial en un punto oculto $\tau$.
 
@@ -76,10 +79,11 @@ En el caso del \QAP, lo que queremos verificar es: $A(x) \cdot B(x) - C(x) = H(x
 \begin{itemize}[itemsep=0.1cm]
 	\item En \KZG, el compromiso revela implícitamente la evaluación $P(\tau)$, sin soportar separación entre parte pública y privada. En cambio, en \Groth el \textit{input} puede ocultarse, y los \textit{public inputs} deben poder verificarse en forma separada. Es por esto que aparecen los parámetros $\alpha, \beta, \gamma, \delta$, que mezclan algebraicamente los polinomios de forma que $\Verifier$ pueda aislar la parte pública, y el \textit{witness} quede enmascarado.
 	\item En \KZG, necesitaríamos un compromiso para cada uno de $A(x), B(x), C(x), H(x)$, lo que conlleva varias pruebas de divisibilidad con correspondientes ecuaciones de pairing bilineal. \Groth comprime toda la verificación del \QAP en una única ecuación de emparejamiento.
-	\item Dijimos en la sección sobre \KZG que \KZG por sí solo no era \ZK. La aleatoriedad $r, s$ introducida por \Groth, así como los términos cruzados $(rB(\tau) + sA(\tau) - rs\delta)G_1$ garantizan que la distribución de la prueba sea independiente del witness, y por lo tanto es \ZK.
+	\item Como se señaló en la Subsección~\ref{subsec:apendice-b-kzg-lo-que-tenemos-hasta-ahora}, \KZG por sí solo no es \ZK. La aleatoriedad $r, s$ introducida por \Groth, así como los términos cruzados $(rB(\tau) + sA(\tau) - rs\delta)G_1$ garantizan que la distribución de la prueba sea independiente del witness, y por lo tanto es \ZK.
 \end{itemize}
 
 \subsection{Complejidad de \Groth}
+\label{subsec:apendice-b-groth16-complejidad-de-groth}
 
 En la fase de $\Setup$ (que recordemos, en la práctica es una ceremonia en la que varias personas deben contribuir con aleatoriedad y al menos una debe comportarse de forma honesta), para computar la \SRS en su totalidad hay que computar:
 \begin{itemize}[noitemsep]
@@ -113,7 +117,8 @@ En la fase de verificación de la prueba, la complejidad temporal del algoritmo 
 \end{itemize}
 
 \subsection{Aplicación de \Groth al proyecto}
+\label{subsec:apendice-b-groth16-aplicacion-de-groth-al-proyecto}
 
 En contextos de blockchain, la métrica relevante no es únicamente la complejidad asintótica, sino el costo concreto en términos de operaciones criptográficas soportadas por la máquina virtual subyacente. En particular, las operaciones dominantes en la verificación de \Groth son los pairings bilineales. Si la plataforma expone precompilados o primitivas nativas eficientes para emparejamientos (como ocurre en ciertos entornos basados en curvas elípticas tipo \BN o \BLS), el costo de verificación es esencialmente constante y pequeño, lo que hace a \Groth especialmente adecuado para validación \textit{onchain}.
 
-Esta observación es particularmente relevante en el contexto de \Cardano, donde las capacidades criptográficas disponibles onchain determinan directamente qué construcciones \zkSNARK usar. En concreto, existe una implementación de pairings bilineales sobre la curva \BLS en la biblioteca estándar de \Plutus, así como un verificador \Groth hecho por ModuloP \cite{groth_validator_modulop}. Esto, en conjunto con la extrema sucintez del argumento \Groth, determina que sea el \zkSNARK a utilizar durante nuestro proyecto.
+Esta observación es particularmente relevante en el contexto de \Cardano, donde las capacidades criptográficas disponibles \Onchain determinan directamente qué construcciones \zkSNARK usar. La decisión correspondiente se justifica en la Subsección~\ref{subsec:design-decisions-esquema-de-argumentos-zk}, y su integración concreta con los dos circuitos auxiliares se desarrolla en las Secciones~\ref{sec:tx-snapshot-membership-el-circuito-de-pertenencia-a-una-transactionsnapshot} y~\ref{sec:tx-set-update-el-circuito-txsetupdatecircuit}. En particular, las primitivas de pairings bilineales sobre \BLS disponibles en \Plutus, junto con la extrema sucintez del argumento \Groth, determinan que sea el \zkSNARK utilizado en el proyecto \cite{groth_validator_modulop}.

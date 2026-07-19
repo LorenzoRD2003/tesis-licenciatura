@@ -1,10 +1,12 @@
 % !TeX root = tesis.tex
 
 \subsection{Equivalencia entre \ROneCS y \QAP}
+\label{subsec:apendice-b-qap-equivalencia-entre-ronecs-y-qap}
 
-Un \QAP puede entenderse como un mecanismo algebraico que codifica simultáneamente todas las restricciones de un \ROneCS en una única relación polinómica global. La idea fundamental es que los polinomios "recuerden" cada restricción. Usaremos aquí la interpolación polinómica introducida en el Apéndice A: dados valores sobre un conjunto de puntos distintos, existe un único polinomio de grado acotado que interpola esos valores. En un \QAP, esta herramienta permite reemplazar las columnas de las matrices de un \ROneCS por polinomios. Daremos la definición formal ahora mismo.
+Un \QAP puede entenderse como un mecanismo algebraico que codifica simultáneamente todas las restricciones de un \ROneCS de la Definición~\ref{def:apendice-b-r1cs-ronecs} en una única relación polinómica global. La idea fundamental es que los polinomios "recuerden" cada restricción. Usaremos aquí la interpolación polinómica de la Subsección~\ref{subsec:apendice-a-polinomios-interpolacion-de-polinomios}: dados valores sobre un conjunto de puntos distintos, existe un único polinomio de grado acotado que interpola esos valores. En un \QAP, esta herramienta permite reemplazar las columnas de las matrices de un \ROneCS por polinomios. Daremos la definición formal ahora mismo.
 
 \begin{definition}[\QAP, Polinomio objetivo]
+\label{def:apendice-b-qap-qap-polinomio-objetivo}
 	Sea $\K$ un cuerpo finito, y sean $m, n \in \N$. Un \emph{Quadratic Arithmetic Program} (\QAP) sobre $\K$ de tamaño $m$ y dimensión $n$ está dado por:
 	\begin{itemize}[noitemsep]
 		\item Tres familias de $n$ polinomios en $\poly{\K}$:
@@ -18,6 +20,7 @@ Un \QAP puede entenderse como un mecanismo algebraico que codifica simultáneame
 \end{definition}
 
 \begin{definition}[Satisfacción de un \QAP]
+\label{def:apendice-b-qap-satisfaccion-de-un-qap}
 	Sean $\K$ un cuerpo finito, $(\PolyA, \PolyB, \PolyC, Z)$ un \QAP sobre $\K$ de tamaño $m$ y dimensión $n$, sea $\AssignmentVector \in \K^n$ un vector de asignación. Decimos que $\AssignmentVector$ \emph{satisface} el \QAP si existe un polinomio $H \in \poly{\K}$ tal que
 	$$\left(\sum_{i=1}^{n} \AssignmentVector_i A_i\right) \cdot \left(\sum_{i=1}^{n} \AssignmentVector_i B_i \right) - \left(\sum_{i=1}^{n} \AssignmentVector_i C_i\right) = HZ.$$
 \end{definition}
@@ -60,6 +63,7 @@ Es decir que la identidad polinómica que define al \QAP se anula en $r_j$ si $\
 \end{theorem}
 
 \subsection{Construcción de un ejemplo}
+\label{subsec:apendice-b-qap-construccion-de-un-ejemplo}
 
 Para continuar con nuestro ejemplo, con $m = 6$ y $n = 13$, debemos interpolar los $39$ polinomios de grado menor o igual a $5$ dados por cada columna de $\MatrixA,\MatrixB,\MatrixC \in \Fp^{6 \times 13}$. Para ello, primero debemos elegir un conjunto de $6$ puntos diferentes de $\Fp$, que van a definir el polinomio objetivo. Sin perder generalidad, pueden ser $r_i = i$ para $1 \leq i \leq 6$ (suponiendo, desde luego, que $|\Fp| \geq 6$). Entonces:
 $$Z(x) = (x - 1)(x - 2)(x - 3)(x - 4)(x - 5)(x - 6) = \prod_{i=1}^{6} (x - i).$$
@@ -68,9 +72,10 @@ Hacer todas las interpolaciones paso por paso a mano sería sumamente engorroso.
 $$A_1(x) = \frac{(x - 1)(x - 2)(x - 4)(x - 5)(x - 6)}{(3 - 1)(3 - 2)(3 - 4)(3 - 5)(3 - 6)}.$$
 
 \subsection{Lo que tenemos hasta ahora}
+\label{subsec:apendice-b-qap-lo-que-tenemos-hasta-ahora}
 
 Reformulamos un circuito aritmético como un \ROneCS, y luego como un \QAP. El problema se transformó en una única condición de divisibilidad polinómica. Basta verificar que cierta identidad polinómica se anula en cierto conjunto de puntos, o equivalentemente, que es múltiplo del polinomio objetivo $Z \in \poly{\K}$.
 
 Esta transformación es precisamente lo que habilita la construcción de pruebas sucintas. Recordemos el Lema de Schwartz-Zippel ya introducido. Esa herramienta permitía verificar la igualdad de dos polinomios en forma probabilística utilizando solamente un punto elegido aleatoriamente para evaluarlos, sin necesidad de manipular y comparar sus coeficientes.
 
-Del mismo modo, verificar la divisibilidad de polinomios puede realizarse de manera probabilística mediante evaluaciones en puntos aleatorios. Veremos cómo hacer esto en las siguientes secciones, lo cual abre el camino hacia mecanismos de verificación más compactos que la comprobación explícita de cada restricción por separado. En el camino, veremos que también se introduce la propiedad de conocimiento cero, ya que la representación polinómica permite agregar criptografía para comprometer evaluaciones sin revelar los valores (usando esquemas de compromiso polinomiales).
+Del mismo modo, verificar la divisibilidad de polinomios puede realizarse de manera probabilística mediante evaluaciones en puntos aleatorios. Las Secciones~\ref{sec:aritmetizacion-y-construccion-de-un-snark-esquemas-de-compromiso-commitment-schemes} y~\ref{sec:aritmetizacion-y-construccion-de-un-snark-kzg} muestran cómo hacerlo, abriendo el camino hacia mecanismos de verificación más compactos que la comprobación explícita de cada restricción por separado. En el camino, también se introduce la propiedad de conocimiento cero, ya que la representación polinómica permite agregar criptografía para comprometer evaluaciones sin revelar los valores.

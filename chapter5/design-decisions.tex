@@ -1,6 +1,6 @@
 % !TeX root = ../tesis.tex
 
-Este capítulo formaliza \emph{decisiones de diseño} para un \zkBridge sobre \Cardano, partiendo de las restricciones del modelo \eUTxO y de la capa de ejecución (límites \maxTxSize y \maxTxExUnits) discutidas en el capítulo \emph{Cardano y Modelo \eUTxO}. Se propone separar el sistema en dos capas. Por un lado, una \emph{capa de actualización} que mantiene, en $\ChainB$, información verificable sobre $\ChainA$; por otro, una \emph{capa de aplicación} que implementa la lógica de \textit{locking}/\textit{minting} y, como extensión natural, \textit{burning}/\textit{unlocking}. Esta estructura guía todas las decisiones posteriores.
+Este capítulo formaliza \emph{decisiones de diseño} para un \zkBridge sobre \Cardano, partiendo de las restricciones del modelo \eUTxO y de la capa de ejecución (límites \maxTxSize y \maxTxExUnits) discutidas en el Capítulo~\ref{chap:cardano-y-modelo-eutxo}, especialmente en la Sección~\ref{sec:motivation-limites-del-protocolo-y-su-importancia-en-un-zkbridge}. Se propone separar el sistema en dos capas. Por un lado, una \emph{capa de actualización} que mantiene, en $\ChainB$, información verificable sobre $\ChainA$; por otro, una \emph{capa de aplicación} que implementa la lógica de \textit{locking}/\textit{minting} y, como extensión natural, \textit{burning}/\textit{unlocking}. Esta estructura guía todas las decisiones posteriores.
 
 La decisión central de diseño es \textbf{evitar} un argumento \ZK del algoritmo nativo de validación de headers de \Praos (\VRF, selección de slot leader, certificados operacionales y firmas \KES), y \textbf{adoptar Mithril como \LightClient} para certificar \emph{\StakeDistribution por \Epoch} e \emph{inclusión de transacciones} mediante certificados de \Mithril y pruebas de Merkle, con la seguridad anclada en el stake \cite{MithrilDocsOverview}. Una alternativa nativa requeriría una cantidad grande de datos contextuales (por ejemplo, el stake relativo del pool productor y el \Nonce de época), complicando el circuito y su actualización por época. El uso de \Mithril desplaza ese costo a un protocolo dedicado a snapshots/certificación, y reduce la superficie de cambios para la futura evolución del consenso de \Cardano (\Peras y \Leios), ya que el \Bridge valida certificados \Mithril en lugar de reglas de consenso directamente \cite{PerasFAQ,LeiosSite}.
 
@@ -15,6 +15,7 @@ En la implementación final, las decisiones de estado y atomicidad se concretan 
 Finalmente, se justifica una estrategia de verificación sucinta \emph{híbrida}. Para certificados \Mithril, el flujo implementado verifica \Onchain argumentos \HaloTwo del circuito \MidnightSTMCircuit mediante un validador Aiken generado y optimizado. Como esa verificación no entra en una única transacción, se divide en \PhaseOneSetupTx y \PhaseTwoVerifyTx, y produce como \textit{output} un \ProofReceipt ligado al \texttt{statement\_hash} del certificado. Para los circuitos auxiliares del bridge, en cambio, se usa \Groth: la verificación de un \SNARK basado en pairings sobre \BLS es viable gracias a primitivas criptográficas incorporadas en \Plutus V3 y a bibliotecas en Aiken como \texttt{ak-381}, integradas con circuitos Circom y \texttt{snarkjs} \cite{CIP0381, IOGPlutusV3, AK381Repo}. Como alternativa de evolución, se analiza el uso de \textit{zkVMs} (Risc0/SP1) \emph{envueltas} en \Groth vía recursión (\STARK$\rightarrow$\SNARK), pero se explica por qué esa ruta se descarta como decisión inmediata en favor de circuitos dedicados y verificadores medidos contra los límites reales de \Cardano \cite{Risc0Recursion, SP1TestnetLaunch, EryxProofOfInnocenceSurvey, CardanoCourseProtocolParams}.
 
 \section{Restricciones de Cardano que gobiernan el diseño}
+\label{sec:design-decisions-restricciones-de-cardano-que-gobiernan-el-diseno}
 
 En el contexto de un \zkBridge, las restricciones de \Cardano en términos de \maxTxSize y \maxTxExUnits implican que la verificación de argumentos criptográficos y el manejo de datos asociados (por ejemplo, certificados o entradas públicas) deben ser cuidadosamente diseñados para ajustarse a presupuestos limitados. En particular, resulta necesario minimizar la cantidad de verificaciones costosas realizadas en una misma transacción y controlar el tamaño de los artefactos incluidos.
 
@@ -30,16 +31,19 @@ Entonces:
 \end{itemize}
 
 \section{Arquitectura}
+\label{sec:design-decisions-arquitectura}
 
 \subsection{Capas: actualización y aplicación}
+\label{subsec:design-decisions-capas-actualizacion-y-aplicacion}
 
-Como vimos en capítulos anteriores, un patrón general en el diseño de \Bridges consiste en separar el sistema en dos capas funcionales: una \emph{capa de actualización}, encargada de mantener en $\ChainB$ una representación verificable del estado relevante de $\ChainA$, y una \emph{capa de aplicación}, que utiliza dicha representación para autorizar las operaciones de transferencia de activos.
+Como anticipan el esquema general del \zkBridge de la Subsección~\ref{subsec:zk-bridge-esquema-general-de-un-zkbridge} y la interfaz de \Mithril de la Sección~\ref{sec:mithril-puente-a-la-implementacion-final}, un patrón general en el diseño de \Bridges consiste en separar el sistema en dos capas funcionales: una \emph{capa de actualización}, encargada de mantener en $\ChainB$ una representación verificable del estado relevante de $\ChainA$, y una \emph{capa de aplicación}, que utiliza dicha representación para autorizar las operaciones de transferencia de activos.
 
 Debido a las limitaciones de \Cardano, en lugar de replicar explícitamente el estado de $\ChainA$, la capa de actualización debe basarse en \textit{commitments} o certificados criptográficos. En esta tesis, su instancia concreta es la familia de transacciones \StakeDistTx, que publica y renueva en $\ChainB$ un \UTxO canónico de \StakeDistribution identificado por un NFT. El primer estado se crea con \StakeDistributionGenesisTxTemplate, validando un \GenesisCertificate mediante \GenesisVerificationKey; luego, \StakeDistributionStandardTxTemplate actualiza ese estado consumiendo un \ProofReceipt producido por la verificación \STM del dominio \texttt{stake\_distribution\_standard}. El \UTxO resultante queda disponible para ser consultado por la capa de aplicación como \ReferenceInput, sin necesidad de ser consumido en cada operación de minting.
 
 Por su parte, la capa de aplicación utiliza certificados de \emph{\TransactionSnapshot}, también provistos por \Mithril, para demostrar la inclusión de transacciones específicas en $\ChainA$. Estos certificados permiten justificar operaciones como el minting de activos en $\ChainB$ sin requerir la verificación completa del protocolo de consenso. En la implementación final, la \MintTx consume un \ProofReceipt del dominio \texttt{cardano\_transactions}, referencia el \StakeDistributionUTxO vigente, verifica mediante \Groth que el \TxId de la \LockTx pertenece al \TransactionSnapshot autenticado y actualiza atómicamente el \SMT local de transacciones ya usadas. Esta formulación evita reconstruir \Onchain toda la semántica de la transacción de origen: el circuito de pertenencia fija el identificador canónico dentro del snapshot, mientras que los validadores del \Bridge controlan que ese identificador y el estado anti-replay sean consumidos de manera coherente.
 
 \subsection{Actores, responsabilidades y flujo del sistema}
+\label{subsec:design-decisions-actores-responsabilidades-y-flujo-del-sistema}
 
 La arquitectura del \Bridge involucra distintos actores con responsabilidades diferenciadas:
 
@@ -63,6 +67,7 @@ A nivel conceptual, el flujo de interacción del \Bridge sigue el siguiente esqu
 \end{enumerate}
 
 \section{Estado en \eUTxO: atomicidad y concurrencia}
+\label{sec:design-decisions-estado-en-eutxo-atomicidad-y-concurrencia}
 
 El modelo \eUTxO favorece representar el estado de una aplicación como una colección de \textit{outputs} consumibles y recreables, en lugar de un estado global mutable compartido \cite{Chakravarty2020}. En este enfoque, cada transición de estado se expresa como una transacción que consume una representación previa y produce una nueva, garantizando que las invariantes del sistema se mantengan localmente. En el contexto de este \zkBridge, esto lleva a distinguir con claridad tres piezas persistentes de estado: el \UTxO de fondos bloqueados en la cadena de origen, el \TxsUpdaterUTxO que resume el conjunto de transacciones ya procesadas y el \StakeDistributionUTxO publicado en la cadena destino. A ellas se suman \ProofReceipt intermedios, que no representan estado global del bridge, sino evidencia autenticada producida por la verificación de fase 2.
 
@@ -71,8 +76,10 @@ Un requisito fundamental de cualquier \Bridge es evitar el reprocesamiento de ev
 El diseño del sistema requiere que la actualización del estado global y la ejecución de las operaciones de aplicación ocurran de manera atómica. En particular, \MintTx no debe entenderse como una simple operación de minting aislada, sino como una transacción compuesta que valida la evidencia remota, mintea los activos envueltos y actualiza simultáneamente el estado anti-replay. En el modelo \eUTxO, esta propiedad puede lograrse mediante la construcción de transacciones que incorporen simultáneamente la ejecución de múltiples \textit{scripts}, donde se valida que tienen dependencia mutua. De esta forma, se preserva la coherencia del sistema.
 
 \section{Elección de estrategia \ZK}
+\label{sec:design-decisions-eleccion-de-estrategia-zk}
 
 \subsection{Alternativas consideradas}
+\label{subsec:design-decisions-alternativas-consideradas}
 
 El diseño de un \zkBridge involucra dos decisiones fundamentales: qué tipo de información debe ser probada y mediante qué mecanismos criptográficos se construyen dichos argumentos. Verificar directamente el protocolo de consenso de $\ChainA$ es demasiado costoso y fuertemente acoplado a los detalles del protocolo. Por lo tanto, el diseño del \Bridge consta de varios argumentos y validaciones sucintas con roles separados:
 
@@ -85,14 +92,16 @@ El diseño de un \zkBridge involucra dos decisiones fundamentales: qué tipo de 
 En cuanto al mecanismo de argumentos \ZK, se consideran dos enfoques principales: el uso de circuitos dedicados, donde la lógica se expresa directamente como \textit{constraints}, y el uso de \textit{zkVMs}, donde se demuestra la ejecución de un programa general. La elección entre ambos enfoques implica un \textit{trade-off} entre control sobre la eficiencia de los argumentos y facilidad de desarrollo.
 
 \subsection{Esquema de argumentos \ZK}
+\label{subsec:design-decisions-esquema-de-argumentos-zk}
 
 Por una parte, las \textit{zkVMs} presentan ventajas importantes en términos de mantenibilidad, ya que permiten reutilizar implementaciones existentes del protocolo de la cadena fuente. No obstante, en el contexto de \Cardano, este enfoque introduce desafíos adicionales.
 
 En particular, la mayoría de \textit{zkVMs} generan argumentos del tipo \STARK, que son de mayor tamaño y requieren mecanismos de compresión o recursión para ser verificables eficientemente \Onchain. Esto implica que, incluso adoptando \textit{zkVMs}, el sistema termina dependiendo de un esquema de argumentos sucintos para la verificación final en la cadena destino (esto se conoce como \STARK$\rightarrow$\SNARK). El problema surge porque el programa a demostrar utilizando una \textit{zkVM}, asociado al proceso de votación y generación de certificados de \Mithril, es demasiado grande para el alcance de esta tesis.
 
-Dado el contexto anterior, se privilegian esquemas de argumentos \ZK con verificadores eficientes y tamaño reducido de argumento, pero no se fuerza un único backend criptográfico para todo el sistema. Para la verificación de certificados \Mithril se reutiliza la relación \STM ya disponible en el ecosistema de \Midnight, expresada como \MidnightSTMCircuit y verificada \Onchain mediante un verificador \HaloTwo adaptado a Aiken. Para las dos relaciones auxiliares que pertenecen al \Bridge, \TxSnapshotMembershipCircuit y \TxSetUpdateCircuit, se adopta \Groth, debido a su sucintez, a su eficiencia de verificación y a la existencia de primitivas \BLS en \Plutus V3 junto con bibliotecas como \texttt{ak-381}. Esta combinación permite mantener acotadas las transacciones finales sin reimplementar toda la certificación \Mithril en Circom.
+Dado el contexto anterior, se privilegian esquemas de argumentos \ZK con verificadores eficientes y tamaño reducido de argumento, pero no se fuerza un único backend criptográfico para todo el sistema. Para la verificación de certificados \Mithril se reutiliza la relación \STM de la Sección~\ref{sec:mithril-relacion-np-del-circuito-stm}, expresada como \MidnightSTMCircuit y verificada \Onchain mediante un verificador \HaloTwo adaptado a Aiken en la Sección~\ref{sec:mithril-a-cardano-del-circuito-halotwo-de-mithril-a-cardano}. Para las dos relaciones auxiliares que pertenecen al \Bridge, \TxSnapshotMembershipCircuit y \TxSetUpdateCircuit, se adopta \Groth; ambas se desarrollan en las Secciones~\ref{sec:tx-snapshot-membership-el-circuito-de-pertenencia-a-una-transactionsnapshot} y~\ref{sec:tx-set-update-el-circuito-txsetupdatecircuit}. Esta elección se debe a su sucintez, a su eficiencia de verificación y a la existencia de primitivas \BLS en \Plutus V3 junto con bibliotecas como \texttt{ak-381}. La combinación permite mantener acotadas las transacciones finales sin reimplementar toda la certificación \Mithril en Circom.
 
 \subsection{Implicancias de diseño}
+\label{subsec:design-decisions-implicancias-de-diseno}
 
 La estrategia adoptada implica una clara separación entre la generación de argumentos y su verificación:
 
@@ -105,8 +114,9 @@ En particular, el diseño final evita recomputar \Onchain hashes completos de ce
 En su lugar, el vínculo entre la verificación pesada y las transacciones posteriores queda expresado por el \texttt{statement\_hash} persistido en \ProofReceipt, por los inputs públicos de los circuitos \Groth y por el consumo atómico de los \UTxOs canónicos correspondientes.
 
 \section{Transacciones del protocolo}
+\label{sec:design-decisions-transacciones-del-protocolo}
 
-El protocolo del \Bridge se estructura en torno a un conjunto de transacciones que reflejan las distintas etapas del flujo de activos entre cadenas.
+El protocolo del \Bridge se estructura en torno a un conjunto de transacciones que reflejan las distintas etapas del flujo de activos entre cadenas. Su materialización completa puede consultarse en la Sección~\ref{sec:final-bridge-flow-flujo-final-del-zkbridge}.
 
 En $\ChainA$, los usuarios inician el proceso mediante una transacción de locking de activos $\LockTx$. Este evento constituye el punto de partida para la generación de evidencia verificable en $\ChainB$.
 

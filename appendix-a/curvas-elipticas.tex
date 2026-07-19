@@ -3,6 +3,7 @@
 En esta sección introducimos las curvas elípticas sobre un cuerpo, y las dotamos de una estructura de grupo abeliano. Las curvas elípticas presentan propiedades de seguridad criptográfica favorables, en particular, para niveles de seguridad comparables, los grupos de curvas elípticas permiten tamaños de parámetros significativamente menores que los grupos multiplicativos clásicos.
 
 \begin{definition}[Curva elíptica]
+\label{def:apendice-a-curvas-elipticas-curva-eliptica}
 	Sea $\K$ un cuerpo con $\charac{\K} \neq 2,3$. Una curva elíptica $\E$ sobre $\K$ es una curva, junto con un punto distinguido $\OO$, que puede describirse mediante una ecuación de la forma
 	$$\E: y^2 = x^3 + ax + b, \quad a,b \in \K,$$
 	y sujeta a la condición de no singularidad $4a^3 + 27b^2 \neq 0$.
@@ -15,6 +16,7 @@ En esta sección introducimos las curvas elípticas sobre un cuerpo, y las dotam
 La condición de no singularidad garantiza que la curva no posee puntos singulares, y por lo tanto que la curva es lisa. Es decir, si consideramos la función en dos variables $F(x,y) = y^2 - x^3 - ax - b$, sus derivadas parciales son $\frac{\partial F}{\partial x}(x,y) = -3x^2 - a$, y $\frac{\partial F}{\partial y}(x,y) = 2y$. Un punto de la curva es singular si ambas derivadas parciales de $F$ se anulan en él.
 
 \begin{definition}[Definición geométrica de suma en curvas elípticas]
+\label{def:apendice-a-curvas-elipticas-definicion-geometrica-de-suma-en-curvas-elipticas}
 	Sea $\K$ un cuerpo, y $\E(\K)$ una curva elíptica. Dados $P, Q \in \E(\K)$, se define la suma $+: \E(\K) \times \E(\K) \to \E(\K)$ desde una perspectiva geométrica, como:
 	\begin{enumerate}
 		\item Se considera la recta que pasa por $P$ y $Q$. En el caso particular $P = Q$, se toma la recta tangente a la curva en $P$. En el caso particular $Q = -P$, la recta es vertical.
@@ -68,6 +70,7 @@ Por convención, utilizaremos notación aditiva en vez de multiplicativa al trab
 Al pasar a considerar curvas elípticas sobre cuerpos finitos, es decir curvas de la forma $\E(\Fq)$ con $q = p^k$, $p$ primo y $\charac{\Fq} \neq 2,3$, la interpretación geométrica deja de ser literal, aunque sigue siendo una guía conceptual valiosa. La estructura de grupo abeliano se preserva, y en particular la operación de suma continúa estando bien definida. Sin embargo, en este contexto ya no resulta conveniente describir la suma en términos geométricos, sino mediante fórmulas algebraicas explícitas.
 
 \begin{definition}[Definición algebraica de suma en curvas elípticas]
+\label{def:apendice-a-curvas-elipticas-definicion-algebraica-de-suma-en-curvas-elipticas}
 	Sea $\K$ un cuerpo finito, sea $\E(\K)$ una curva elíptica y sean $P, Q \in \E(\K)$. Se define la suma $+: \E(\K) \times \E(\K) \to \E(\K)$ desde una perspectiva algebraica mediante fórmulas explícitas y el siguiente algoritmo:
 	\begin{enumerate}
 		\item Si $P = \OO$, entonces $P + Q := Q$. Similarmente, si $Q = \OO$, entonces $P + Q := P$.
@@ -167,12 +170,14 @@ Una curva elíptica sobre cuerpos finitos tiene finitos puntos. Pero es notable 
 En particular, es relevante en numerosos protocolos criptográficos que $|\E(\Fq)|$ tenga un divisor primo grande. Usualmente se eligen curvas elípticas donde $|\E(\Fq)| = hr$, donde $r$ es un primo grande y $h$ (llamado el \textit{cofactor} de la curva) es un número pequeño, como 1, 2, o 4. Ahora sí estamos preparados para adentrarnos en los subgrupos cíclicos de una curva elíptica sobre un cuerpo finito.
 
 \begin{definition}[Orden de un punto en una curva elíptica]
+\label{def:apendice-a-curvas-elipticas-orden-de-un-punto-en-una-curva-eliptica}
 		Sea $\Fq$ un cuerpo finito, y sea $\E(\Fq)$ una curva elíptica. Para cada punto $P \in \E(\Fq)$, definimos su orden como el menor $r \in \N$ tal que $rP = \OO$. Es decir, $|\gen{P}|$ para $\gen{P} \subset \E(\Fq)$.
 \end{definition}
 
 Observamos que el orden de $P$ siempre existe y es un divisor del orden de $\E(\Fq)$ por el corolario del Teorema de Lagrange. Dentro de este grupo cíclico podemos volver a considerar el \DLP, pero sobre un grupo de curva elíptica.
 
 \begin{definition}[\ECDLP]
+\label{def:apendice-a-curvas-elipticas-ecdlp}
 		Sea $\Fq$ un cuerpo finito, y sea $\E(\Fq)$ una curva elíptica. Dados un punto generador $G \in \E(\Fq)$ y un punto $P \in \gen{G}$, el problema del logaritmo discreto sobre curvas elípticas (\ECDLP) es encontrar un $k \in \N$ tal que $P = kG$.
 \end{definition}
 
@@ -206,10 +211,18 @@ A lo largo del proyecto aparecen varias curvas elípticas con roles diferentes. 
 	\item El cuerpo escalar $\Fr$, donde $r \in \N$ es el orden del subgrupo generado por $G$. Idealmente, $r$ será un primo grande.
 \end{itemize}
 
+\subsection{Representación y compresión de puntos}
+\label{subsec:ec-point-compression}
+
+Para transmitir o almacenar un punto de una curva elíptica es necesario convertirlo en una secuencia de bytes. Una representación directa de un punto afín $P=(x,y)$ incluye ambas coordenadas. Sin embargo, en una curva dada por $y^2=x^3+ax+b$, la coordenada $x$ determina como máximo dos valores posibles para $y$, que corresponden a puntos opuestos. Una representación comprimida puede entonces almacenar $x$ junto con un bit que indique cuál de esos dos valores debe elegirse, mientras que el punto en el infinito utiliza una codificación distinguida.
+
+En este contexto, ``compresión'' significa utilizar una serialización reversible de menor tamaño. La descompresión interpreta los bytes, reconstruye la coordenada faltante y rechaza representaciones inválidas o no canónicas. Dependiendo de la interfaz criptográfica, también puede comprobar que el punto pertenezca al subgrupo esperado. Sólo después de esta conversión el punto puede utilizarse en operaciones de grupo como sumas o multiplicaciones escalares. Esta frontera entre bytes serializados y puntos de curva aparece de forma explícita en las interfaces criptográficas utilizadas posteriormente en el proyecto.
+
 \subsection{Curvas elípticas útiles para este trabajo}
+\label{subsec:apendice-a-curvas-elipticas-curvas-elipticas-utiles-para-este-trabajo}
 
 \begin{itemize}[noitemsep]
-	\item \textbf{\BLS.} Es la curva emparejable más importante para esta tesis. Aparece en la discusión de \Groth y de \KZG, en la motivación de las decisiones de diseño y en la implementación \Onchain del verificador, ya que \Cardano expone primitivas criptográficas sobre \BLS y bibliotecas como \texttt{ak-381} se apoyan precisamente en esa curva. Además, en el bloque de circuitos del capítulo de implementación, el cuerpo escalar asociado a \BLS se reutiliza para modelar nodos internos del \SMT y para formalizar circuitos basados en \PoseidonHash.
+	\item \textbf{\BLS.} Es la curva emparejable más importante para esta tesis. Aparece en la discusión de \Groth y de \KZG, en la motivación de las decisiones de diseño y en la implementación \Onchain del verificador, ya que \Cardano expone primitivas criptográficas sobre \BLS \cite{CIP0381} y bibliotecas como \texttt{ak-381} se apoyan precisamente en esa curva. Además, en el bloque de circuitos del capítulo de implementación, el cuerpo escalar asociado a \BLS se reutiliza para modelar nodos internos del \SMT y para formalizar circuitos basados en \PoseidonHash.
 	\item \textbf{\Jubjub.} Esta curva aparece asociada al circuito \STM de \Mithril en la era \Lagrange. Allí las firmas Schnorr de los participantes, así como parte de la aritmetización de \HaloTwo, se expresan sobre \Jubjub. En consecuencia, aunque \Jubjub no sea la curva usada para pairings \Onchain en \Cardano, sí es central para entender la evidencia criptográfica que el \zkBridge recibe y posteriormente comprime o verifica.
 	\item \textbf{\BN.} Históricamente fue muy utilizada en otros entornos blockchain, en particular en \Ethereum, y constituye una de las curvas emparejables más conocidas en la literatura de pruebas \zkSNARK. Su presencia en el texto sirve para contrastar alternativas posibles y para explicar por qué, en el ecosistema concreto de \Cardano, la curva emparejable relevante termina siendo \BLS.
 \end{itemize}

@@ -1,8 +1,9 @@
 % !TeX root = ../tesis.tex
 
-A partir del rol del \MithrilAggregator definido en la introducción, esta sección describe su interfaz concreta. \Mithril fue presentado como protocolo y como estructura de certificados. Sin embargo, el \zkBridge no interactúa con una abstracción matemática, sino con un nodo concreto de la red: el \MithrilAggregator. Este componente, entre otras cosas, expone artefactos y pruebas a través de una API \textsc{REST} \cite{MithrilDocsAggregator}. Para este desarrollo, es la interfaz práctica entre el estado certificado de \Cardano y el \textit{relayer} \Offchain que prepara argumentos para el \zkBridge. La documentación oficial de \Mithril sobre \CardanoTransactions ayuda a interpretar mejor este flujo \cite{MithrilDocsTransactions}.
+A partir del rol del \MithrilAggregator definido en la Sección~\ref{sec:mithril-introduccion-y-motivacion}, esta sección describe su interfaz concreta. \Mithril fue presentado como protocolo y como estructura de certificados. Sin embargo, el \zkBridge no interactúa con una abstracción matemática, sino con una instancia concreta del software \MithrilAggregator, ejecutada como nodo o servicio de red. Este componente, entre otras cosas, expone artefactos y pruebas a través de una API \textsc{REST} \cite{MithrilDocsAggregator}. Para este desarrollo, es la interfaz práctica entre el estado certificado de \Cardano y el \textit{relayer} \Offchain que prepara argumentos para el \zkBridge. La documentación oficial de \Mithril sobre \CardanoTransactions ayuda a interpretar mejor este flujo \cite{MithrilDocsTransactions}.
 
 \subsection{Endpoints relevantes}
+\label{subsec:aggregator-api-e-integracion-endpoints-relevantes}
 
 La implementación local del operador del \zkBridge (\ZkBridgeOperator) consume un subconjunto pequeño pero muy expresivo de la API del \textit{aggregator}. El \ZkBridgeOperator necesita descubrir entidades ya certificadas, verificar su coherencia y transformar la respuesta del \MithrilAggregator en entradas canónicas para sus circuitos. Los endpoints relevantes son los siguientes:
 
@@ -26,6 +27,7 @@ La implementación local del operador del \zkBridge (\ZkBridgeOperator) consume 
 \end{table}
 
 \subsection{Flujo del \ZkBridgeOperator}
+\label{subsec:aggregator-api-e-integracion-flujo-del-zkbridgeoperator}
 
 Organizamos el \ZkBridgeOperator en dos comandos. El primero, \texttt{relayer sync-certificates}, descarga el \GenesisCertificate, consulta certificados recientes, filtra aquellos relacionados con \MithrilStakeDistribution y reconstruye hacia atrás la cadena necesaria para persistirla localmente (hasta el último estado sincronizado, potencialmente puede llegar a ser toda la cadena). Como \textit{output}, escribe metadatos y una colección local de certificados serializados por su hash, lo que es práctico para usar como caché verificable de los certificados con los que trabajan los circuitos del \zkBridge.
 
@@ -37,4 +39,4 @@ El segundo comando, \texttt{tx prove <transaction-hash>}, es el que conecta la A
 	\item Reconstruye el mensaje esperado \ProtocolMsg a partir de las transacciones verificadas y comprueba que coincida con el de $\Certificate_{p,n}$. Es decir, que corresponda a una $r_\tx$ autenticada por alguna \AVK válida y encadenada en la \CertificateChain correcta.
 \end{enumerate}
 
-Finalmente, si los chequeos fueron exitosos, el \ZkBridgeOperator exporta \textit{inputs} válidos para los circuitos \texttt{snapshot\_membership} y \texttt{tx\_set\_update}, desarrollados en el capítulo de implementación.
+Finalmente, si los chequeos fueron exitosos, el \ZkBridgeOperator exporta \textit{inputs} válidos para los circuitos \texttt{snapshot\_membership} y \texttt{tx\_set\_update}, desarrollados respectivamente en las Secciones~\ref{sec:tx-snapshot-membership-el-circuito-de-pertenencia-a-una-transactionsnapshot} y~\ref{sec:tx-set-update-el-circuito-txsetupdatecircuit}.

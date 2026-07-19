@@ -1,8 +1,9 @@
 % !TeX root = tesis.tex
 
 \subsection{Introducción a \ROneCS}
+\label{subsec:apendice-b-r1cs-introduccion-a-ronecs}
 
-Hasta ahora, el argumento $\pi$ asociado a un circuito aritmético $\Circuit$ consiste en una asignación explícita de valores a todas las variables del cómputo: el witness y cada valor intermedio producido por las puertas del circuito. En el ejemplo simple de la sección anterior, esto implicaba transmitir todos los valores. Si bien este enfoque permite al verifier comprobar localmente la corrección de cada operación, su tamaño crece linealmente con el número de puertas del circuito, por lo que no cumple la propiedad de sucintez. Más aún, como también se transmite el witness, no cumple la propiedad de conocimiento cero.
+En la Sección~\ref{sec:aritmetizacion-y-construccion-de-un-snark-circuitos-aritmeticos}, el argumento $\pi$ asociado a un circuito aritmético $\Circuit$ consiste en una asignación explícita de valores a todas las variables del cómputo: el witness y cada valor intermedio producido por las puertas del circuito. En el ejemplo de la Subsección~\ref{subsec:apendice-b-arithmetic-circuits-construccion-de-un-ejemplo}, esto implicaba transmitir todos los valores. Si bien este enfoque permite al verifier comprobar localmente la corrección de cada operación, su tamaño crece linealmente con el número de puertas del circuito, por lo que no cumple la propiedad de sucintez. Más aún, como también se transmite el witness, no cumple la propiedad de conocimiento cero.
 
 Para evitar esto, resulta necesario abstraer el cómputo de una manera estructurada. Observamos que la correctitud del circuito no depende de los valores individuales en sí mismos, sino del hecho de que estos satisfacen un conjunto de igualdades algebraicas bien definidas. En el ejemplo considerado, la sección anterior separó pedagógicamente el cálculo de $y'$ del chequeo $y' = y$. Al pasar a \ROneCS, esa condición de aceptación se absorbe dentro del propio sistema de restricciones, de modo que ya no trabajaremos con $y'$ como variable separada, sino directamente con la igualdad $y = m_1 + m_2$. En consecuencia, la ejecución correcta queda expresada como la existencia de valores $w_1, w_2, w_3, s_1, s_2, s_3, m_1, m_2 \in \Fp$ tales que se cumplen simultáneamente las ecuaciones
 \begin{itemize}[noitemsep]
@@ -17,6 +18,7 @@ Para evitar esto, resulta necesario abstraer el cómputo de una manera estructur
 Más generalmente, cada puerta del circuito induce una relación algebraica entre un número \textit{reducido de variables}, y la validez del cómputo completo se reduce a satisfacer todas estas ecuaciones a la vez. Esta observación permite reformular el problema de verificación de un circuito como un problema puramente algebraico: demostrar la existencia de una asignación a un conjunto de variables que satisface un sistema de ecuaciones estructuradas sobre un cuerpo finito. Desde esta perspectiva, el prover ya no necesita revelar la asignación completa, sino únicamente convencer al verifier de que dicha asignación existe. Durante todo este capítulo siempre debemos recordar el paso conceptual fundamental en la construcción de \SNARK: transformar cómputo en álgebra \cite{Gennaro2013, Parno2016}. Esta sección y la siguiente se dedican a introducir representaciones algebraicas. Ahora definiremos una de ellas.
 
 \begin{definition}[\ROneCS]
+\label{def:apendice-b-r1cs-ronecs}
 	Sea $\K$ un cuerpo finito. Un \emph{sistema de restricciones de rango uno} (Rank-1 Constraint System, \ROneCS) sobre $\K$ es una colección de $m \in \N$ restricciones de la forma
 	$$\InnerProduct{\ConstraintA_i}{\AssignmentVector} \cdot \InnerProduct{\ConstraintB_i}{\AssignmentVector} = \InnerProduct{\ConstraintC_i}{\AssignmentVector}, \quad 1 \leq i \leq m,$$
 		donde los $\ConstraintA_i, \ConstraintB_i, \ConstraintC_i \in \K^n$ son vectores fijos, y $\AssignmentVector \in \K^n$ es un vector de variables.
@@ -39,8 +41,9 @@ $$(\MatrixA\AssignmentVector) \Hadamard (\MatrixB\AssignmentVector) = \MatrixC\A
 donde $\Hadamard$ denota el producto de Hadamard (producto componente a componente). En esta representación, la $i$-ésima fila de las matrices $\MatrixA,\MatrixB,\MatrixC$ corresponde a los vectores $\ConstraintA_i, \ConstraintB_i, \ConstraintC_i$ de la restricción original, y la ecuación resultante impone que la $i$-ésima restricción de rango uno se satisfaga. Esta notación matricial no introduce nueva semántica, sino que organiza el conjunto de restricciones de forma algebraicamente conveniente.
 
 \subsection{Construcción de un ejemplo}
+\label{subsec:apendice-b-r1cs-construccion-de-un-ejemplo}
 
-Vamos a continuar el ejemplo iniciado en la sección anterior: un circuito aritmético para la relación $\Relation \subseteq \Fp^4 \times \Fp^3$ dada por:
+Vamos a continuar el ejemplo iniciado en la Subsección~\ref{subsec:apendice-b-arithmetic-circuits-construccion-de-un-ejemplo}: un circuito aritmético para la relación $\Relation \subseteq \Fp^4 \times \Fp^3$ dada por:
 $$\Relation = \{((x_1, x_2, x_3, y), (w_1, w_2, w_3)) \mid y = (w_1 + x_1) \cdot (w_2 + x_2 + 1) + w_3 \cdot x_3\}$$
 
 Ya tenemos la descomposición del cómputo de la relación en operaciones elementales con la introducción de variables intermedias. En este caso, el vector de asignación $\AssignmentVector$ estará dado por:
@@ -123,6 +126,7 @@ $$\begin{aligned}
 \end{aligned}$$
 
 \subsection{Lo que tenemos hasta ahora}
+\label{subsec:apendice-b-r1cs-lo-que-tenemos-hasta-ahora}
 
 A pesar de haber transformado el cómputo original en un sistema de restricciones algebraicas compacto y estructurado, el problema fundamental de qué argumento $\pi$ publicar persiste. En efecto, una prueba ingenua de que existe un vector de asignación $\AssignmentVector$ que satisface el \ROneCS consistiría nuevamente en revelar dicho vector completo, lo cual expone el witness y todos los valores intermedios del cómputo. Si bien la forma matricial organiza las restricciones de manera conveniente, verificar explícitamente su validez sigue requiriendo acceso directo a $\AssignmentVector$, violando tanto la propiedad de sucintez como la de conocimiento cero que se esperan de un \SNARK (o \zkSNARK).
 
@@ -130,4 +134,4 @@ La dificultad central puede formularse de la siguiente manera: necesitamos conve
 
 Este objetivo se alcanza reformulando el \ROneCS como una identidad polinómica. En lugar de verificar ecuaciones individuales, podemos construir polinomios cuidadosamente diseñados cuya correcta relación encapsule simultáneamente todas las restricciones del \ROneCS. De esta manera, el problema combinatorio de verificar muchas ecuaciones se transforma en un problema algebraico de verificar una única igualdad entre polinomios.
 
-Las estructuras que emergen de esta transformación se denominan Quadratic Arithmetic Programs (\QAP). Los \QAP preservan exactamente la semántica del \ROneCS, pero la expresan en un lenguaje polinómico particularmente adecuado para la construcción de \SNARK basados en compromisos algebraicos y pairings bilineales. En la siguiente sección introducimos formalmente esta representación.
+Las estructuras que emergen de esta transformación se denominan Quadratic Arithmetic Programs (\QAP). Los \QAP preservan exactamente la semántica del \ROneCS, pero la expresan en un lenguaje polinómico particularmente adecuado para la construcción de \SNARK basados en compromisos algebraicos y pairings bilineales. La Sección~\ref{sec:aritmetizacion-y-construccion-de-un-snark-qap-quadratic-arithmetic-programs} introduce formalmente esta representación.
