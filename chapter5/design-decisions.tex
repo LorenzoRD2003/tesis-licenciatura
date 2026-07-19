@@ -14,6 +14,50 @@ En la implementación final, las decisiones de estado y atomicidad se concretan 
 
 Finalmente, se justifica una estrategia de verificación sucinta \emph{híbrida}. Para certificados \Mithril, el flujo implementado verifica \Onchain argumentos \HaloTwo del circuito \MidnightSTMCircuit mediante un validador Aiken generado y optimizado. Como esa verificación no entra en una única transacción, se divide en \PhaseOneSetupTx y \PhaseTwoVerifyTx, y produce como \textit{output} un \ProofReceipt ligado al \texttt{statement\_hash} del certificado. Para los circuitos auxiliares del bridge, en cambio, se usa \Groth: la verificación de un \SNARK basado en pairings sobre \BLS es viable gracias a primitivas criptográficas incorporadas en \Plutus V3 y a bibliotecas en Aiken como \texttt{ak-381}, integradas con circuitos Circom y \texttt{snarkjs} \cite{CIP0381, IOGPlutusV3, AK381Repo}. Como alternativa de evolución, se analiza el uso de \textit{zkVMs} (Risc0/SP1) \emph{envueltas} en \Groth vía recursión (\STARK$\rightarrow$\SNARK), pero se explica por qué esa ruta se descarta como decisión inmediata en favor de circuitos dedicados y verificadores medidos contra los límites reales de \Cardano \cite{Risc0Recursion, SP1TestnetLaunch, EryxProofOfInnocenceSurvey, CardanoCourseProtocolParams}.
 
+\section{Modelo de amenaza, supuestos y propiedades de seguridad}
+\label{sec:design-decisions-modelo-de-seguridad}
+
+El modelo de seguridad de esta tesis se restringe al flujo unidireccional $\LockTx \rightarrow \MintTx$. Su objetivo es impedir que la cadena destino emita activos envueltos sin que exista una transacción de origen perteneciente a un conjunto autenticado por \Mithril, y evitar que un mismo identificador de transacción de origen sea utilizado más de una vez. El camino inverso de \textit{burning}/\textit{unlocking}, la disponibilidad sostenida del servicio y la operación productiva frente a toda posible reorganización de la cadena origen no forman parte de la propiedad demostrada por el prototipo.
+
+Consideramos un adversario capaz de observar ambas cadenas, construir y enviar transacciones, controlar un \textit{relayer}, un \textit{prover}, un operador del bridge o una instancia del \MithrilAggregator, y suministrar certificados, argumentos, datums y redeemers arbitrarios. También puede intentar reutilizar evidencia válida, empalmar las dos fases del verificador \STM, presentar estados obsoletos o competir por consumir un \UTxO de estado. El adversario no puede, en cambio, violar las reglas del ledger de \Cardano, romper las primitivas criptográficas asumidas seguras, falsificar la certificación de \Mithril bajo su supuesto de stake honesto ni modificar las claves, circuitos y scripts que el despliegue fija como parte del protocolo.
+
+La Tabla~\ref{tab:bridge-security-assumptions} resume los supuestos sobre los que descansa el argumento de seguridad. La tabla separa deliberadamente los supuestos de autenticidad y solidez de los supuestos de disponibilidad: un actor \Offchain puede ser necesario para que el protocolo avance sin que por ello sus datos sean aceptados por confianza en ese actor.
+
+\begin{table}[H]
+	\centering
+	\scriptsize
+	\setlength{\tabcolsep}{3pt}
+	\begin{tabular}{p{0.15\linewidth} p{0.24\linewidth} p{0.25\linewidth} p{0.22\linewidth}}
+		\toprule
+		\textbf{Componente} & \textbf{Supuesto} & \textbf{Propiedad que sostiene} & \textbf{Consecuencia si falla} \\
+		\midrule
+		Ledger de \Cardano & Las reglas de consenso y validación \eUTxO se ejecutan correctamente. & Atomicidad, consumo único de \UTxOs y cumplimiento de los validadores. & El estado \Onchain del bridge podría bifurcarse o corromperse. \\
+		\Mithril/\STM & Se mantiene el supuesto de stake honesto y la seguridad del protocolo \STM para los parámetros usados. & Autenticidad probabilística de las entidades y mensajes certificados. & Podrían certificarse mensajes que no cuentan con el respaldo requerido por el protocolo. \\
+		Raíz génesis & La \GenesisVerificationKey fijada por el protocolo es auténtica y la clave de firma correspondiente no fue comprometida. & Anclaje de la \CertificateChain y del primer \StakeDistributionUTxO. & Una cadena de certificados falsa podría presentarse como raíz válida. \\
+		Argumentos \ZK & \HaloTwo y \Groth son sólidos para los circuitos, claves y entradas públicas fijados. & Sólo se aceptan statements pertenecientes a las relaciones aritmetizadas. & Podrían aceptarse certificados, inclusiones o transiciones \SMT falsas. \\
+		Hashes y codificación & Las funciones de hash son resistentes a colisiones y las serializaciones relevantes son canónicas y no ambiguas. & Binding entre certificado, \ProofReceipt, \TxId y raíces autenticadas. & Objetos distintos podrían confundirse bajo un mismo identificador o digest. \\
+		Scripts y claves de verificación & Los validadores, \textit{minting policies}, circuitos y claves de verificación desplegados implementan las relaciones descritas. & Unicidad del estado, consumo de receipts, verificación de argumentos y anti-replay. & La implementación podría aceptar una transición que el modelo abstracto rechaza. \\
+		Actores \Offchain & Existe al menos un actor capaz de obtener evidencia, producir argumentos y enviar las transacciones requeridas. & Progreso operativo del protocolo, pero no autenticidad de una transición individual. & El bridge puede detenerse o censurar operaciones, aun sin producir un estado inválido. \\
+		\bottomrule
+	\end{tabular}
+	\caption{Supuestos del modelo de seguridad del \zkBridge y propiedades que dependen de ellos.}
+	\label{tab:bridge-security-assumptions}
+\end{table}
+
+Bajo estos supuestos, el diseño busca satisfacer las siguientes propiedades para toda transacción $\MintTx$ aceptada:
+
+\begin{enumerate}[noitemsep]
+	\item \textbf{Autenticidad del estado de certificación.} El estado de \StakeDistribution consultado por la capa de aplicación desciende de un \GenesisCertificate autenticado mediante \GenesisVerificationKey y sólo avanza mediante certificados encadenados cuya verificación \STM fue aceptada.
+	\item \textbf{Binding entre verificación y consumo.} Todo \ProofReceipt consumido por una actualización o por \MintTx fue producido por la fase final del verificador correspondiente y fija el \texttt{statement\_hash} que debe coincidir con el mensaje del certificado presentado. El dominio y la política esperados impiden intercambiar receipts de flujos distintos.
+	\item \textbf{Pertenencia de la transacción remota.} El \TxId reclamado pertenece al \TransactionSnapshot autenticado por el certificado de \CardanoTransactions consumido por la operación. Esta propiedad autentica el identificador de la transacción; la interpretación de sus campos de aplicación depende además de la interfaz de \LockTx descrita por los validadores.
+	\item \textbf{No repetición.} El mismo \TxId no puede autorizar dos mintings aceptados, porque \MintTx debe consumir el \TxsUpdaterUTxO vigente y demostrar una transición del \SMT desde ausencia hacia presencia del identificador reclamado.
+	\item \textbf{Continuidad y atomicidad del estado.} Las transiciones de \StakeDistributionUTxO y \TxsUpdaterUTxO preservan sus NFTs y scripts de continuidad; en el mint final, la emisión del activo y la actualización anti-replay forman parte de la misma transacción \eUTxO y se aceptan o rechazan conjuntamente.
+\end{enumerate}
+
+Estas propiedades son propiedades de seguridad: describen estados que el protocolo no debe aceptar. No implican por sí mismas \textit{liveness}. Un operador, \textit{relayer}, \textit{prover} o servicio de \Mithril indisponible puede impedir que se construyan argumentos o se envíen actualizaciones, y un actor que controle la infraestructura de envío puede censurar temporalmente operaciones. Mientras los supuestos de la Tabla~\ref{tab:bridge-security-assumptions} se mantengan, esa indisponibilidad puede detener el bridge, pero no debería bastar para hacer que sus validadores acepten un minting sin la evidencia requerida.
+
+La garantía adoptada es acotada: el bridge autentica las entidades certificadas que consume y hereda para ellas los supuestos de seguridad y vigencia de \Mithril. Del mismo modo, el prototipo valida una formulación compatible de $\LockTx$ y $\MintTx$, pero no pretende cubrir sin adaptaciones pares arbitrarios de cadenas heterogéneas. Estas limitaciones se retoman al evaluar el alcance alcanzado en la Subsección~\ref{subsec:conclusions-and-future-work-modelo-de-seguridad-y-alcance-del-prototipo}.
+
 \section{Restricciones de Cardano que gobiernan el diseño}
 \label{sec:design-decisions-restricciones-de-cardano-que-gobiernan-el-diseno}
 
