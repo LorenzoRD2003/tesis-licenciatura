@@ -120,6 +120,14 @@ El campo \texttt{destination\_address} debe leerse como una dirección de la cad
 
 La implementación adopta en este bloque inicial una convención deliberadamente conservadora: el \UTxO bloqueado se toma como la parte semántica relevante de la operación, y la evidencia presentada en $\MintTx$ se organiza alrededor de ese \UTxO. La información útil para validación queda concentrada en estos campos: referencia del input, dirección de la entrada, datum original, dirección de destino en $\ChainB$ y valor transferido. Esto permite expresar con claridad qué propiedades debe preservar el \zkBridge entre la transacción en $\ChainA$ remota y el minting en $\ChainB$, incluso antes de fijar la forma definitiva del circuito de inclusión.
 
+\begin{definition}[Identificador canónico de una transacción de \Cardano]
+\label{def:txid-canonico-cardano}
+\normalfont
+Sea $t$ una transacción y sea $\mathsf{body}(t)$ su cuerpo, sin el conjunto de \textit{witnesses} ni los datos auxiliares. Su identificador es
+$$\TxId(t)=\BLAKETwoBTwoFiveSix\bigl(\mathsf{CBOR}_{\mathsf{can}}(\mathsf{body}(t))\bigr)\in\Bytes{32}.$$
+El resultado se transporta internamente como $32$ bytes crudos; el hexadecimal utilizado por la CLI y los archivos JSON es sólo una representación textual y se decodifica antes de construir las pruebas. Para los verificadores \Groth, el digest se divide en dos mitades de $16$ bytes interpretadas como enteros \textit{big-endian}. El circuito de pertenencia lo convierte además a hexadecimal ASCII en minúsculas para formar la hoja del árbol \textit{legacy} de \Mithril, mientras que el circuito anti-replay utiliza directamente sus $256$ bits en orden \textit{big-endian} para determinar el camino del \SMT.
+\end{definition}
+
 En esta etapa, el prototipo adopta el modelo homogéneo del Apéndice~\ref{chap:modelo-homogeneo-cadenas-cardano-compatibles}: $\ChainA$ y $\ChainB$ son roles lógicos de una única instancia \eUTxO. Comparten el estado global y el espacio de identificadores de la \textit{devnet}; los scripts, las políticas y los \UTxOs de estado distinguen las etapas del flujo. Esta estructura permite representar en Aiken la evidencia sobre \LockTx y comprobar localmente su coherencia. En la Sección~\ref{sec:tx-snapshot-membership-el-circuito-de-pertenencia-a-una-transactionsnapshot}, esta responsabilidad se separa: el circuito fija criptográficamente que el \TxId de \LockTx pertenece a \CardanoTransactions, mientras que los validadores reconstruyen su cuerpo canónico y exigen la misma política, cantidad y credencial de destino en \MintTx.
 
 \subsection{Transacción de minting en la cadena destino}

@@ -81,7 +81,7 @@ $$\mathsf{LockEvent}_A(t_A)=(b,e,q,d_B,\alpha)$$
 tal que se satisfacen simultáneamente las siguientes condiciones:
 \begin{enumerate}[noitemsep]
   \item $e$ pertenece a un \TransactionSnapshot autenticado por un certificado de \Mithril aceptado por la capa de actualización;
-  \item $e$ coincide con el campo \texttt{locking\_tx\_hash} presentado por $t_B$ y con el campo \texttt{tx\_id} de la actualización anti-replay;
+  \item $e$ coincide con el campo \texttt{locking\_tx\_hash} presentado por $t_B$ y con el campo \texttt{tx\_id} de la actualización contra repeticiones;
   \item $b$ es la política de \textit{minting} bajo la cual se ejecuta $t_B$ y determina tanto el activo $a_b$ como el campo \texttt{bridge\_id} reconstruido;
   \item $t_B$ emite exactamente $q$ unidades de $a_b$ y algún output que contiene esa cantidad tiene como credencial de pago a $d_B$;
   \item la raíz anterior del \SMT representa un estado en el que $e$ está ausente, y la raíz nueva representa el estado resultante de insertarlo; y
@@ -91,7 +91,7 @@ tal que se satisfacen simultáneamente las siguientes condiciones:
 
 Si $T_{\mathsf{used}}$ denota el conjunto comprometido por la raíz anterior del \SMT, la transición demostrada por el circuito se expresa como
 $$e\notin T_{\mathsf{used}} \qquad\land\qquad T_{\mathsf{used}}'=T_{\mathsf{used}}\cup\{e\}.$$
-La prueba de pertenencia autentica $e$ dentro de \CardanoTransactions; la reconstrucción canónica liga a ese identificador los campos de la $\LockTx$; el validador de minting impone la cantidad, la política y el destinatario; y el actualizador verifica la transición anti-replay.
+La prueba de pertenencia autentica $e$ dentro de \CardanoTransactions; la reconstrucción canónica liga a ese identificador los campos de la $\LockTx$; el validador de minting impone la cantidad, la política y el destinatario; y el actualizador verifica que no se repitan transacciones.
 
 \section{Alcance de la abstracción}
 \label{sec:modelo-cadenas-alcance-abstraccion}

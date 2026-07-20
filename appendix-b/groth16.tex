@@ -1,9 +1,9 @@
 % !TeX root = tesis.tex
 
-\subsection{El protocolo \Groth}
-\label{subsec:apendice-b-groth16-el-protocolo-groth}
+\subsection{El esquema no interactivo \Groth}
+\label{subsec:apendice-b-groth16-esquema-no-interactivo-groth}
 
-En esta sección presentamos una descripción simplificada del argumento de conocimiento subyacente al esquema \Groth, pensada para fijar la intuición algebraica principal sin reproducir todos los detalles técnicos de una formalización estándar. Sea $\Relation \subseteq \InstanceSpace \times \WitnessSpace$ una relación en $\NP$. Como en la Sección~\ref{sec:aritmetizacion-y-construccion-de-un-snark-qap-quadratic-arithmetic-programs}, suponemos que la relación ha sido aritmetizada como un \QAP de tamaño $m$ y dimensión $n$ sobre un cuerpo finito $\K = \Fp$, y todo se reduce a argumentar sucintamente una identidad polinomial. Vamos a ligar todos estos nombres de objetos antes de entrar a describir el protocolo propiamente dicho.
+En esta sección presentamos una descripción simplificada del argumento de conocimiento subyacente al esquema \Groth, pensada para fijar la intuición algebraica principal sin reproducir todos los detalles técnicos de una formalización estándar. \Groth es un \zkSNARK no interactivo en el modelo de una cadena de referencia común: una vez generado el $\CRS$, el prover produce una única prueba y el verifier la comprueba sin enviarle desafíos. Sea $\Relation \subseteq \InstanceSpace \times \WitnessSpace$ una relación en $\NP$. Como en la Sección~\ref{sec:aritmetizacion-y-construccion-de-un-snark-qap-quadratic-arithmetic-programs}, suponemos que la relación ha sido aritmetizada como un \QAP de tamaño $m$ y dimensión $n$ sobre un cuerpo finito $\K = \Fp$, y todo se reduce a argumentar sucintamente una identidad polinomial. Vamos a ligar todos estos nombres de objetos antes de describir el esquema.
 
 En particular, existen $3n$ polinomios $\{A_i(x)\}_{i=1}^n$, $\{B_i(x)\}_{i=1}^n$, $\{C_i(x)\}_{i=1}^n$ en $\poly{\Fp}_{< m}$ tales que, definiendo el vector extendido de asignación
 
@@ -19,9 +19,9 @@ $$AB - C = HZ.$$
 
 Además, sean $\GOne$ y $\GTwo$ grupos cíclicos aditivos de orden primo $p$, sean $G_1 \in \GOne$ y $G_2 \in \GTwo$ generadores, y sea $\GT$ un grupo multiplicativo, con un pairing bilineal no degenerado $e: \GOne \times \GTwo \to \GT$.
 
-\begin{definition}[Protocolo interactivo \Groth]
-\label{def:apendice-b-groth16-protocolo-interactivo-groth}
-	El \emph{protocolo interactivo \Groth} busca argumentar la existencia de un polinomio $H$ y consta de los siguientes algoritmos:
+\begin{definition}[Esquema no interactivo \Groth]
+\label{def:apendice-b-groth16-esquema-no-interactivo-groth}
+	El \emph{esquema no interactivo \Groth} busca argumentar la existencia de un polinomio $H$ y consta de los siguientes algoritmos:
 	
 	\begin{itemize}
 		\item $\Setup$: Se eligen de forma uniforme $\tau, \alpha, \beta, \gamma, \delta \in \mathbb{F}^*_p$, que se usan para construir la \SRS, y luego son destruidos. La \SRS contiene:
@@ -57,7 +57,7 @@ Observamos que si $(x, w) \in \Relation$, entonces por la definición del \QAP e
 $$A(\tau)B(\tau) - C(\tau) = H(\tau)Z(\tau).$$
 Si expandimos la ecuación de verificación y utilizamos la bilinealidad de $e$, se observa que todos los términos dependientes de $r$ y $s$ se cancelan, y la igualdad se satisface completamente. Por lo tanto, el protocolo cumple la propiedad de completitud. La solidez se fundamenta en supuestos criptográficos estándar sobre grupos bilineales y en la estructura algebraica de la construcción.
 
-A diferencia de los $\Sigma$-\textit{protocols} discutidos en la Sección~\ref{sec:aritmetizacion-y-construccion-de-un-snark-protocolo-fiatshamir-y-no-interactividad}, \Groth no expone un \textit{challenge} explícito del \textit{verifier}. En cambio, la randomización está embebida en la fase del \textit{trusted setup} mediante la tupla $(\tau, \alpha, \beta, \gamma, \delta)$. \Groth ya es \NIZK por diseño. En particular, no se enmarca en el \ROM, sino en el \AGM (Algebraic Group Model) \cite{Fuchsbauer2018}.
+A diferencia de los $\Sigma$-\textit{protocols} discutidos en la Sección~\ref{sec:aritmetizacion-y-construccion-de-un-snark-protocolo-fiatshamir-y-no-interactividad}, \Groth no parte de un intercambio en el que el verifier elige un \textit{challenge}, ni utiliza la transformación de \FiatShamir. El $\Setup$ genera el $\CRS$ a partir de los secretos $(\tau,\alpha,\beta,\gamma,\delta)$ y esos secretos deben destruirse; el $\CRS$ resultante fija la estructura algebraica con la que se producen y verifican las pruebas. Por separado, cada ejecución de $\Prove$ utiliza aleatoriedad fresca $r,s$, responsable de randomizar la prueba y contribuir a la propiedad de conocimiento cero. Algunos análisis de las propiedades algebraicas de \Groth se formulan en el \AGM \cite{Fuchsbauer2018}.
 
 Para finalizar esta subsección, vamos a observar que \Groth realmente está diseñado para verificar la identidad polinomial en el exponente (en $\GT$), pero separando la parte pública $1 \leq i \leq \ell$, de la parte privada $\ell + 1 \leq i \leq n$, y de la parte de aleatorización. En efecto:
 

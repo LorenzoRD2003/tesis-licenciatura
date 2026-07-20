@@ -12,7 +12,7 @@ Este circuito resuelve cómo convencer a la cadena destino \ChainB de que la \Lo
 
 En la implementación actualmente compatible con el \MithrilAggregator, la entidad \CardanoTransactions se autentica mediante el esquema \LegacyHashScheme de la era \Pythagoras. Como acabamos de describir, la prueba tiene estructura de dos niveles: un \emph{sub-tree} que agrupa un rango contiguo de transacciones de \Cardano, y un \emph{master tree} cuyas hojas son un compromiso de cada \textit{sub-tree} junto con el rango que representa.
 
-Fijamos la función de hash $\BLAKETwoSTwoFiveSix: \Strings{\star} \to \Strings{256}$, y para cada longitud de bytes $\ell \in \N$ escribimos $\Bytes{\ell} = \Strings{8\ell}$. Si $\TxId \in \Bytes{32}$ es el hash canónico de una transacción de \Cardano, la hoja en el \textit{sub-tree} es su codificación hexadecimal ASCII en minúsculas $\mathsf{hex}_{\mathsf{lc}}(\TxId) \in \Bytes{64}$, que luego se hashea con \BLAKETwoSTwoFiveSix a \Bytes{32}.
+Fijamos la función de hash $\BLAKETwoSTwoFiveSix: \Strings{\star} \to \Strings{256}$, y para cada longitud de bytes $\ell \in \N$ escribimos $\Bytes{\ell} = \Strings{8\ell}$. Si $\TxId \in \Bytes{32}$ es el identificador canónico de una transacción de \Cardano según la Definición~\ref{def:txid-canonico-cardano}, la hoja en el \textit{sub-tree} es su codificación hexadecimal ASCII en minúsculas $\mathsf{hex}_{\mathsf{lc}}(\TxId) \in \Bytes{64}$, que luego se hashea con \BLAKETwoSTwoFiveSix a \Bytes{32}.
 
 Sea ahora $\SnapshotSubRoot \in \Bytes{32}$ la raíz del \textit{sub-tree} que contiene a \TxId. La hoja correspondiente del \textit{master tree} se construye como:
 $$\MasterLeaf = \BLAKETwoSTwoFiveSix(\alpha \concat \SnapshotSubRoot), \qquad \alpha \in \Bytes{L},\; 0 \leq L \leq 32,$$

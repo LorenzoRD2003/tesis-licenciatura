@@ -21,7 +21,7 @@ Sea ahora $\SiblingVec = (h_0,\ldots,h_{255}) \in \Fr^{256}$ el vector de herman
 \subsection{\textit{Public inputs} y \textit{witness} del circuito}
 \label{subsec:tx-set-update-public-inputs-y-witness-del-circuito}
 
-Los \textit{public inputs} del circuito están dados por la tripla $\PublicInputs = (\TxId, \RootIn, \RootOut)$, donde $\TxId \in \Bytes{32}$ es el identificador de la transacción, $\RootIn \in \Fr$ es la raíz del conjunto antes de procesarla y $\RootOut \in \Fr$ es la raíz después de marcarla como usada. El \textit{witness} es simplemente $\PrivateInputs = \SiblingVec = (h_0,\ldots,h_{255}) \in \Fr^{256}$.
+Los \textit{public inputs} del circuito están dados por la tripla $\PublicInputs = (\TxId, \RootIn, \RootOut)$, donde $\TxId \in \Bytes{32}$ es el identificador canónico de la transacción definido en la Definición~\ref{def:txid-canonico-cardano}, $\RootIn \in \Fr$ es la raíz del conjunto antes de procesarla y $\RootOut \in \Fr$ es la raíz después de marcarla como usada. El \textit{witness} es simplemente $\PrivateInputs = \SiblingVec = (h_0,\ldots,h_{255}) \in \Fr^{256}$.
 
 La instancia \Circom es más detallada porque debe hacer explícita la codificación binaria del \textit{statement}. Recibe:
 \begin{enumerate}[noitemsep]
@@ -65,9 +65,11 @@ La relación anterior es implementada en \Circom para ser convertida a un circui
 	\item Un chequeo de rango de cada byte en \TxIdBytesArray: para cada $0 \leq j < 32$, el circuito instancia un componente \texttt{AssertByte} y exige $0 \leq \TxIdBytes{j} < 256$.
 	\item La descomposición de cada byte \TxIdBytes{j} en bits mediante un componente \texttt{ToBits(8)}. Luego, forzamos cada entrada de \MtPathIndexesArray a ser booleana usando \texttt{AssertBit}, e imponemos la igualdad $\MtPathIndexes{d} = b_d$, para cada $0 \leq d < 256$. Esto impide sustituir el camino de otra clave por uno compatible con el mismo \SiblingVec.
 	\item El componente \texttt{SparseMerkleRoot(256)} llamado \texttt{inPath} recibe la hoja $0$, el vector \MtPathIndexes{256} y el vector \MtPathValues{256}, y restringe $\texttt{inPath.root} = \MtRootIn$, lo que equivale a $a_0^{(0)} = \RootIn$.
-	\item El componente \texttt{SparseMerkleRoot(256)} llamado \texttt{inPath} recibe la hoja $0$, el vector \MtPathIndexes{256} y el vector \MtPathValues{256}, y restringe $\texttt{inPath.root} = \MtRootOut$, lo que equivale a $a_0^{(0)} = \RootOut$.
+	\item El componente \texttt{SparseMerkleRoot(256)} llamado \texttt{outPath} recibe la hoja $1$, el mismo vector \MtPathIndexes{256} y el mismo vector \MtPathValues{256}, y restringe $\texttt{outPath.root} = \MtRootOut$, lo que equivale a $a_0^{(1)} = \RootOut$.
 	\item Dos componentes \texttt{Pack16Bytes} empaquetan la mitad alta y la mitad baja de \TxIdBytes{32} en los enteros públicos \TxIdHi y \TxIdLo. Las dos raíces se copian además a \texttt{mt\_root\_in\_out} y \texttt{mt\_root\_out\_out}. Son exactamente los cuatro \textit{public inputs} contra los cuales verifica el validador \Onchain.
 \end{enumerate}
+
+Los componentes \texttt{inPath} y \texttt{outPath} comparten, posición por posición, los $256$ índices y los $256$ nodos hermanos; sólo difieren en el valor de la hoja terminal. Esta igualdad de caminos es la que convierte las dos reconstrucciones de raíces en una única transición de ausencia a presencia para \TxId.
 
 \subsection{Vínculo con \TxsUpdaterMintingValidator}
 \label{subsec:tx-set-update-vinculo-con-txsupdatermintingvalidator}
